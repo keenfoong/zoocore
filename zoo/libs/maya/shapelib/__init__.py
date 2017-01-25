@@ -29,9 +29,6 @@ def loadFromLib(shapeName, parent=None):
     :rtype: dict or MObject
     :raises ValueError
     """
-    data = shapelib.loadFromLib(shapeName)
-    if parent is not None:
-        return curves.createCurveShape(parent, data)
     lib = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__))))
     for f in iter(os.listdir(lib)):
         if not f.endswith("shape"):
@@ -39,6 +36,8 @@ def loadFromLib(shapeName, parent=None):
         name = os.path.splitext(f)[0]
         if name == shapeName:
             data = file.loadJson(os.path.join(os.path.normpath(lib), f))
+            if parent is not None and data:
+                return curves.createCurveShape(parent, data)
             if data:
                 return data
     raise ValueError("The shape name doesn't exist in the library")
@@ -57,7 +56,7 @@ def saveToLib(node, name, override=True):
     Example::
         >>>nurbsCurve = cmds.circle()[0]
         # requires an MObject of the shape node
-        >>>data = saveToLib(api.asMObject(nurbsCurve))
+        >>>data, path = saveToLib(api.asMObject(nurbsCurve))
     """
     if name is None:
         name = nodes.nameFromMObject(node)
@@ -73,4 +72,4 @@ def saveToLib(node, name, override=True):
     path = os.path.join(lib, name)
     file.saveJson(data, path)
 
-    return path
+    return data , path

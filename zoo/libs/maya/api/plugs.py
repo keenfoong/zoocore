@@ -516,6 +516,10 @@ def setAttr(plug, value):
         for i in range(plug.evaluateNumElements()):
             setAttr(plug.elementByPhysicalIndex(i), value[i])
         return
+    elif plug.isCompound:
+        for i in range(plug.numChildren()):
+            setAttr(plug.child(i), value[i])
+        return
     obj = plug.attribute()
     if obj.hasFn(om2.MFn.kUnitAttribute):
         attr = om2.MFnUnitAttribute(obj)
@@ -564,12 +568,11 @@ def setAttr(plug, value):
     elif obj.hasFn(om2.MFn.kMessageAttribute) and isinstance(value, om2.MPlug):
         # connect the message attribute
         connectPlugs(plug, value)
-    if plug.isCompound:
-        for i in range(plug.numChildren()):
-            setAttr(plug.child(i), value[i])
-        return
-    raise ValueError(
-        "Currently we don't support dataType ->%s contact the developers to get this implemented" % obj.apiTypeStr)
+    else:
+        raise ValueError(
+            "Currently we don't support dataType ->%s contact the developers to get this implemented" % obj.apiTypeStr)
+
+
 
 
 def getPlugFn(obj):

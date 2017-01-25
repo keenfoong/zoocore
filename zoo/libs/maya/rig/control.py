@@ -2,7 +2,7 @@ from maya import cmds
 from maya.api import OpenMaya as om2
 from zoo.libs.maya.api import nodes
 from zoo.libs.maya.api import generic
-from zoo.libs.maya.api import curves
+from zoo.libs.maya import shapelib
 
 
 class Control(object):
@@ -87,7 +87,7 @@ class Control(object):
         if not self.dagPath:
             self.dagPath = nodes.createDagNode(self._name, "transform")
 
-        self.dagPath = om2.MFnDagNode(curves.loadFromLib(shape, parent=self.dagPath)).getPath()
+        self.dagPath = om2.MFnDagNode(shapelib.loadFromLib(shape, parent=self.dagPath)).getPath()
         if self.dagPath is None:
             raise ValueError("Not a valid shape name %s" % shape)
         if position is not None:
