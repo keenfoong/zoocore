@@ -239,9 +239,9 @@ class MetaBase(object):
 
     def __getattr__(self, name):
         if not name.startswith("_"):
-            attr = self.getAttribute(name)
-            if attr is not None:
-                return attr
+            plug = self.getAttribute(name)
+            if plug is not None:
+                return plug
             # search for the given method name
             elif hasattr(self._mfn, name):
                 return getattr(self._mfn, name)
@@ -447,9 +447,9 @@ class MetaBase(object):
             data.update(attrData)
         return data
 
-    def connectTo(self, attributeName, node):
+    def connectTo(self, attributeName, node, nodeAttributeName=None):
+        nodeAttributeName = nodeAttributeName or "metaNode"
         dep = om2.MFnDependencyNode(node)
-        nodeAttributeName = "metaNode"
         if not dep.hasAttribute(nodeAttributeName):
             destinationPlug = dep.findPlug(nodes.addAttribute(node, nodeAttributeName, nodeAttributeName,
                                                               attrtypes.kMFnMessageAttribute).object(), False)

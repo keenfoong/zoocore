@@ -573,8 +573,6 @@ def setAttr(plug, value):
             "Currently we don't support dataType ->%s contact the developers to get this implemented" % obj.apiTypeStr)
 
 
-
-
 def getPlugFn(obj):
     """
     :param obj: MObject that has the MFnAttribute functionset
@@ -703,18 +701,41 @@ def getPythonTypeFromPlugValue(plug):
     dataType, value = getPlugAndType(plug)
     types = (attrtypes.kMFnDataString, attrtypes.kMFnDataMatrix, attrtypes.kMFnDataFloatArray,
              attrtypes.kMFnDataFloatArray, attrtypes.kMFnDataDoubleArray,
-             attrtypes.kMFnDataIntArray, attrtypes.kMFnDataPointArray, attrtypes.kMFnDataVectorArray,
-             attrtypes.kMFnDataStringArray, attrtypes.kMFnDataMatrixArray,
+             attrtypes.kMFnDataIntArray, attrtypes.kMFnDataPointArray, attrtypes.kMFnDataStringArray,
              attrtypes.kMFnNumeric2Double, attrtypes.kMFnNumeric2Float, attrtypes.kMFnNumeric2Int,
              attrtypes.kMFnNumeric2Long, attrtypes.kMFnNumeric2Short, attrtypes.kMFnNumeric3Double,
              attrtypes.kMFnNumeric3Int, attrtypes.kMFnNumeric3Long, attrtypes.kMFnNumeric3Short,
              attrtypes.kMFnNumeric4Double)
-    if isinstance(dataType, list):
-        if not dataType:
-            return None
+
+    if dataType is None:
+        return None
+    elif isinstance(dataType, (list, tuple)):
+        res = []
+        for idx, dt in enumerate(dataType):
+            if dt == attrtypes.kMFnDataMatrix:
+                res.append([i for i in value[idx]])
+            elif dt in (attrtypes.kMFnUnitAttributeDistance, attrtypes.kMFnUnitAttributeAngle, attrtypes.kMFnUnitAttributeTime):
+                res.append(value[idx].value)
+        return res
+    elif dataType in (attrtypes.kMFnDataMatrixArray, attrtypes.kMFnDataVectorArray):
         return [[i for i in subValue] for subValue in value]
-    elif dataType in types:
-        return [i for i in value]
     elif dataType in (attrtypes.kMFnUnitAttributeDistance, attrtypes.kMFnUnitAttributeAngle, attrtypes.kMFnUnitAttributeTime):
         return value.value
+    elif dataType in types:
+        return [i for i in value]
+
+    return value
+
+
+def pythonTypeToMayaType(dataType, value):
+    if dataType == attrtypes.kMFnDataMatrixArray:
+        return [om2.MMatrix(subValue) for subValue in value]
+    elif attrtypes.kMFnDataVectorArray:
+        return [om2.MVector(subValue) for subValue in value]
+    elif dataType == attrtypes.kMFnUnitAttributeDistance:
+        return om2.MDistance(value)
+    elif dataType == attrtypes.kMFnUnitAttributeAngle:
+        return om2.MAngle(value, om2.MAngle.kDegrees)
+    elif dataType == attrtypes.kMFnUnitAttributeTime:
+        return om2.MTime(value)
     return value

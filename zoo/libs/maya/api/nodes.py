@@ -725,12 +725,20 @@ def serializeNode(node):
 
     data = {"name": dep.fullPathName() if node.hasFn(om2.MFn.kDagNode) else dep.name(),
             "type": dep.typeName,
-            "requirements": dep.pluginName}
+            }
+    req = dep.pluginName
+    if req:
+        data["requirements"] = req
     if node.hasFn(om2.MFn.kDagNode):
         data["parent"] = nameFromMObject(dep.parent(0))
     attributes = {}
     for pl in iterAttributes(node):
         attrData = {}
+        if pl.isDestination:
+            source = pl.source()
+            nodeName = nameFromMObject(source.node())
+            attrData["connections"] = (nodeName, source.partialName(includeNonMandatoryIndices=True, useLongNames=True))
+
         if not pl.isDynamic:
             if pl.isDefaultValue():
                 continue
@@ -743,18 +751,12 @@ def serializeNode(node):
             if pl.attribute().hasFn(om2.MFn.kEnumAttribute):
                 attrData["enums"] = plugs.enumNames(pl)
         value = plugs.getPythonTypeFromPlugValue(pl)
-
-        if value is not None:
+        # could be 0.0, False, True which is a valid result so we need to explicitly check
+        if value not in (None, [], {}):
             attrData["value"] = value
-        if pl.isDestination:
-            connection = pl.connected(True, False)[0]
-            connectedNode = connection.node()
-            nodeName = om2.MFnDagNode(connectedNode).fullPathName() if node.hasFn(
-                om2.MFn.kDagNode) else om2.MFnDependencyNode(
-                connectedNode).name()
-            attrData["connections"] = (nodeName, connection.partialName(useLongNames=True,
-                                                                        includeNonMandatorIndices=True))
-        attributes[pl.partialName(includeNonMandatoryIndices=True, useLongNames=True)] = attrData
+
+        if attrData:
+            attributes[pl.partialName(includeNonMandatoryIndices=True, useLongNames=True)] = attrData
 
     if attributes:
         data["attributes"] = attributes
