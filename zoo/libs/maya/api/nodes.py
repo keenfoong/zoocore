@@ -529,7 +529,8 @@ def setTranslation(obj, position, space=None):
 
 def getTranslation(obj, space=None):
     space = space or om2.MSpace.kTransform
-    trans = om2.MFnTransform(obj)
+    path = om2.MFnDagNode(obj).getPath()
+    trans = om2.MFnTransform(path)
     return trans.translation(space)
 
 
@@ -545,6 +546,14 @@ def setCurvePositions(shape, points, space=None):
     if len(points) != curve.numCVs:
         raise ValueError("Mismatched current curves cv count and the length of points to modify")
     curve.setCVPositions(points, space)
+
+
+def setRotation(node, rotation, space=om2.MSpace.kTransform):
+    path = om2.MFnDagNode(node).getPath()
+    trans = om2.MFnTransform(path)
+    if isinstance(rotation, (list, tuple)):
+        rotation = om2.MEulerRotation([om2.MAngle(i, om2.MAngle.kDegrees).asRadians() for i in rotation]).asQuaternion()
+    trans.setRotation(rotation, space)
 
 
 def addAttribute(node, longName, shortName, attrType=attrtypes.kMFnNumericDouble):

@@ -2,7 +2,7 @@
 import inspect
 import os
 
-import plugin
+from zoo.libs.plugin import plugin
 from zoo.libs.utils import modules
 from zoo.libs.utils import zlogging
 
@@ -23,7 +23,7 @@ class PluginManager(object):
         self.loadedPlugins = {}  # {className: instance}
         self.basePaths = []
 
-    def registerTools(self, paths):
+    def registerPaths(self, paths):
         """This function is helper function to register a list of paths.
 
         :param paths: A list of module or package paths, see registerByModule() and registerByPackage() for the path format.
@@ -31,13 +31,18 @@ class PluginManager(object):
         """
         self.basePaths.extend(paths)
         for p in paths:
+            if not p:
+                continue
             importedModule = None
-            if p:
+            if os.path.exists(p) and os.path.isdir(p):
+                self.registerByPackage(p)
+                continue
+            elif p:
                 importedModule = modules.importModule(p)
+
             if importedModule:
                 self.registerByModule(importedModule)
                 continue
-
             self.registerByPackage(p)
 
     def registerByModule(self, module):
@@ -74,7 +79,7 @@ class PluginManager(object):
         :param classObj: the plugin instance to registry
         :type classObj: Plugin
         """
-        if classObj not in self.plugins.values() and issubclass(classObj, plugin.ToolBasePlugin):
+        if classObj not in self.plugins.values() and issubclass(classObj, plugin.Plugin):
             logger.debug("registering plugin -> {}".format(classObj.__name__))
             self.plugins[classObj.__name__] = classObj
 

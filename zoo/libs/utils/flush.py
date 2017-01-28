@@ -21,11 +21,10 @@ def flushUnder(dirpath):
     """
     modulePaths = list()
     for name, module in sys.modules.items():
-
         if not module:
             continue
         try:
-            moduleDirpath = os.path.dirname(inspect.getfile(module))
+            moduleDirpath = os.path.realpath(os.path.dirname(inspect.getfile(module)))
             if moduleDirpath.startswith(dirpath):
                 modulePaths.append((name, inspect.getfile(sys.modules[name])))
                 del sys.modules[name]

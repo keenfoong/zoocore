@@ -354,8 +354,11 @@ class MetaBase(object):
         attr = nodes.addAttribute(self._handle.object(), name, name, Type)
         newPlug = None
         if attr is not None:
-            newPlug = self._mfn.findPlug(attr.object(), False)
+            newPlug = om2.MPlug(self._handle.object(), attr.object())
         if value is not None and newPlug is not None:
+            # if mobject expect it to be a node
+            if isinstance(value, om2.MObject):
+                self.connectTo(newPlug.name())
             plugs.setAttr(newPlug, value)
         newPlug.isLocked = True
         return attr

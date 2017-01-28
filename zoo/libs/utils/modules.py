@@ -14,7 +14,7 @@ def importModule(modulePath, name=""):
         try:
             return __import__(modulePath, fromlist="dummy")
         except ImportError:
-            logger.debug("failed to load module->%s" % modulePath)
+            logger.debug("failed to load module->%s" % modulePath, exc_info=True)
 
     try:
         import imp
@@ -66,5 +66,5 @@ def isDottedPath(path):
     :param path: str
     :return: bool
     """
-    return len(path.split(".")) > 1
+    return len(path.split(".")) > 2
 

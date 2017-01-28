@@ -17,11 +17,11 @@ class MetaRig(metadata.MetaNode):
         attrname = "_".join([self._ctrlPrefix, name])
         return self.connectTo(attrname, node)
 
-    def addJnt(self, node, name):
+    def addJoint(self, node, name):
         attrname = "_".join([self._jntPrefix, name])
         return self.connectTo(attrname, node)
 
-    def addSkinJnt(self, node, name):
+    def addSkinJoint(self, node, name):
         attrname = "_".join([self._skinJntPrefix, name])
         return self.connectTo(attrname, node)
 
@@ -32,10 +32,10 @@ class MetaRig(metadata.MetaNode):
     def controls(self):
         return self.findPlugsByFilteredName(self._ctrlPrefix)
 
-    def jnts(self):
+    def joints(self):
         return self.findPlugsByFilteredName(self._jntPrefix)
 
-    def skinJnts(self):
+    def skinJoints(self):
         return self.findPlugsByFilteredName(self._skinJntPrefix)
 
     def geo(self):
