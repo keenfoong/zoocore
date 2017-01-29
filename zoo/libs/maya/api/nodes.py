@@ -320,7 +320,7 @@ def isUnderSceneRoot(node):
     return isSceneRoot(par)
 
 
-def iterChildren(mObject, recursive=False, filter="all"):
+def iterChildren(mObject, recursive=False, filter=None):
     """Generator function that can recursive iterate over the children of the given mobject.
 
     :param mObject: The mobject to traverse must be a mobject that points to a transform
@@ -330,20 +330,19 @@ def iterChildren(mObject, recursive=False, filter="all"):
     :param filter: om.MFn or 'all', the node type to find, can be either 'all' for returning everything or a om.MFn type constant
                     does not include shapes
     :type filter: str or int
-    :return: om.MFnDagNode
+    :return: om.MObject
     """
     dagNode = om2.MFnDagNode(mObject)
     childCount = dagNode.childCount()
     if not childCount:
         return
 
-    for index in range(childCount):
+    for index in xrange(childCount):
         childObj = dagNode.child(index)
-        if childObj.apiType() == filter or filter == "all":
-            childDag = om2.MFnDagNode(childObj)
-            yield childDag
+        if childObj.apiType() == filter or filter is None:
+            yield childObj
             if recursive:
-                for x in iterChildren(childDag.object(), recursive, filter):
+                for x in iterChildren(childObj, recursive, filter):
                     yield x
 
 
@@ -367,6 +366,15 @@ def iterAttributes(node):
             continue
         for child in plugs.iterChildren(plug):
             yield child
+
+
+def iterExtraAttributes(node):
+    dep = om2.MFnDependencyNode(node)
+    for idx in xrange(dep.attributeCount()):
+        attr = dep.attribute(idx)
+        plug = om2.MPlug(node, attr)
+        if plug.isDynamic:
+            yield plug
 
 
 def iterConnections(node, source=True, destination=True):

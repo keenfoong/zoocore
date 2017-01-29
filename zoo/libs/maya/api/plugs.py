@@ -552,6 +552,7 @@ def setAttr(plug, value):
             plug.setInt(value)
         elif at == om2.MFnNumericData.kShort:
             plug.setInt(value)
+
     elif obj.hasFn(om2.MFn.kEnumAttribute):
         plug.setInt(value)
 

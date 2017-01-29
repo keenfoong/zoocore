@@ -386,6 +386,9 @@ class MetaBase(object):
             return True
         return False
 
+    def hasAttribute(self, name):
+        return self._mfn.hasAttribute(name)
+
     @lockMetaManager
     def renameAttribute(self, name, newName):
         try:
@@ -472,7 +475,7 @@ class MetaBase(object):
             if newAttr is not None:
                 sourcePlug = self._mfn.findPlug(newAttr.object(), False)
             else:
-                sourcePlug=self._mfn.findPlug(attributeName, False)
+                sourcePlug = self._mfn.findPlug(attributeName, False)
         with plugs.setLockedContext(sourcePlug):
             plugs.connectPlugs(sourcePlug, destinationPlug)
         return destinationPlug
