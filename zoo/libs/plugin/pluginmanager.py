@@ -65,10 +65,11 @@ class PluginManager(object):
         """
         visited = set()
         for subModule in modules.iterModules(pkg):
+
             filename = os.path.splitext(os.path.basename(subModule))[0]
-            if filename.startswith("__") or filename in visited:
+            if filename.startswith("__") or subModule.endswith(".pyc") or subModule in visited:
                 continue
-            visited.add(filename)
+            visited.add(subModule)
             subModuleObj = modules.importModule(subModule)
             for member in modules.iterMembers(subModuleObj, predicate=inspect.isclass):
                 self.registerPlugin(member[1])

@@ -358,8 +358,9 @@ class MetaBase(object):
         if value is not None and newPlug is not None:
             # if mobject expect it to be a node
             if isinstance(value, om2.MObject):
-                self.connectTo(newPlug.name())
-            plugs.setAttr(newPlug, value)
+                self.connectTo(name, value)
+            else:
+                plugs.setAttr(newPlug, value)
         newPlug.isLocked = True
         return attr
 

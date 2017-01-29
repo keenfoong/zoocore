@@ -4,7 +4,7 @@ import inspect
 import logging
 import sys
 import os
-
+import imp
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,6 @@ def importModule(modulePath, name=""):
             logger.debug("failed to load module->%s" % modulePath, exc_info=True)
 
     try:
-        import imp
         if os.path.exists(modulePath):
             if not name:
                 name = os.path.splitext(os.path.basename(modulePath))[0]
@@ -67,4 +66,3 @@ def isDottedPath(path):
     :return: bool
     """
     return len(path.split(".")) > 2
-

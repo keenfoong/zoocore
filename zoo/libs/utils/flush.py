@@ -52,7 +52,7 @@ def reloadZoo():
     bases = os.environ.get("ZOO_BASE", "").split(os.pathsep)
     for base in bases:
         if os.path.exists(base):
-            flushUnder(base)
+            flushUnder(os.path.realpath(base))
 
 
 def reloadHard(moduleName):

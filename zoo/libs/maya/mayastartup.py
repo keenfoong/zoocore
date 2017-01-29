@@ -19,6 +19,7 @@ class ZooMayaStartUp(object):
     def setupPlugins():
         """
         sets up paths for plugins (both binary and python ones) and loads them
+        @todo add plugins from all basepaths generically
         """
         basePaths = os.environ['MAYA_PLUG_IN_PATH'].split(os.pathsep)
         extraPaths = str(os.path.join(os.environ.get("ZOO_BASE", "").split(os.pathsep)[0], "libs", "maya",
