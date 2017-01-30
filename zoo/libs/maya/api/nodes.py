@@ -1,4 +1,5 @@
 from maya.api import OpenMaya as om2
+from maya import cmds
 from zoo.libs.maya.api import plugs
 from zoo.libs.maya.api import attrtypes
 
@@ -368,13 +369,14 @@ def iterAttributes(node):
             yield child
 
 
-def iterExtraAttributes(node):
+def iterExtraAttributes(node, filteredType=None):
     dep = om2.MFnDependencyNode(node)
     for idx in xrange(dep.attributeCount()):
         attr = dep.attribute(idx)
         plug = om2.MPlug(node, attr)
         if plug.isDynamic:
-            yield plug
+            if filteredType is None or plugs.plugType(plug) == filteredType:
+                yield plug
 
 
 def iterConnections(node, source=True, destination=True):
@@ -530,8 +532,9 @@ def hasAttribute(node, name):
 
 
 def setTranslation(obj, position, space=None):
+    path = om2.MFnDagNode(obj).getPath()
     space = space or om2.MSpace.kTransform
-    trans = om2.MFnTransform(obj)
+    trans = om2.MFnTransform(path)
     trans.setTranslation(position, space)
 
 
@@ -779,3 +782,20 @@ def serializeNode(node):
         data["attributes"] = attributes
 
     return data
+
+
+def createAnnotation(rootObj, endObj, text=None, name=None):
+    name = name or "annotation"
+
+    rootDag = om2.MFnDagNode(rootObj)
+    boundingBox = rootDag.boundingBox
+    center = om2.MVector(boundingBox.center)
+    locator = asMObject(cmds.createNode("locator", n=name))
+    locatorTransform = getParent(locator)
+    setTranslation(locatorTransform, om2.MVector(boundingBox.center) * rootDag.getPath().exclusiveMatrixInverse(),
+                   om2.MSpace.kWorld)
+    annotationNode = asMObject(cmds.annotate(nameFromMObject(locatorTransform), tx=text))
+    plugs.setAttr(om2.MFnDagNode(annotationNode).findPlug("position", False), center)
+    setParent(locatorTransform, rootObj)
+    setParent(getParent(annotationNode), endObj)
+    return annotationNode, locatorTransform

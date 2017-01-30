@@ -2,6 +2,7 @@ from maya import cmds
 from maya.api import OpenMaya as om2
 from zoo.libs.maya.api import nodes
 from zoo.libs.maya.api import generic
+from zoo.libs.maya.api import curves
 from zoo.libs.maya import shapelib
 
 
@@ -49,7 +50,7 @@ class Control(object):
         if self.dagPath is not None:
             return self.dagPath.node()
 
-    def addSrt(self, suffix=""):
+    def addSrt(self, suffix="", parent=None):
         """Adds a parent transform to the curve transform
 
         :param suffix: the suffix that this transform will get, eg name: self.name_suffix
@@ -59,12 +60,15 @@ class Control(object):
         """
         if self.dagPath is None:
             return
-        parent = nodes.getParent(self.mobject())
-        newSrt = nodes.createDagNode("_".join([self.name, suffix]), "transform", parent)
+        ctrlPat = nodes.getParent(self.mobject())
+        newSrt = nodes.createDagNode("_".join([self.name, suffix]), "transform", ctrlPat)
         nodes.setParent(self.mobject(), newSrt)
+        if parent is not None:
+            nodes.setParent(newSrt, parent)
+
         return newSrt
 
-    def create(self, shape="", position=None, rotation=None, scale=(1, 1, 1), rotationOrder=None):
+    def create(self, shape=None, position=None, rotation=None, scale=(1, 1, 1), rotationOrder=None):
         """This method creates a new set of curve shapes for the control based on the shape type specified.
          if the self.node already initialized then this node will become the parent. this method has basic functionality
          for transformation if you need more control use the other helper method on this class.
@@ -86,8 +90,11 @@ class Control(object):
             self._name = "control_new"
         if not self.dagPath:
             self.dagPath = nodes.createDagNode(self._name, "transform")
+        if isinstance(shape, basestring):
+            self.dagPath = om2.MFnDagNode(shapelib.loadFromLib(shape, parent=self.dagPath)).getPath()
+        else:
+            self.dagPath = om2.MFnDagNode(curves.createCurveShape(self.dagPath, shape)).getPath()
 
-        self.dagPath = om2.MFnDagNode(shapelib.loadFromLib(shape, parent=self.dagPath)).getPath()
         if self.dagPath is None:
             raise ValueError("Not a valid shape name %s" % shape)
         if position is not None:
@@ -98,8 +105,6 @@ class Control(object):
             self.setScale(scale)
         if rotationOrder is not None:
             self.setRotationOrder(rotationOrder)
-
-        self.setColour(self.colour, shapeIndex=0)
         return self.dagPath
 
     def setPosition(self, position, cvs=False, space=None):

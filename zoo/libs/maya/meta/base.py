@@ -44,9 +44,9 @@ def findSceneRoots():
     for meta in iterSceneMetaNodes():
         dep = om2.MFnDependencyNode(meta)
         try:
-            root = dep.findPlug("root", False).asBool()
-            if root:
-                roots.append(root)
+            isRoot = dep.findPlug("root", False).asBool()
+            if isRoot:
+                roots.append(meta)
         except RuntimeError:
             continue
     return roots
@@ -85,7 +85,7 @@ def iterSceneMetaNodes():
     while not t.isDone():
         node = t.thisNode()
         dep = om2.MFnDependencyNode(node)
-        if dep.hasAttribute("ZOO_MClass"):
+        if dep.hasAttribute("mClass"):
             yield node
         t.next()
 
