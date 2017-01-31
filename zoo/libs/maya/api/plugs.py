@@ -66,6 +66,13 @@ def setLockedContext(plug):
     plug.isLocked = True
 
 
+def setLockState(plug, state):
+    if plug.isLocked != state:
+        plug.isLocked = state
+        return True
+    return False
+
+
 def filterConnected(plug, filter):
     filteredNodes = []
     if not plug.isConnected:
@@ -715,12 +722,14 @@ def getPythonTypeFromPlugValue(plug):
         for idx, dt in enumerate(dataType):
             if dt == attrtypes.kMFnDataMatrix:
                 res.append([i for i in value[idx]])
-            elif dt in (attrtypes.kMFnUnitAttributeDistance, attrtypes.kMFnUnitAttributeAngle, attrtypes.kMFnUnitAttributeTime):
+            elif dt in (
+            attrtypes.kMFnUnitAttributeDistance, attrtypes.kMFnUnitAttributeAngle, attrtypes.kMFnUnitAttributeTime):
                 res.append(value[idx].value)
         return res
     elif dataType in (attrtypes.kMFnDataMatrixArray, attrtypes.kMFnDataVectorArray):
         return [[i for i in subValue] for subValue in value]
-    elif dataType in (attrtypes.kMFnUnitAttributeDistance, attrtypes.kMFnUnitAttributeAngle, attrtypes.kMFnUnitAttributeTime):
+    elif dataType in (
+    attrtypes.kMFnUnitAttributeDistance, attrtypes.kMFnUnitAttributeAngle, attrtypes.kMFnUnitAttributeTime):
         return value.value
     elif dataType in types:
         return [i for i in value]

@@ -36,9 +36,9 @@ def lockMetaManager(func):
 
 
 def findSceneRoots():
-    """Finds all meta nodes in the scene that are root meta nodes
+    """Finds all meta nodes in the scene that are root meta node
     :return:
-    :rtype:
+    :rtype: list()
     """
     roots = []
     for meta in iterSceneMetaNodes():
@@ -70,7 +70,6 @@ def filterSceneByAttributeValues(attributeNames, filter):
             except RuntimeError:
                 continue
             value = plugs.getPlugValue(plug)
-            # temp
             if isinstance(value, basestring):
                 grp = re.search(filter, value)
                 if grp:
@@ -81,6 +80,9 @@ def filterSceneByAttributeValues(attributeNames, filter):
 
 
 def iterSceneMetaNodes():
+    """Iterates all metanodes in the maya scene
+    :rtype: Generator(MObject)
+    """
     t = om2.MItDependencyNodes()
     while not t.isDone():
         node = t.thisNode()
@@ -282,6 +284,8 @@ class MetaBase(object):
         :return: the meta nodes mObject
         :rtype: mobject
         """
+        if not self.exists():
+            raise ValueError("Meta node no longer exists in the scene")
         return self._handle.object()
 
     def handle(self):
@@ -317,7 +321,16 @@ class MetaBase(object):
     def delete(self):
         """Deletes the metaNode from the scene
         """
-        nodes.delete(self._handle.object())
+        metaMobj = self._handle.object()
+        for thisNodeP, otherNodeP in nodes.iterConnections(metaMobj, source=True, destination=True):
+            if thisNodeP.isLocked:
+                thisNodeP.isLocked = False
+            if otherNodeP.isLocked:
+                dep = om2.MFnDependencyNode(otherNodeP.node())
+                if dep.isLocked:
+                    dep.isLocked = False
+                otherNodeP.isLocked = False
+        nodes.delete(metaMobj)
 
     @lockMetaManager
     def rename(self, name):
@@ -376,12 +389,14 @@ class MetaBase(object):
 
     @lockMetaManager
     def removeAttribute(self, name):
+        if not self.exists():
+            return False
         if self._mfn.hasAttribute(name):
             plug = self._mfn.findPlug(name, False)
             if plug.isLocked:
                 plug.isLocked = False
             mod = om2.MDGModifier()
-            mod.removeAttribute(self._handle.object(), plug.asMObject())
+            mod.removeAttribute(self._handle.object(), plug.attribute())
             mod.doIt()
             return True
         return False

@@ -177,6 +177,12 @@ def lockNode(mobject, state=True):
         mod.doIt()
 
 
+def unlockConnectedAttributes(mobject):
+    for thisNodeP, otherNodeP in iterConnections(mobject, source=True, destination=True):
+        if thisNodeP.isLocked:
+            thisNodeP.isLocked = False
+
+
 def childPathAtIndex(path, index):
     """From the given MDagPath return a new MDagPath for the child node at the given index.
 
