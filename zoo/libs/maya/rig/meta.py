@@ -41,5 +41,56 @@ class MetaRig(metadata.MetaNode):
     def geo(self):
         return self.findPlugsByFilteredName(self._geoPrefix)
 
+    def supportSystems(self):
+        if self.mClass.asString() == "MetaSupport":
+            return None
+        if self._mfn.hasAttribute("supportSystem"):
+            plug = self._mfn.findPlug("supportSystem", False)
+            if plug.isSource:
+                connections = plug.destinations()
+                return [MetaSupport(i.node()) for i in connections]
 
+    def subSystems(self):
+        if self.mClass.asString() == "MetaSubSystem":
+            return None
+        if self._mfn.hasAttribute("subSystem"):
+            plug = self._mfn.findPlug("subSystem", False)
+            if plug.isSource:
+                connections = plug.destinations()
+                return [MetaSubSystem(i.node()) for i in connections]
+
+    def addSupportSystem(self, node=None, name=None):
+        if node is not None:
+            if isinstance(node, base.MetaBase):
+                node = node.mobject()
+        else:
+            node = MetaSupport(name=name or "support_meta_#").object()
+        self.connectTo("supportSystem", node, "metaParent")
+
+        return node
+
+    def addSubSystem(self, node=None, name=None):
+        if node is not None:
+            if isinstance(node, base.MetaBase):
+                node = node.mobject()
+        else:
+            node = MetaSupport(name=name or "sub_meta_##").object()
+        self.connectTo("subSystem", node, "metaParent")
+
+        return node
+
+
+class MetaSupport(MetaRig):
+    def __init__(self, node=None, name="", initDefaults=True):
+        super(MetaRig, self).__init__(node, name, initDefaults)
+
+
+class MetaSubSystem(MetaRig):
+    def __init__(self, node=None, name="", initDefaults=True):
+        super(MetaRig, self).__init__(node, name, initDefaults)
+
+
+# temp registration
 base.MetaRegistry().registerMetaClass(MetaRig)
+base.MetaRegistry().registerMetaClass(MetaSupport)
+base.MetaRegistry().registerMetaClass(MetaSubSystem)

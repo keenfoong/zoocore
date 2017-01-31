@@ -477,5 +477,8 @@ class MetaBase(object):
             else:
                 sourcePlug = self._mfn.findPlug(attributeName, False)
         with plugs.setLockedContext(sourcePlug):
+            if destinationPlug.isLocked:
+                destinationPlug.isLocked = False
             plugs.connectPlugs(sourcePlug, destinationPlug)
+            destinationPlug.isLocked = True
         return destinationPlug

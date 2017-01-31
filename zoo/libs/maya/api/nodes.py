@@ -786,16 +786,17 @@ def serializeNode(node):
 
 def createAnnotation(rootObj, endObj, text=None, name=None):
     name = name or "annotation"
-
     rootDag = om2.MFnDagNode(rootObj)
     boundingBox = rootDag.boundingBox
     center = om2.MVector(boundingBox.center)
-    locator = asMObject(cmds.createNode("locator", n=name))
+    locator = asMObject(cmds.createNode("locator"))
     locatorTransform = getParent(locator)
-    setTranslation(locatorTransform, om2.MVector(boundingBox.center) * rootDag.getPath().exclusiveMatrixInverse(),
-                   om2.MSpace.kWorld)
+    rename(locatorTransform, "_".join([name, "loc"]))
+    setTranslation(locatorTransform, getTranslation(rootObj, om2.MSpace.kWorld), om2.MSpace.kWorld)
     annotationNode = asMObject(cmds.annotate(nameFromMObject(locatorTransform), tx=text))
+    annParent = getParent(annotationNode)
+    rename(annParent, name)
     plugs.setAttr(om2.MFnDagNode(annotationNode).findPlug("position", False), center)
-    setParent(locatorTransform, rootObj)
-    setParent(getParent(annotationNode), endObj)
+    setParent(locatorTransform, rootObj, True)
+    setParent(annParent, endObj, False)
     return annotationNode, locatorTransform

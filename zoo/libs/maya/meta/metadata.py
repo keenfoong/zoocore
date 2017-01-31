@@ -12,12 +12,6 @@ logger = zlogging.zooLogger
 
 
 class MetaNode(metabase.MetaBase):
-    def metaClassPlug(self):
-        try:
-            return self._mfn.findPlug("mClass", False)
-        except RuntimeError:
-            return None
-
     def __init__(self, node=None, name="", initDefaults=True):
         super(MetaNode, self).__init__(node, name, initDefaults)
 
@@ -83,7 +77,7 @@ class MetaNode(metabase.MetaBase):
         if parent is None:
             return
         mod = om2.MDGModifier()
-        source= parent.findPlug("metaChildren", False)
+        source = parent.findPlug("metaChildren", False)
         destination = self.findPlug("metaParent", False)
         with plugs.setLockedContext(source):
             destination.isLocked = False
