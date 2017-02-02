@@ -77,7 +77,7 @@ def serializeCurve(node):
         dag = om2.MFnDagNode(shape.node())
         isIntermediate = dag.isIntermediateObject
         if not isIntermediate:
-            data[dag.name()] = getCurveData(shape)
+            data[om2.MNamespace.stripNamespaceFromName(dag.name())] = getCurveData(shape)
 
     return data
 

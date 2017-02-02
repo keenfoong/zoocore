@@ -92,6 +92,24 @@ def iterSceneMetaNodes():
         t.next()
 
 
+def isMetaNode(node):
+    if isinstance(node, MetaBase) or issubclass(type(node), MetaBase):
+        return True
+    dep = om2.MFnDependencyNode(node)
+    if dep.hasAttribute("mClass"):
+        return MetaRegistry.isInRegistry(dep.findPlug("mClass").asString())
+    return False
+
+
+def getConnectMetaNodes(node):
+    mNodes = []
+    for dest, source in nodes.iterConnections(node, True, False):
+        node = source.node()
+        if isMetaNode(node):
+            mNodes.append(MetaBase(node))
+    return mNodes
+
+
 class MetaRegistry(object):
     """Singleton class to handle global registration to metaclasses"""
     types = {}
@@ -107,6 +125,10 @@ class MetaRegistry(object):
     def __init__(self):
         # register the default
         self.registerMetaClasses(["zoo.libs.maya.meta.metadata"])
+
+    @classmethod
+    def isInRegistry(cls, typeName):
+        return typeName in cls.types
 
     @classmethod
     def getType(cls, typeName):
@@ -191,6 +213,8 @@ class MetaRegistry(object):
 class MetaBase(object):
     @staticmethod
     def classNameFromPlug(node):
+        if isinstance(node, MetaBase):
+            return node.mClass.asString()
         dep = om2.MFnDependencyNode(node)
         try:
             return dep.findPlug("mClass", False).asString()
@@ -243,6 +267,8 @@ class MetaBase(object):
         if not name.startswith("_"):
             plug = self.getAttribute(name)
             if plug is not None:
+                if plug.isSource:
+                    return [i.node() for i in plug.destinations()]
                 return plug
             # search for the given method name
             elif hasattr(self._mfn, name):
@@ -368,6 +394,7 @@ class MetaBase(object):
         newPlug = None
         if attr is not None:
             newPlug = om2.MPlug(self._handle.object(), attr.object())
+
         if value is not None and newPlug is not None:
             # if mobject expect it to be a node
             if isinstance(value, om2.MObject):

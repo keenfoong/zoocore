@@ -72,6 +72,17 @@ class MetaRig(metadata.MetaNode):
                 return subsys
         return None
 
+    def isSubSystem(self):
+        # @todo need a better way for this check
+        if self.mClass.asString() == "MetaSubSystem":
+            return True
+        return False
+
+    def isSupportSystem(self):
+        if self.mClass.asString() == "MetaSupportSystem":
+            return True
+        return False
+
     def hasSupportSystemByName(self, name):
         for subsys in iter(self.supportSystems()):
             if subsys.name.asString() == name:
@@ -83,26 +94,6 @@ class MetaRig(metadata.MetaNode):
             if subsys.name.asString() == name:
                 return True
         return False
-
-    def supportSystems(self):
-        if isinstance(self, MetaSupportSystem):
-            return
-        if self._mfn.hasAttribute("supportSystem"):
-            plug = self._mfn.findPlug("supportSystem", False)
-            if plug.isSource:
-                connections = plug.destinations()
-                return [MetaSupportSystem(i.node()) for i in connections]
-        return []
-
-    def subSystems(self):
-        if isinstance(self, MetaSubSystem):
-            return
-        if self._mfn.hasAttribute("subSystem"):
-            plug = self._mfn.findPlug("subSystem", False)
-            if plug.isSource:
-                connections = plug.destinations()
-                return [MetaSubSystem(i.node()) for i in connections]
-        return []
 
     def addSupportSystem(self, node=None, name=None):
         if node is None:
@@ -125,6 +116,46 @@ class MetaRig(metadata.MetaNode):
         self.connectTo("subSystem", node.mobject(), "metaParent")
 
         return node
+
+    def supportSystems(self):
+        if isinstance(self, MetaSupportSystem):
+            return
+        if self._mfn.hasAttribute("supportSystem"):
+            plug = self._mfn.findPlug("supportSystem", False)
+            if plug.isSource:
+                connections = plug.destinations()
+                return [MetaSupportSystem(i.node()) for i in connections]
+        return []
+
+    def iterSupportSystems(self):
+        if isinstance(self, MetaSubSystem):
+            return
+        if self._mfn.hasAttribute("supportSystem"):
+            plug = self._mfn.findPlug("supportSystem", False)
+            if plug.isSource:
+                connections = plug.destinations()
+                for i in connections:
+                    yield MetaSupportSystem(i.node())
+
+    def iterSubSystems(self):
+        if isinstance(self, MetaSubSystem):
+            return
+        if self._mfn.hasAttribute("subSystem"):
+            plug = self._mfn.findPlug("subSystem", False)
+            if plug.isSource:
+                connections = plug.destinations()
+                for i in connections:
+                    yield MetaSubSystem(i.node())
+
+    def subSystems(self):
+        if isinstance(self, MetaSubSystem):
+            return
+        if self._mfn.hasAttribute("subSystem"):
+            plug = self._mfn.findPlug("subSystem", False)
+            if plug.isSource:
+                connections = plug.destinations()
+                return [MetaSubSystem(i.node()) for i in connections]
+        return []
 
 
 class MetaSupportSystem(MetaRig):

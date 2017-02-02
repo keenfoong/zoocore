@@ -189,6 +189,9 @@ def childPathAtIndex(path, index):
     :param path: MDagPath
     :type index: int
     :return: MDagPath, this path's child at the given index"""
+    existingChildCount = path.childCount()
+    if existingChildCount < 1:
+        return None
     if index < 0:
         index = path.childCount() - abs(index)
     copy = om2.MDagPath(path)

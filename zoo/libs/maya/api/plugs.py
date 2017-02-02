@@ -49,6 +49,26 @@ def connectPlugs(source, destination):
     mod.doIt()
 
 
+def disconnectPlug(plug):
+    dep = om2.MFnDependencyNode(plug.node())
+    changedNodeState = False
+    if dep.isLocked:
+        dep.isLocked = False
+        changedNodeState = True
+    if plug.isLocked:
+        plug.isLocked = False
+    mod = om2.MDGModifier()
+    if plug.isDestination:
+        mod.disconnect(plug.source(), plug)
+    if plug.isSource:
+        for conn in plug.destinations():
+            mod.disconnect(conn, plug)
+    mod.doIt()
+    if changedNodeState:
+        dep.isLocked = True
+    return True
+
+
 def isValidMPlug(plug):
     """Checks whether the MPlug is valid in the scene
 
@@ -723,13 +743,14 @@ def getPythonTypeFromPlugValue(plug):
             if dt == attrtypes.kMFnDataMatrix:
                 res.append([i for i in value[idx]])
             elif dt in (
-            attrtypes.kMFnUnitAttributeDistance, attrtypes.kMFnUnitAttributeAngle, attrtypes.kMFnUnitAttributeTime):
+                    attrtypes.kMFnUnitAttributeDistance, attrtypes.kMFnUnitAttributeAngle,
+                    attrtypes.kMFnUnitAttributeTime):
                 res.append(value[idx].value)
         return res
     elif dataType in (attrtypes.kMFnDataMatrixArray, attrtypes.kMFnDataVectorArray):
         return [[i for i in subValue] for subValue in value]
     elif dataType in (
-    attrtypes.kMFnUnitAttributeDistance, attrtypes.kMFnUnitAttributeAngle, attrtypes.kMFnUnitAttributeTime):
+            attrtypes.kMFnUnitAttributeDistance, attrtypes.kMFnUnitAttributeAngle, attrtypes.kMFnUnitAttributeTime):
         return value.value
     elif dataType in types:
         return [i for i in value]
