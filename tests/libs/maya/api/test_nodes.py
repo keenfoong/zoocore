@@ -53,7 +53,7 @@ class TestNodes(mayatestutils.BaseMayaTest):
         parent = nodes.asMObject(cmds.group(self.node))
         children = nodes.getChildren(parent)
         self.assertEquals(len(children), 1)
-        self.assertIsInstance(children[0], om.MFnDagNode)
+        self.assertIsInstance(children[0], om.MObject)
         secondChild = nodes.asMObject(cmds.createNode("transform"))
         nodes.setParent(secondChild, parent)
         children = nodes.getChildren(parent)

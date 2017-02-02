@@ -31,7 +31,7 @@ class PluginManager(object):
         """
         self.basePaths.extend(paths)
         for p in paths:
-            if not p:
+            if not p or p.endswith(".pyc"):
                 continue
             importedModule = None
             if os.path.exists(p) and os.path.isdir(p):

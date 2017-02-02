@@ -40,6 +40,10 @@ def toQtObject(mayaName):
         return wrapinstance(long(ptr))
 
 
+def getOutliners():
+    return [toQtObject(i) for i in cmds.getPanel(typ="outlinerPanel")]
+
+
 def suppressOutput():
     """Supresses all output to the script editor
     """
