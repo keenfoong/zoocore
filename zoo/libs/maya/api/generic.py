@@ -95,4 +95,3 @@ def softSelection():
                 data.add((fnComp.element(cIdx), weight))
     return data
 
-

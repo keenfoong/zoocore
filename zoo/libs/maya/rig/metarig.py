@@ -1,11 +1,10 @@
 from maya.api import OpenMaya as om2
 
-from zoo.libs.maya.meta import metadata
 from zoo.libs.maya.meta import base
 from zoo.libs.maya.api import attrtypes
 
 
-class MetaRig(metadata.MetaNode):
+class MetaRig(base.MetaBase):
     _ctrlPrefix = "CTRL"
     _jntPrefix = "JNT"
     _skinJntPrefix = "SKIN"
@@ -14,6 +13,7 @@ class MetaRig(metadata.MetaNode):
     def _initMeta(self):
         super(MetaRig, self)._initMeta()
         self.addAttribute("version", "1.0.0", attrtypes.kMFnDataString)
+        self.addAttribute(name="name", value="", Type=attrtypes.kMFnDataString)
 
     def addControl(self, node, name):
         attrname = "_".join([self._ctrlPrefix, name])
@@ -73,15 +73,10 @@ class MetaRig(metadata.MetaNode):
         return None
 
     def isSubSystem(self):
-        # @todo need a better way for this check
-        if self.mClass.asString() == "MetaSubSystem":
-            return True
-        return False
+        return isinstance(self, MetaSubSystem)
 
     def isSupportSystem(self):
-        if self.mClass.asString() == "MetaSupportSystem":
-            return True
-        return False
+        return isinstance(self, MetaSupportSystem)
 
     def hasSupportSystemByName(self, name):
         for subsys in iter(self.supportSystems()):
@@ -162,18 +157,10 @@ class MetaSupportSystem(MetaRig):
     def __init__(self, node=None, name="", initDefaults=True):
         super(MetaRig, self).__init__(node, name, initDefaults)
 
-    def _initMeta(self):
-        super(MetaSupportSystem, self)._initMeta()
-        self.addAttribute(name="name", value="", Type=attrtypes.kMFnDataString)
-
 
 class MetaSubSystem(MetaRig):
     def __init__(self, node=None, name="", initDefaults=True):
         super(MetaRig, self).__init__(node, name, initDefaults)
-
-    def _initMeta(self):
-        super(MetaSubSystem, self)._initMeta()
-        self.addAttribute(name="name", value="", Type=attrtypes.kMFnDataString)
 
 
 # temp registration

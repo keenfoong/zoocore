@@ -58,9 +58,7 @@ def _setupMaya():
 
 
 def startUp():
-
     _initEnv()
-
     if env.isInMaya():
         _setupMaya()
 

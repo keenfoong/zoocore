@@ -29,7 +29,8 @@ class Control(object):
             self.dagPath = None
 
     def __repr__(self):
-        result = "name: {0}, colour: {0}".format(self.name if not self.dagPath else self.dagPath.fullPathName(), self.colour)
+        result = "name: {0}, colour: {0}".format(self.name if not self.dagPath else self.dagPath.fullPathName(),
+                                                 self.colour)
         return result
 
     @property
@@ -58,15 +59,22 @@ class Control(object):
         :return: the newly created node
         :rtype: mobject
         """
+
         if self.dagPath is None:
             return
         ctrlPat = nodes.getParent(self.mobject())
         newSrt = nodes.createDagNode("_".join([self.name, suffix]), "transform", ctrlPat)
-        nodes.setParent(self.mobject(), newSrt)
+        nodes.setMatrix(newSrt, nodes.getWorldMatrix(self.mobject()))
+
         if parent is not None:
-            nodes.setParent(newSrt, parent)
+            nodes.setParent(newSrt, parent, True)
+
+        nodes.setParent(self.mobject(), newSrt, True)
 
         return newSrt
+
+    def parent(self):
+        return self.dagPath.pop().node()
 
     def create(self, shape=None, position=None, rotation=None, scale=(1, 1, 1), rotationOrder=None):
         """This method creates a new set of curve shapes for the control based on the shape type specified.
@@ -98,11 +106,11 @@ class Control(object):
         if self.dagPath is None:
             raise ValueError("Not a valid shape name %s" % shape)
         if position is not None:
-            self.setPosition(position)
+            self.setPosition(position, space=om2.MSpace.kWorld)
         if rotation is not None:
-            self.setRotation(rotation)
+            self.setRotation(rotation, space=om2.MSpace.kWorld)
         if scale != (1, 1, 1):
-            self.setScale(scale)
+            self.setScale(scale, space=om2.MSpace.kWorld)
         if rotationOrder is not None:
             self.setRotationOrder(rotationOrder)
         return self.dagPath
@@ -148,7 +156,8 @@ class Control(object):
             return
         if cvs:
             # uber temp should be api, just need to get to it
-            cmds.rotate(rotation.x, rotation.y, rotation.z, cmds.ls(om2.MFnDagNode(self.dagPath).fullPathName() + ".cv[*]"))
+            cmds.rotate(rotation.x, rotation.y, rotation.z,
+                        cmds.ls(om2.MFnDagNode(self.dagPath).fullPathName() + ".cv[*]"))
             return
         trans = om2.MFnTransform(self.dagPath)
         if isinstance(rotation, (list, tuple)):
@@ -208,7 +217,7 @@ class Control(object):
     def setRotationOrder(self, rotateOrder=None):
         """Sets rotation order for the control
 
-        :param rotateOrder: om.mEulerRotation.kXYZ
+        :param rotateOrder: om.MTransformationMatrix.kXYZ
         :type rotateOrder: int
         """
         if self.dagPath is None:

@@ -49,7 +49,7 @@ def connectPlugs(source, destination):
     mod.doIt()
 
 
-def disconnectPlug(plug):
+def disconnectPlug(plug, source=True, destination=True):
     dep = om2.MFnDependencyNode(plug.node())
     changedNodeState = False
     if dep.isLocked:
@@ -58,10 +58,14 @@ def disconnectPlug(plug):
     if plug.isLocked:
         plug.isLocked = False
     mod = om2.MDGModifier()
-    if plug.isDestination:
+    if source and plug.isDestination:
+        if plug.source().isLocked:
+            plug.source().isLocked = False
         mod.disconnect(plug.source(), plug)
-    if plug.isSource:
+    if destination and plug.isSource:
         for conn in plug.destinations():
+            if conn.isLocked:
+                conn.isLocked = False
             mod.disconnect(conn, plug)
     mod.doIt()
     if changedNodeState:

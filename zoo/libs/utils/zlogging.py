@@ -57,6 +57,7 @@ def globalLogLevelOverride(logger):
         if not currentLevel or currentLevel != envLvl:
             logger.setLevel(envLvl)
 
+
 def reloadLoggerHierarchy():
     for log in logging.Logger.manager.loggingDict.values():
         if hasattr(log, "children"):
@@ -71,4 +72,5 @@ def reloadLoggerHierarchy():
         except AttributeError:
             log.parent.children = [log]
 
-zooLogger = getLogger("zoo")
+
+zooLogger = getLogger("zoocore")

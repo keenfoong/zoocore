@@ -66,3 +66,4 @@ def isDottedPath(path):
     :return: bool
     """
     return len(path.split(".")) > 2
+

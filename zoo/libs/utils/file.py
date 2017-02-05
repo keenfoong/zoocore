@@ -32,7 +32,7 @@ def saveJson(data, filepath, **kws):
     try:
         with open(filepath, 'w') as f:
             json.dump(data, f, **kws)
-    except Exception as er:
+    except IOError:
         logger.error("Data not saved \n %s >>>" % er)
         return False
 

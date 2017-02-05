@@ -39,11 +39,9 @@ class PluginManager(object):
                 continue
             elif p:
                 importedModule = modules.importModule(p)
-
             if importedModule:
                 self.registerByModule(importedModule)
                 continue
-            self.registerByPackage(p)
 
     def registerByModule(self, module):
         """ This function registry a module by search all class members of the module and registers any class that is an
@@ -63,14 +61,17 @@ class PluginManager(object):
         :param pkg: The package path to register eg. zoo.libs.apps
         :type pkg: str
         """
-        visited = set()
-        for subModule in modules.iterModules(pkg):
+        mod = modules.importModule(pkg)
+        realPath = os.path.dirname(inspect.getfile(mod))
+        pkgSplitPath = pkg.replace(".", os.path.sep)
+        self.basePaths.append(realPath)
 
+        for subModule in modules.iterModules(realPath):
             filename = os.path.splitext(os.path.basename(subModule))[0]
-            if filename.startswith("__") or subModule.endswith(".pyc") or subModule in visited:
+            if filename.startswith("__") or subModule.endswith(".pyc"):
                 continue
-            visited.add(subModule)
-            subModuleObj = modules.importModule(subModule)
+            newDottedPath = pkg + subModule.split(pkgSplitPath)[-1].replace(os.path.sep, ".").split(".py")[0]
+            subModuleObj = modules.importModule(newDottedPath)
             for member in modules.iterMembers(subModuleObj, predicate=inspect.isclass):
                 self.registerPlugin(member[1])
 

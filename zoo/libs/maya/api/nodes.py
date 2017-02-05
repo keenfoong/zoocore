@@ -183,6 +183,11 @@ def unlockConnectedAttributes(mobject):
             thisNodeP.isLocked = False
 
 
+def unlockedAndDisconnectConnectedAttributes(mobject):
+    for thisNodeP, otherNodeP in iterConnections(mobject, source=True, destination=True):
+        plugs.disconnectPlug(thisNodeP, otherNodeP)
+
+
 def childPathAtIndex(path, index):
     """From the given MDagPath return a new MDagPath for the child node at the given index.
 
@@ -469,12 +474,18 @@ def delete(node):
     """
     if not isValidMObject(node):
         return
-    if node.hasFn(om2.MFn.kDagNode):
-        mod = om2.MDagModifier()
-    else:
-        mod = om2.MDGModifier()
+    lockNode(node, False)
+    unlockedAndDisconnectConnectedAttributes(node)
+    mod = om2.MDagModifier()
     mod.deleteNode(node)
     mod.doIt()
+
+
+def getOffsetMatrix(startObj, endObj):
+    start = getParentInverseMatrix(startObj)
+    end = getWorldMatrix(endObj)
+    mOutputMatrix = om2.MTransformationMatrix(end * start)
+    return mOutputMatrix.asMatrix()
 
 
 def getObjectMatrix(mobject):
@@ -538,6 +549,12 @@ def hasAttribute(node, name):
     :return: bool
     """
     return om2.MFnDependencyNode(node).hasAttribute(name)
+
+
+def setMatrix(mobject, matrix):
+    dag = om2.MFnDagNode(mobject)
+    trans = om2.MFnTransform(dag.getPath())
+    trans.setTransformation(om2.MTransformationMatrix(matrix))
 
 
 def setTranslation(obj, position, space=None):
@@ -809,3 +826,21 @@ def createAnnotation(rootObj, endObj, text=None, name=None):
     setParent(locatorTransform, rootObj, True)
     setParent(annParent, endObj, False)
     return annotationNode, locatorTransform
+
+
+def setlockStateOnAttributes(node, attributes, state=True):
+    dep = om2.MFnDependencyNode(node)
+    for attr in attributes:
+        plug = dep.findPlug(attr, False)
+        if plug.isLocked != state:
+            plug.isLocked = state
+    return True
+
+
+def showHideAttributes(node, attributes, state=True):
+    dep = om2.MFnDependencyNode(node)
+    for attr in attributes:
+        plug = dep.findPlug(attr, False)
+        if plug.isChannelBox != state:
+            plug.isChannelBox = state
+    return True

@@ -4,15 +4,15 @@
 import inspect
 import os
 from functools import wraps
-
+import uuid
 import re
-from maya.api import OpenMaya as om2
 
-from zoo.libs.maya.api import attrtypes
+from maya.api import OpenMaya as om2
 from zoo.libs.utils import modules
 from zoo.libs.utils import zlogging
-from zoo.libs.maya.api import nodes
 from zoo.libs.maya.api import plugs
+from zoo.libs.maya.api import nodes
+from zoo.libs.maya.api import attrtypes
 
 logger = zlogging.zooLogger
 
@@ -29,8 +29,9 @@ def lockMetaManager(func):
         try:
             return func(*args, **kwargs)
         finally:
-            if node.exists():
-                nodes.lockNode(node.mobject(), True)
+            pass
+            # if node.exists():
+            #     nodes.lockNode(node.mobject(), True)
 
     return locker
 
@@ -121,10 +122,6 @@ class MetaRegistry(object):
         if cls._instance is None:
             cls._instance = super(MetaRegistry, cls).__new__(*args, **kwargs)
         return cls._instance
-
-    def __init__(self):
-        # register the default
-        self.registerMetaClasses(["zoo.libs.maya.meta.metadata"])
 
     @classmethod
     def isInRegistry(cls, typeName):
@@ -251,7 +248,7 @@ class MetaBase(object):
         else:
             self._mfn = om2.MFnDependencyNode(node)
 
-        self.lock(True)
+        # self.lock(True)
         if initDefaults:
             self._initMeta()
 
@@ -262,6 +259,12 @@ class MetaBase(object):
             self.addAttribute("mClass", self.__class__.__name__, attrtypes.kMFnDataString)
         if not self.hasAttribute("root"):
             self.addAttribute("root", False, attrtypes.kMFnNumericBoolean)
+        if not self.hasAttribute("uuid"):
+            self.addAttribute("uuid", str(uuid.uuid4()), attrtypes.kMFnDataString)
+        if not self.hasAttribute("metaParent"):
+            self.addAttribute("metaParent", None, attrtypes.kMFnMessageAttribute)
+        if not self.hasAttribute("metaChildren"):
+            self.addAttribute("metaChildren", None, attrtypes.kMFnMessageAttribute)
 
     def __getattr__(self, name):
         if not name.startswith("_"):
@@ -270,6 +273,7 @@ class MetaBase(object):
                 if plug.isSource:
                     return [i.node() for i in plug.destinations()]
                 return plug
+
             # search for the given method name
             elif hasattr(self._mfn, name):
                 return getattr(self._mfn, name)
@@ -348,14 +352,6 @@ class MetaBase(object):
         """Deletes the metaNode from the scene
         """
         metaMobj = self._handle.object()
-        for thisNodeP, otherNodeP in nodes.iterConnections(metaMobj, source=True, destination=True):
-            if thisNodeP.isLocked:
-                thisNodeP.isLocked = False
-            if otherNodeP.isLocked:
-                dep = om2.MFnDependencyNode(otherNodeP.node())
-                if dep.isLocked:
-                    dep.isLocked = False
-                otherNodeP.isLocked = False
         nodes.delete(metaMobj)
 
     @lockMetaManager
@@ -504,10 +500,7 @@ class MetaBase(object):
                                                               attrtypes.kMFnMessageAttribute).object(), False)
         else:
             destinationPlug = dep.findPlug(nodeAttributeName, False)
-            if destinationPlug.isDestination:
-                mod = om2.MDGModifier()
-                mod.disconnect(destinationPlug.connectedTo(True, False)[0], destinationPlug)
-                mod.doIt()
+            plugs.disconnectPlug(destinationPlug)
 
         if self._mfn.hasAttribute(attributeName):
             # we should have been disconnected from the destination control above
@@ -524,3 +517,78 @@ class MetaBase(object):
             plugs.connectPlugs(sourcePlug, destinationPlug)
             destinationPlug.isLocked = True
         return destinationPlug
+
+    def metaRoot(self):
+        parent = self.metaParent()
+        while parent is not None:
+            coParent = parent.metaParent()
+            if coParent is not None and coParent.root.asBool():
+                return coParent
+            parent = coParent
+
+    def metaParent(self):
+        parentPlug = self._mfn.findPlug("metaParent", False)
+        if parentPlug.isConnected:
+            return MetaBase(parentPlug.connectedTo(True, False)[0].node())
+
+    def metaChildren(self):
+        return [i for i in self.iterMetaChildren()]
+
+    def iterMetaChildren(self, depthLimit=256):
+        childPlug = self._mfn.findPlug("metaChildren", False)
+        for child in plugs.iterDependencyGraph(childPlug, depthLimit=depthLimit):
+            yield MetaBase(child.node())
+
+    def addChild(self, child):
+        child.removeParent()
+        child.addParent(self)
+
+    def addParent(self, parent):
+        if isinstance(parent, om2.MObject):
+            parent = MetaBase(parent)
+        metaParent = self.metaParent()
+        if metaParent is not None or metaParent == parent:
+            raise ValueError("MetaNode already has a parent, call removeParent first")
+        parentPlug = self._mfn.findPlug("metaParent", False)
+        with plugs.setLockedContext(parentPlug):
+            plugs.connectPlugs(parent.findPlug("metaChildren", False), parentPlug)
+
+    def findChildrenByFilter(self, filter):
+        children = []
+        for child in self.iterMetaChildren():
+            grp = re.search(filter, nodes.nameFromMObject(child))
+            if grp:
+                children.append(child)
+        return children
+
+    def findChildByType(self, Type):
+        children = []
+        for child in self.iterMetaChildren(depthLimit=1):
+            if child.apiType() == Type:
+                children.append(child)
+        return children
+
+    def removeParent(self):
+        parent = self.metaParent()
+        if parent is None:
+            return
+        mod = om2.MDGModifier()
+        source = parent.findPlug("metaChildren", False)
+        destination = self.findPlug("metaParent", False)
+        with plugs.setLockedContext(source):
+            destination.isLocked = False
+            mod.disconnect(source, destination)
+            mod.doIt()
+
+    def removeChild(self, node):
+        if isinstance(node, MetaBase.MetaBase):
+            node.removeParent()
+            return True
+        childPlug = self._mfn.findPlug("metaChildren", False)
+        mod = om2.MDGModifier()
+        destination = om2.MFnDependencyNode(node).findPlug("metaParent", False)
+        with plugs.setLockedContext(childPlug):
+            destination.isLocked = False
+        mod.disconnect(childPlug, destination)
+        mod.doIt()
+        return True
