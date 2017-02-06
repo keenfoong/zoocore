@@ -62,7 +62,7 @@ class MetaRig(base.MetaBase):
 
     def filterSubSystemByName(self, name):
         for subsys in iter(self.subSystems()):
-            if subsys.name.asString() == name:
+            if subsys.getAttribute("name").asString() == name:
                 return subsys
         return None
 
@@ -149,7 +149,7 @@ class MetaRig(base.MetaBase):
             plug = self._mfn.findPlug("subSystem", False)
             if plug.isSource:
                 connections = plug.destinations()
-                return [MetaSubSystem(i.node()) for i in connections]
+                return [MetaSubSystem(node=i.node()) for i in connections]
         return []
 
 

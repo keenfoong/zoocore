@@ -129,8 +129,7 @@ class MetaRegistry(object):
 
     @classmethod
     def getType(cls, typeName):
-        if typeName in cls.types:
-            return cls.types[typeName]
+        return cls.types.get(typeName)
 
     @classmethod
     def registerMetaClasses(cls, paths):
@@ -207,7 +206,30 @@ class MetaRegistry(object):
             cls.types[classObj.__name__] = classObj
 
 
+class MetaFactory(type):
+    def __call__(cls, *args, **kwargs):
+        """Custom constructor to pull the cls type from the node if it exists and recreates the class instance
+        from the registry. If that class doesnt exist then the normal __new__ behaviour will be used
+        """
+        node = kwargs.get("node")
+        if args:
+            node = args[0]
+        # if the user doesn't pass a node it means they want to create it
+        if not node:
+            return type.__call__(cls, *args, **kwargs)
+        classType = MetaBase.classNameFromPlug(node)
+        if classType == cls.__name__:
+            return type.__call__(cls, *args, **kwargs)
+
+        registeredType = MetaRegistry().getType(classType)
+        if registeredType is None:
+            return type.__call__(*args, **kwargs)
+        return registeredType(*args, **kwargs)
+
+
 class MetaBase(object):
+    __metaclass__ = MetaFactory
+
     @staticmethod
     def classNameFromPlug(node):
         if isinstance(node, MetaBase):
@@ -217,25 +239,6 @@ class MetaBase(object):
             return dep.findPlug("mClass", False).asString()
         except RuntimeError:
             return ""
-
-    def __new__(cls, *args, **kwargs):
-        """Custom constructor to pull the cls type from the node if it exists and recreates the class instance
-        from the registry. If that class doesnt exist then the normal __new__ behaviour will be used
-        """
-        node = kwargs.get("node")
-        if args:
-            node = args[0]
-        # if the user doesn't pass a node it means they want to create it
-        if not node:
-            return object.__new__(cls, *args, **kwargs)
-        classType = cls.classNameFromPlug(node)
-        if classType == cls.__name__:
-            return object.__new__(cls, *args, **kwargs)
-        registeredType = MetaRegistry().getType(classType)
-        if not registeredType:
-            # logger.warning("Class type -> {}, doesn't exist within the registry".format(registeredType))
-            return object.__new__(cls, *args, **kwargs)
-        return object.__new__(registeredType, *args, **kwargs)
 
     def __init__(self, node=None, name="", initDefaults=True):
         if node is None:
@@ -255,29 +258,25 @@ class MetaBase(object):
     def _initMeta(self):
         """Initializes the standard attributes for the meta nodes
         """
-        if not self._mfn.hasAttribute("mClass"):
-            self.addAttribute("mClass", self.__class__.__name__, attrtypes.kMFnDataString)
-        if not self.hasAttribute("root"):
-            self.addAttribute("root", False, attrtypes.kMFnNumericBoolean)
-        if not self.hasAttribute("uuid"):
-            self.addAttribute("uuid", str(uuid.uuid4()), attrtypes.kMFnDataString)
-        if not self.hasAttribute("metaParent"):
-            self.addAttribute("metaParent", None, attrtypes.kMFnMessageAttribute)
-        if not self.hasAttribute("metaChildren"):
-            self.addAttribute("metaChildren", None, attrtypes.kMFnMessageAttribute)
+        self.addAttribute("mClass", self.__class__.__name__, attrtypes.kMFnDataString)
+        self.addAttribute("root", False, attrtypes.kMFnNumericBoolean)
+        self.addAttribute("uuid", str(uuid.uuid4()), attrtypes.kMFnDataString)
+        self.addAttribute("metaParent", None, attrtypes.kMFnMessageAttribute)
+        self.addAttribute("metaChildren", None, attrtypes.kMFnMessageAttribute)
 
     def __getattr__(self, name):
-        if not name.startswith("_"):
-            plug = self.getAttribute(name)
-            if plug is not None:
-                if plug.isSource:
-                    return [i.node() for i in plug.destinations()]
-                return plug
+        if name.startswith("_"):
+            super(MetaBase, self).__getattribute__(name)
+            return
+        plug = self.getAttribute(name)
+        if plug is not None:
+            if plug.isSource:
+                return [i.node() for i in plug.destinations()]
+            return plug
 
-            # search for the given method name
-            elif hasattr(self._mfn, name):
-                return getattr(self._mfn, name)
-
+        # search for the given method name
+        elif hasattr(self._mfn, name):
+            return getattr(self._mfn, name)
         return super(MetaBase, self).__getattribute__(name)
 
     def __setattr__(self, key, value):
