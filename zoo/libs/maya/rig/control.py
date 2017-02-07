@@ -1,3 +1,6 @@
+"""
+@todo hassrt method
+"""
 from maya import cmds
 from maya.api import OpenMaya as om2
 from zoo.libs.maya.api import nodes
@@ -51,6 +54,12 @@ class Control(object):
         if self.dagPath is not None:
             return self.dagPath.node()
 
+    def setParent(self, parent):
+        if self.srt is not None:
+            nodes.setParent(self.srt, parent)
+        else:
+            nodes.setParent(self.mobject(), parent)
+
     def addSrt(self, suffix="", parent=None):
         """Adds a parent transform to the curve transform
 
@@ -70,7 +79,7 @@ class Control(object):
             nodes.setParent(newSrt, parent, True)
 
         nodes.setParent(self.mobject(), newSrt, True)
-
+        self.srt = newSrt
         return newSrt
 
     def parent(self):
