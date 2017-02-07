@@ -1,4 +1,4 @@
-from zoo.libs.pyqt.qt import QtWidgets, QtCore
+from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
 
 
 class TreeViewPlus(QtWidgets.QWidget):
@@ -8,6 +8,18 @@ class TreeViewPlus(QtWidgets.QWidget):
         self.rowDataModel = None
         self.columnDataModels = []
         self.model = None
+
+    def setModel(self, model):
+        if not self.rowDataModel and self.columnDataModels:
+            return
+        self.model = model(self.rowDataModel, self.columnDataModels)
+        self.treeView.setModel(self.model)
+
+    def registryRowModel(self, rowModel):
+        self.rowDataModel = rowModel
+
+    def registryColumnModels(self, models):
+        self.columnDataModels = models
 
     def _setupLayouts(self):
         self.mainLayout = QtWidgets.QVBoxLayout(self)
@@ -22,7 +34,7 @@ class TreeViewPlus(QtWidgets.QWidget):
         self.mainLayout.addLayout(self.filterLayout)
         self.mainLayout.addWidget(self.treeView)
 
-        self.proxyFilter = QtWidgets.QSortFilterProxyModel()
+        self.proxyFilter = QtCore.QSortFilterProxyModel()
         self.proxyFilter.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.treeView.setModel(self.proxyFilter)
 
@@ -36,6 +48,7 @@ class TreeViewPlus(QtWidgets.QWidget):
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     view = TreeViewPlus()
     view.show()

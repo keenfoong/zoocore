@@ -3,7 +3,7 @@
 
 import os
 from zoo.libs.pyqt.qt import QtGui
-from zoo.libs.maya.utils import general
+from zoo.libs.maya.utils import env
 
 
 class Icon(object):
@@ -44,7 +44,7 @@ class Icon(object):
         :param size: int, the size of the icon, the size will be used for both the width and height
         :return: QtGui.Qicon
         """
-        if general.isMayapy():
+        if env.isMayapy():
             return
 
         if "_" in iconName:
