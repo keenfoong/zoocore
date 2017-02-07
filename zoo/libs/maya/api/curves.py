@@ -56,7 +56,7 @@ def createCurveShape(parent, data):
             shape = nodes.childPathAtIndex(om2.MFnDagNode(shape).getPath(), -1)
             shape = nodes.asMObject(shape)
         if enabled:
-            plugs.setAttr(newCurve.findPlug(shape, "overrideEnabled"), curveData["overrideEnabled"])
+            plugs.setAttr(om2.MFnDependencyNode(shape).findPlug("overrideEnabled", False), int(curveData["overrideEnabled"]))
             colours = curveData["overrideColorRGB"]
             nodes.setNodeColour(newCurve.object(), colours)
         created.append(shape)
@@ -77,7 +77,7 @@ def serializeCurve(node):
         dag = om2.MFnDagNode(shape.node())
         isIntermediate = dag.isIntermediateObject
         if not isIntermediate:
-            data[dag.name()] = getCurveData(shape)
+            data[om2.MNamespace.stripNamespaceFromName(dag.name())] = getCurveData(shape)
 
     return data
 

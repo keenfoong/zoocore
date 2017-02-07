@@ -2,6 +2,7 @@ from maya import cmds
 from maya.api import OpenMaya as om2
 from zoo.libs.maya.api import nodes
 from zoo.libs.maya.api import generic
+from zoo.libs.maya.api import curves
 from zoo.libs.maya import shapelib
 
 
@@ -28,7 +29,8 @@ class Control(object):
             self.dagPath = None
 
     def __repr__(self):
-        result = "name: {0}, colour: {0}".format(self.name if not self.dagPath else self.dagPath.fullPathName(), self.colour)
+        result = "name: {0}, colour: {0}".format(self.name if not self.dagPath else self.dagPath.fullPathName(),
+                                                 self.colour)
         return result
 
     @property
@@ -49,7 +51,7 @@ class Control(object):
         if self.dagPath is not None:
             return self.dagPath.node()
 
-    def addSrt(self, suffix=""):
+    def addSrt(self, suffix="", parent=None):
         """Adds a parent transform to the curve transform
 
         :param suffix: the suffix that this transform will get, eg name: self.name_suffix
@@ -57,14 +59,24 @@ class Control(object):
         :return: the newly created node
         :rtype: mobject
         """
+
         if self.dagPath is None:
             return
-        parent = nodes.getParent(self.mobject())
-        newSrt = nodes.createDagNode("_".join([self.name, suffix]), "transform", parent)
-        nodes.setParent(self.mobject(), newSrt)
+        ctrlPat = nodes.getParent(self.mobject())
+        newSrt = nodes.createDagNode("_".join([self.name, suffix]), "transform", ctrlPat)
+        nodes.setMatrix(newSrt, nodes.getWorldMatrix(self.mobject()))
+
+        if parent is not None:
+            nodes.setParent(newSrt, parent, True)
+
+        nodes.setParent(self.mobject(), newSrt, True)
+
         return newSrt
 
-    def create(self, shape="", position=None, rotation=None, scale=(1, 1, 1), rotationOrder=None):
+    def parent(self):
+        return self.dagPath.pop().node()
+
+    def create(self, shape=None, position=None, rotation=None, scale=(1, 1, 1), rotationOrder=None):
         """This method creates a new set of curve shapes for the control based on the shape type specified.
          if the self.node already initialized then this node will become the parent. this method has basic functionality
          for transformation if you need more control use the other helper method on this class.
@@ -86,20 +98,21 @@ class Control(object):
             self._name = "control_new"
         if not self.dagPath:
             self.dagPath = nodes.createDagNode(self._name, "transform")
+        if isinstance(shape, basestring):
+            self.dagPath = om2.MFnDagNode(shapelib.loadFromLib(shape, parent=self.dagPath)).getPath()
+        else:
+            self.dagPath = om2.MFnDagNode(curves.createCurveShape(self.dagPath, shape)).getPath()
 
-        self.dagPath = om2.MFnDagNode(shapelib.loadFromLib(shape, parent=self.dagPath)).getPath()
         if self.dagPath is None:
             raise ValueError("Not a valid shape name %s" % shape)
         if position is not None:
-            self.setPosition(position)
+            self.setPosition(position, space=om2.MSpace.kWorld)
         if rotation is not None:
-            self.setRotation(rotation)
+            self.setRotation(rotation, space=om2.MSpace.kWorld)
         if scale != (1, 1, 1):
-            self.setScale(scale)
+            self.setScale(scale, space=om2.MSpace.kWorld)
         if rotationOrder is not None:
             self.setRotationOrder(rotationOrder)
-
-        self.setColour(self.colour, shapeIndex=0)
         return self.dagPath
 
     def setPosition(self, position, cvs=False, space=None):
@@ -143,7 +156,8 @@ class Control(object):
             return
         if cvs:
             # uber temp should be api, just need to get to it
-            cmds.rotate(rotation.x, rotation.y, rotation.z, cmds.ls(om2.MFnDagNode(self.dagPath).fullPathName() + ".cv[*]"))
+            cmds.rotate(rotation.x, rotation.y, rotation.z,
+                        cmds.ls(om2.MFnDagNode(self.dagPath).fullPathName() + ".cv[*]"))
             return
         trans = om2.MFnTransform(self.dagPath)
         if isinstance(rotation, (list, tuple)):
@@ -203,7 +217,7 @@ class Control(object):
     def setRotationOrder(self, rotateOrder=None):
         """Sets rotation order for the control
 
-        :param rotateOrder: om.mEulerRotation.kXYZ
+        :param rotateOrder: om.MTransformationMatrix.kXYZ
         :type rotateOrder: int
         """
         if self.dagPath is None:

@@ -7,8 +7,9 @@ from zoo.libs.utils import env
 class Plugin(object):
     """Base plugin class that all plugins inherent from.
     """
+
     def __init__(self):
-        self.stats = PluginStats()
+        self.stats = PluginStats(self)
 
 
 class PluginStats(object):
@@ -26,8 +27,7 @@ class PluginStats(object):
         """Initializes some basic info about the plugin and the use environment
         Internal use only:
         """
-        self.info.update({"name": self.plugin.name,
-                          "displayName": self.plugin.displayName,
+        self.info.update({"name": self.plugin.__class__.__name__,
                           "creator": self.plugin.creator,
                           "module": self.plugin.__class__.__module__,
                           "filepath": inspect.getfile(self.plugin.__class__),

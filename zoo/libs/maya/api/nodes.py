@@ -1,4 +1,5 @@
 from maya.api import OpenMaya as om2
+from maya import cmds
 from zoo.libs.maya.api import plugs
 from zoo.libs.maya.api import attrtypes
 
@@ -176,12 +177,26 @@ def lockNode(mobject, state=True):
         mod.doIt()
 
 
+def unlockConnectedAttributes(mobject):
+    for thisNodeP, otherNodeP in iterConnections(mobject, source=True, destination=True):
+        if thisNodeP.isLocked:
+            thisNodeP.isLocked = False
+
+
+def unlockedAndDisconnectConnectedAttributes(mobject):
+    for thisNodeP, otherNodeP in iterConnections(mobject, source=True, destination=True):
+        plugs.disconnectPlug(thisNodeP, otherNodeP)
+
+
 def childPathAtIndex(path, index):
     """From the given MDagPath return a new MDagPath for the child node at the given index.
 
     :param path: MDagPath
     :type index: int
     :return: MDagPath, this path's child at the given index"""
+    existingChildCount = path.childCount()
+    if existingChildCount < 1:
+        return None
     if index < 0:
         index = path.childCount() - abs(index)
     copy = om2.MDagPath(path)
@@ -320,7 +335,7 @@ def isUnderSceneRoot(node):
     return isSceneRoot(par)
 
 
-def iterChildren(mObject, recursive=False, filter="all"):
+def iterChildren(mObject, recursive=False, filter=None):
     """Generator function that can recursive iterate over the children of the given mobject.
 
     :param mObject: The mobject to traverse must be a mobject that points to a transform
@@ -330,20 +345,19 @@ def iterChildren(mObject, recursive=False, filter="all"):
     :param filter: om.MFn or 'all', the node type to find, can be either 'all' for returning everything or a om.MFn type constant
                     does not include shapes
     :type filter: str or int
-    :return: om.MFnDagNode
+    :return: om.MObject
     """
     dagNode = om2.MFnDagNode(mObject)
     childCount = dagNode.childCount()
     if not childCount:
         return
 
-    for index in range(childCount):
+    for index in xrange(childCount):
         childObj = dagNode.child(index)
-        if childObj.apiType() == filter or filter == "all":
-            childDag = om2.MFnDagNode(childObj)
-            yield childDag
+        if childObj.apiType() == filter or filter is None:
+            yield childObj
             if recursive:
-                for x in iterChildren(childDag.object(), recursive, filter):
+                for x in iterChildren(childObj, recursive, filter):
                     yield x
 
 
@@ -367,6 +381,16 @@ def iterAttributes(node):
             continue
         for child in plugs.iterChildren(plug):
             yield child
+
+
+def iterExtraAttributes(node, filteredType=None):
+    dep = om2.MFnDependencyNode(node)
+    for idx in xrange(dep.attributeCount()):
+        attr = dep.attribute(idx)
+        plug = om2.MPlug(node, attr)
+        if plug.isDynamic:
+            if filteredType is None or plugs.plugType(plug) == filteredType:
+                yield plug
 
 
 def iterConnections(node, source=True, destination=True):
@@ -450,12 +474,18 @@ def delete(node):
     """
     if not isValidMObject(node):
         return
-    if node.hasFn(om2.MFn.kDagNode):
-        mod = om2.MDagModifier()
-    else:
-        mod = om2.MDGModifier()
+    lockNode(node, False)
+    unlockedAndDisconnectConnectedAttributes(node)
+    mod = om2.MDagModifier()
     mod.deleteNode(node)
     mod.doIt()
+
+
+def getOffsetMatrix(startObj, endObj):
+    start = getParentInverseMatrix(startObj)
+    end = getWorldMatrix(endObj)
+    mOutputMatrix = om2.MTransformationMatrix(end * start)
+    return mOutputMatrix.asMatrix()
 
 
 def getObjectMatrix(mobject):
@@ -521,15 +551,23 @@ def hasAttribute(node, name):
     return om2.MFnDependencyNode(node).hasAttribute(name)
 
 
+def setMatrix(mobject, matrix):
+    dag = om2.MFnDagNode(mobject)
+    trans = om2.MFnTransform(dag.getPath())
+    trans.setTransformation(om2.MTransformationMatrix(matrix))
+
+
 def setTranslation(obj, position, space=None):
+    path = om2.MFnDagNode(obj).getPath()
     space = space or om2.MSpace.kTransform
-    trans = om2.MFnTransform(obj)
+    trans = om2.MFnTransform(path)
     trans.setTranslation(position, space)
 
 
 def getTranslation(obj, space=None):
     space = space or om2.MSpace.kTransform
-    trans = om2.MFnTransform(obj)
+    path = om2.MFnDagNode(obj).getPath()
+    trans = om2.MFnTransform(path)
     return trans.translation(space)
 
 
@@ -545,6 +583,14 @@ def setCurvePositions(shape, points, space=None):
     if len(points) != curve.numCVs:
         raise ValueError("Mismatched current curves cv count and the length of points to modify")
     curve.setCVPositions(points, space)
+
+
+def setRotation(node, rotation, space=om2.MSpace.kTransform):
+    path = om2.MFnDagNode(node).getPath()
+    trans = om2.MFnTransform(path)
+    if isinstance(rotation, (list, tuple)):
+        rotation = om2.MEulerRotation([om2.MAngle(i, om2.MAngle.kDegrees).asRadians() for i in rotation]).asQuaternion()
+    trans.setRotation(rotation, space)
 
 
 def addAttribute(node, longName, shortName, attrType=attrtypes.kMFnNumericDouble):
@@ -725,12 +771,20 @@ def serializeNode(node):
 
     data = {"name": dep.fullPathName() if node.hasFn(om2.MFn.kDagNode) else dep.name(),
             "type": dep.typeName,
-            "requirements": dep.pluginName}
+            }
+    req = dep.pluginName
+    if req:
+        data["requirements"] = req
     if node.hasFn(om2.MFn.kDagNode):
         data["parent"] = nameFromMObject(dep.parent(0))
     attributes = {}
     for pl in iterAttributes(node):
         attrData = {}
+        if pl.isDestination:
+            source = pl.source()
+            nodeName = nameFromMObject(source.node())
+            attrData["connections"] = (nodeName, source.partialName(includeNonMandatoryIndices=True, useLongNames=True))
+
         if not pl.isDynamic:
             if pl.isDefaultValue():
                 continue
@@ -743,20 +797,50 @@ def serializeNode(node):
             if pl.attribute().hasFn(om2.MFn.kEnumAttribute):
                 attrData["enums"] = plugs.enumNames(pl)
         value = plugs.getPythonTypeFromPlugValue(pl)
-
-        if value is not None:
+        # could be 0.0, False, True which is a valid result so we need to explicitly check
+        if value not in (None, [], {}):
             attrData["value"] = value
-        if pl.isDestination:
-            connection = pl.connected(True, False)[0]
-            connectedNode = connection.node()
-            nodeName = om2.MFnDagNode(connectedNode).fullPathName() if node.hasFn(
-                om2.MFn.kDagNode) else om2.MFnDependencyNode(
-                connectedNode).name()
-            attrData["connections"] = (nodeName, connection.partialName(useLongNames=True,
-                                                                        includeNonMandatorIndices=True))
-        attributes[pl.partialName(includeNonMandatoryIndices=True, useLongNames=True)] = attrData
+
+        if attrData:
+            attributes[pl.partialName(includeNonMandatoryIndices=True, useLongNames=True)] = attrData
 
     if attributes:
         data["attributes"] = attributes
 
     return data
+
+
+def createAnnotation(rootObj, endObj, text=None, name=None):
+    name = name or "annotation"
+    rootDag = om2.MFnDagNode(rootObj)
+    boundingBox = rootDag.boundingBox
+    center = om2.MVector(boundingBox.center)
+    locator = asMObject(cmds.createNode("locator"))
+    locatorTransform = getParent(locator)
+    rename(locatorTransform, "_".join([name, "loc"]))
+    setTranslation(locatorTransform, getTranslation(rootObj, om2.MSpace.kWorld), om2.MSpace.kWorld)
+    annotationNode = asMObject(cmds.annotate(nameFromMObject(locatorTransform), tx=text))
+    annParent = getParent(annotationNode)
+    rename(annParent, name)
+    plugs.setAttr(om2.MFnDagNode(annotationNode).findPlug("position", False), center)
+    setParent(locatorTransform, rootObj, True)
+    setParent(annParent, endObj, False)
+    return annotationNode, locatorTransform
+
+
+def setlockStateOnAttributes(node, attributes, state=True):
+    dep = om2.MFnDependencyNode(node)
+    for attr in attributes:
+        plug = dep.findPlug(attr, False)
+        if plug.isLocked != state:
+            plug.isLocked = state
+    return True
+
+
+def showHideAttributes(node, attributes, state=True):
+    dep = om2.MFnDependencyNode(node)
+    for attr in attributes:
+        plug = dep.findPlug(attr, False)
+        if plug.isChannelBox != state:
+            plug.isChannelBox = state
+    return True

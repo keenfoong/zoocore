@@ -1,6 +1,5 @@
 import platform
 from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
-from zoo.libs.pyqt.widgets import dockWidget
 from zoo.libs import iconlib
 
 
@@ -50,6 +49,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.exitAction.setToolTip("Close's application")
         self.fileMenu.addAction(self.exitAction)
         self.exitAction.triggered.connect(self.close)
+
+    def setCustomCentralWidget(self, widget):
+        self.setCentralWidget(widget)
 
     def addDockWidget(self, area, dockWidget, orientation=QtCore.Qt.Horizontal):
         """Adds a dock widget to the current window at the specified location, if the location already has a

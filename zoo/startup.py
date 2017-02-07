@@ -1,6 +1,7 @@
 # @todo split the env out to a config file (JSON) for cleaner code and better integration
 import os
 import sys
+import site
 
 from zoo.libs.utils import filesystem
 from zoo.libs.utils import zlogging
@@ -34,7 +35,7 @@ def _initEnv():
     elif zootoolsPath not in basePaths:
         logger.debug("Adding env -> {} to current ZOO_BASE, existing -> {}".format(zootoolsPath,
                                                                                    os.environ["ZOO_BASE"]))
-        os.environ["ZOO_BASE"] += zootoolsPath + os.pathsep
+        os.environ["ZOO_BASE"] = zootoolsPath + os.pathsep + basePaths
     if not iconPath:
         logger.debug("setting up ZOO_ICON_PATH env -> {}".format(os.path.join(zootoolsPath, "icons")))
         os.environ["ZOO_ICON_PATH"] = os.path.join(zootoolsPath, "icons") + os.pathsep
@@ -43,6 +44,8 @@ def _initEnv():
                                                                                                      "icons"),
                                                                                         os.environ["ZOO_ICON_PATH"]))
         os.environ["ZOO_ICON_PATH"] += os.path.join(zootoolsPath, "icons") + os.pathsep
+
+    site.addsitedir(os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "thirdparty")))
 
     if "ZOO_LOG_LEVEL" not in os.environ:
         os.environ['ZOO_LOG_LEVEL'] = 'DEBUG'
@@ -55,9 +58,7 @@ def _setupMaya():
 
 
 def startUp():
-
     _initEnv()
-
     if env.isInMaya():
         _setupMaya()
 

@@ -49,6 +49,30 @@ def connectPlugs(source, destination):
     mod.doIt()
 
 
+def disconnectPlug(plug, source=True, destination=True):
+    dep = om2.MFnDependencyNode(plug.node())
+    changedNodeState = False
+    if dep.isLocked:
+        dep.isLocked = False
+        changedNodeState = True
+    if plug.isLocked:
+        plug.isLocked = False
+    mod = om2.MDGModifier()
+    if source and plug.isDestination:
+        if plug.source().isLocked:
+            plug.source().isLocked = False
+        mod.disconnect(plug.source(), plug)
+    if destination and plug.isSource:
+        for conn in plug.destinations():
+            if conn.isLocked:
+                conn.isLocked = False
+            mod.disconnect(conn, plug)
+    mod.doIt()
+    if changedNodeState:
+        dep.isLocked = True
+    return True
+
+
 def isValidMPlug(plug):
     """Checks whether the MPlug is valid in the scene
 
@@ -64,6 +88,13 @@ def setLockedContext(plug):
         plug.isLocked = False
     yield
     plug.isLocked = True
+
+
+def setLockState(plug, state):
+    if plug.isLocked != state:
+        plug.isLocked = state
+        return True
+    return False
 
 
 def filterConnected(plug, filter):
@@ -552,6 +583,7 @@ def setAttr(plug, value):
             plug.setInt(value)
         elif at == om2.MFnNumericData.kShort:
             plug.setInt(value)
+
     elif obj.hasFn(om2.MFn.kEnumAttribute):
         plug.setInt(value)
 
@@ -571,8 +603,6 @@ def setAttr(plug, value):
     else:
         raise ValueError(
             "Currently we don't support dataType ->%s contact the developers to get this implemented" % obj.apiTypeStr)
-
-
 
 
 def getPlugFn(obj):
@@ -703,18 +733,44 @@ def getPythonTypeFromPlugValue(plug):
     dataType, value = getPlugAndType(plug)
     types = (attrtypes.kMFnDataString, attrtypes.kMFnDataMatrix, attrtypes.kMFnDataFloatArray,
              attrtypes.kMFnDataFloatArray, attrtypes.kMFnDataDoubleArray,
-             attrtypes.kMFnDataIntArray, attrtypes.kMFnDataPointArray, attrtypes.kMFnDataVectorArray,
-             attrtypes.kMFnDataStringArray, attrtypes.kMFnDataMatrixArray,
+             attrtypes.kMFnDataIntArray, attrtypes.kMFnDataPointArray, attrtypes.kMFnDataStringArray,
              attrtypes.kMFnNumeric2Double, attrtypes.kMFnNumeric2Float, attrtypes.kMFnNumeric2Int,
              attrtypes.kMFnNumeric2Long, attrtypes.kMFnNumeric2Short, attrtypes.kMFnNumeric3Double,
              attrtypes.kMFnNumeric3Int, attrtypes.kMFnNumeric3Long, attrtypes.kMFnNumeric3Short,
              attrtypes.kMFnNumeric4Double)
-    if isinstance(dataType, list):
-        if not dataType:
-            return None
+
+    if dataType is None:
+        return None
+    elif isinstance(dataType, (list, tuple)):
+        res = []
+        for idx, dt in enumerate(dataType):
+            if dt == attrtypes.kMFnDataMatrix:
+                res.append([i for i in value[idx]])
+            elif dt in (
+                    attrtypes.kMFnUnitAttributeDistance, attrtypes.kMFnUnitAttributeAngle,
+                    attrtypes.kMFnUnitAttributeTime):
+                res.append(value[idx].value)
+        return res
+    elif dataType in (attrtypes.kMFnDataMatrixArray, attrtypes.kMFnDataVectorArray):
         return [[i for i in subValue] for subValue in value]
+    elif dataType in (
+            attrtypes.kMFnUnitAttributeDistance, attrtypes.kMFnUnitAttributeAngle, attrtypes.kMFnUnitAttributeTime):
+        return value.value
     elif dataType in types:
         return [i for i in value]
-    elif dataType in (attrtypes.kMFnUnitAttributeDistance, attrtypes.kMFnUnitAttributeAngle, attrtypes.kMFnUnitAttributeTime):
-        return value.value
+
+    return value
+
+
+def pythonTypeToMayaType(dataType, value):
+    if dataType == attrtypes.kMFnDataMatrixArray:
+        return [om2.MMatrix(subValue) for subValue in value]
+    elif attrtypes.kMFnDataVectorArray:
+        return [om2.MVector(subValue) for subValue in value]
+    elif dataType == attrtypes.kMFnUnitAttributeDistance:
+        return om2.MDistance(value)
+    elif dataType == attrtypes.kMFnUnitAttributeAngle:
+        return om2.MAngle(value, om2.MAngle.kDegrees)
+    elif dataType == attrtypes.kMFnUnitAttributeTime:
+        return om2.MTime(value)
     return value

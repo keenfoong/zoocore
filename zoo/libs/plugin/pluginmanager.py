@@ -2,7 +2,7 @@
 import inspect
 import os
 
-import plugin
+from zoo.libs.plugin import plugin
 from zoo.libs.utils import modules
 from zoo.libs.utils import zlogging
 
@@ -23,7 +23,7 @@ class PluginManager(object):
         self.loadedPlugins = {}  # {className: instance}
         self.basePaths = []
 
-    def registerTools(self, paths):
+    def registerPaths(self, paths):
         """This function is helper function to register a list of paths.
 
         :param paths: A list of module or package paths, see registerByModule() and registerByPackage() for the path format.
@@ -31,14 +31,17 @@ class PluginManager(object):
         """
         self.basePaths.extend(paths)
         for p in paths:
+            if not p or p.endswith(".pyc"):
+                continue
             importedModule = None
-            if p:
+            if os.path.exists(p) and os.path.isdir(p):
+                self.registerByPackage(p)
+                continue
+            elif p:
                 importedModule = modules.importModule(p)
             if importedModule:
                 self.registerByModule(importedModule)
                 continue
-
-            self.registerByPackage(p)
 
     def registerByModule(self, module):
         """ This function registry a module by search all class members of the module and registers any class that is an
@@ -58,13 +61,17 @@ class PluginManager(object):
         :param pkg: The package path to register eg. zoo.libs.apps
         :type pkg: str
         """
-        visited = set()
-        for subModule in modules.iterModules(pkg):
+        mod = modules.importModule(pkg)
+        realPath = os.path.dirname(inspect.getfile(mod))
+        pkgSplitPath = pkg.replace(".", os.path.sep)
+        self.basePaths.append(realPath)
+
+        for subModule in modules.iterModules(realPath):
             filename = os.path.splitext(os.path.basename(subModule))[0]
-            if filename.startswith("__") or filename in visited:
+            if filename.startswith("__") or subModule.endswith(".pyc"):
                 continue
-            visited.add(filename)
-            subModuleObj = modules.importModule(subModule)
+            newDottedPath = pkg + subModule.split(pkgSplitPath)[-1].replace(os.path.sep, ".").split(".py")[0]
+            subModuleObj = modules.importModule(newDottedPath)
             for member in modules.iterMembers(subModuleObj, predicate=inspect.isclass):
                 self.registerPlugin(member[1])
 
@@ -74,7 +81,7 @@ class PluginManager(object):
         :param classObj: the plugin instance to registry
         :type classObj: Plugin
         """
-        if classObj not in self.plugins.values() and issubclass(classObj, plugin.ToolBasePlugin):
+        if classObj not in self.plugins.values() and issubclass(classObj, plugin.Plugin):
             logger.debug("registering plugin -> {}".format(classObj.__name__))
             self.plugins[classObj.__name__] = classObj
 

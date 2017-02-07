@@ -4,15 +4,15 @@
 import inspect
 import os
 from functools import wraps
-
+import uuid
 import re
-from maya.api import OpenMaya as om2
 
-from zoo.libs.maya.api import attrtypes
+from maya.api import OpenMaya as om2
 from zoo.libs.utils import modules
 from zoo.libs.utils import zlogging
-from zoo.libs.maya.api import nodes
 from zoo.libs.maya.api import plugs
+from zoo.libs.maya.api import nodes
+from zoo.libs.maya.api import attrtypes
 
 logger = zlogging.zooLogger
 
@@ -29,24 +29,25 @@ def lockMetaManager(func):
         try:
             return func(*args, **kwargs)
         finally:
-            if node.exists():
-                nodes.lockNode(node.mobject(), True)
+            pass
+            # if node.exists():
+            #     nodes.lockNode(node.mobject(), True)
 
     return locker
 
 
 def findSceneRoots():
-    """Finds all meta nodes in the scene that are root meta nodes
+    """Finds all meta nodes in the scene that are root meta node
     :return:
-    :rtype:
+    :rtype: list()
     """
     roots = []
     for meta in iterSceneMetaNodes():
         dep = om2.MFnDependencyNode(meta)
         try:
-            root = dep.findPlug("root", False).asBool()
-            if root:
-                roots.append(root)
+            isRoot = dep.findPlug("root", False).asBool()
+            if isRoot:
+                roots.append(meta)
         except RuntimeError:
             continue
     return roots
@@ -70,7 +71,6 @@ def filterSceneByAttributeValues(attributeNames, filter):
             except RuntimeError:
                 continue
             value = plugs.getPlugValue(plug)
-            # temp
             if isinstance(value, basestring):
                 grp = re.search(filter, value)
                 if grp:
@@ -81,13 +81,34 @@ def filterSceneByAttributeValues(attributeNames, filter):
 
 
 def iterSceneMetaNodes():
+    """Iterates all metanodes in the maya scene
+    :rtype: Generator(MObject)
+    """
     t = om2.MItDependencyNodes()
     while not t.isDone():
         node = t.thisNode()
         dep = om2.MFnDependencyNode(node)
-        if dep.hasAttribute("ZOO_MClass"):
+        if dep.hasAttribute("mClass"):
             yield node
         t.next()
+
+
+def isMetaNode(node):
+    if isinstance(node, MetaBase) or issubclass(type(node), MetaBase):
+        return True
+    dep = om2.MFnDependencyNode(node)
+    if dep.hasAttribute("mClass"):
+        return MetaRegistry.isInRegistry(dep.findPlug("mClass").asString())
+    return False
+
+
+def getConnectMetaNodes(node):
+    mNodes = []
+    for dest, source in nodes.iterConnections(node, True, False):
+        node = source.node()
+        if isMetaNode(node):
+            mNodes.append(MetaBase(node))
+    return mNodes
 
 
 class MetaRegistry(object):
@@ -102,14 +123,13 @@ class MetaRegistry(object):
             cls._instance = super(MetaRegistry, cls).__new__(*args, **kwargs)
         return cls._instance
 
-    def __init__(self):
-        # register the default
-        self.registerMetaClasses(["zoo.libs.maya.meta.metadata"])
+    @classmethod
+    def isInRegistry(cls, typeName):
+        return typeName in cls.types
 
     @classmethod
     def getType(cls, typeName):
-        if typeName in cls.types:
-            return cls.types[typeName]
+        return cls.types.get(typeName)
 
     @classmethod
     def registerMetaClasses(cls, paths):
@@ -186,16 +206,8 @@ class MetaRegistry(object):
             cls.types[classObj.__name__] = classObj
 
 
-class MetaBase(object):
-    @staticmethod
-    def classNameFromPlug(node):
-        dep = om2.MFnDependencyNode(node)
-        try:
-            return dep.findPlug("mClass", False).asString()
-        except RuntimeError:
-            return ""
-
-    def __new__(cls, *args, **kwargs):
+class MetaFactory(type):
+    def __call__(cls, *args, **kwargs):
         """Custom constructor to pull the cls type from the node if it exists and recreates the class instance
         from the registry. If that class doesnt exist then the normal __new__ behaviour will be used
         """
@@ -204,15 +216,29 @@ class MetaBase(object):
             node = args[0]
         # if the user doesn't pass a node it means they want to create it
         if not node:
-            return object.__new__(cls, *args, **kwargs)
-        classType = cls.classNameFromPlug(node)
+            return type.__call__(cls, *args, **kwargs)
+        classType = MetaBase.classNameFromPlug(node)
         if classType == cls.__name__:
-            return object.__new__(cls, *args, **kwargs)
+            return type.__call__(cls, *args, **kwargs)
+
         registeredType = MetaRegistry().getType(classType)
-        if not registeredType:
-            # logger.warning("Class type -> {}, doesn't exist within the registry".format(registeredType))
-            return object.__new__(cls, *args, **kwargs)
-        return object.__new__(registeredType, *args, **kwargs)
+        if registeredType is None:
+            return type.__call__(*args, **kwargs)
+        return registeredType(*args, **kwargs)
+
+
+class MetaBase(object):
+    __metaclass__ = MetaFactory
+
+    @staticmethod
+    def classNameFromPlug(node):
+        if isinstance(node, MetaBase):
+            return node.mClass.asString()
+        dep = om2.MFnDependencyNode(node)
+        try:
+            return dep.findPlug("mClass", False).asString()
+        except RuntimeError:
+            return ""
 
     def __init__(self, node=None, name="", initDefaults=True):
         if node is None:
@@ -225,27 +251,32 @@ class MetaBase(object):
         else:
             self._mfn = om2.MFnDependencyNode(node)
 
-        self.lock(True)
+        # self.lock(True)
         if initDefaults:
             self._initMeta()
 
     def _initMeta(self):
         """Initializes the standard attributes for the meta nodes
         """
-        if not self._mfn.hasAttribute("mClass"):
-            self.addAttribute("mClass", self.__class__.__name__, attrtypes.kMFnDataString)
-        if not self.hasAttribute("root"):
-            self.addAttribute("root", False, attrtypes.kMFnNumericBoolean)
+        self.addAttribute("mClass", self.__class__.__name__, attrtypes.kMFnDataString)
+        self.addAttribute("root", False, attrtypes.kMFnNumericBoolean)
+        self.addAttribute("uuid", str(uuid.uuid4()), attrtypes.kMFnDataString)
+        self.addAttribute("metaParent", None, attrtypes.kMFnMessageAttribute)
+        self.addAttribute("metaChildren", None, attrtypes.kMFnMessageAttribute)
 
     def __getattr__(self, name):
-        if not name.startswith("_"):
-            attr = self.getAttribute(name)
-            if attr is not None:
-                return attr
-            # search for the given method name
-            elif hasattr(self._mfn, name):
-                return getattr(self._mfn, name)
+        if name.startswith("_"):
+            super(MetaBase, self).__getattribute__(name)
+            return
+        plug = self.getAttribute(name)
+        if plug is not None:
+            if plug.isSource:
+                return [i.node() for i in plug.destinations()]
+            return plug
 
+        # search for the given method name
+        elif hasattr(self._mfn, name):
+            return getattr(self._mfn, name)
         return super(MetaBase, self).__getattribute__(name)
 
     def __setattr__(self, key, value):
@@ -282,6 +313,8 @@ class MetaBase(object):
         :return: the meta nodes mObject
         :rtype: mobject
         """
+        if not self.exists():
+            raise ValueError("Meta node no longer exists in the scene")
         return self._handle.object()
 
     def handle(self):
@@ -317,7 +350,8 @@ class MetaBase(object):
     def delete(self):
         """Deletes the metaNode from the scene
         """
-        nodes.delete(self._handle.object())
+        metaMobj = self._handle.object()
+        nodes.delete(metaMobj)
 
     @lockMetaManager
     def rename(self, name):
@@ -354,9 +388,14 @@ class MetaBase(object):
         attr = nodes.addAttribute(self._handle.object(), name, name, Type)
         newPlug = None
         if attr is not None:
-            newPlug = self._mfn.findPlug(attr.object(), False)
+            newPlug = om2.MPlug(self._handle.object(), attr.object())
+
         if value is not None and newPlug is not None:
-            plugs.setAttr(newPlug, value)
+            # if mobject expect it to be a node
+            if isinstance(value, om2.MObject):
+                self.connectTo(name, value)
+            else:
+                plugs.setAttr(newPlug, value)
         newPlug.isLocked = True
         return attr
 
@@ -372,15 +411,20 @@ class MetaBase(object):
 
     @lockMetaManager
     def removeAttribute(self, name):
+        if not self.exists():
+            return False
         if self._mfn.hasAttribute(name):
             plug = self._mfn.findPlug(name, False)
             if plug.isLocked:
                 plug.isLocked = False
             mod = om2.MDGModifier()
-            mod.removeAttribute(self._handle.object(), plug.asMObject())
+            mod.removeAttribute(self._handle.object(), plug.attribute())
             mod.doIt()
             return True
         return False
+
+    def hasAttribute(self, name):
+        return self._mfn.hasAttribute(name)
 
     @lockMetaManager
     def renameAttribute(self, name, newName):
@@ -447,18 +491,15 @@ class MetaBase(object):
             data.update(attrData)
         return data
 
-    def connectTo(self, attributeName, node):
+    def connectTo(self, attributeName, node, nodeAttributeName=None):
+        nodeAttributeName = nodeAttributeName or "metaNode"
         dep = om2.MFnDependencyNode(node)
-        nodeAttributeName = "metaNode"
         if not dep.hasAttribute(nodeAttributeName):
             destinationPlug = dep.findPlug(nodes.addAttribute(node, nodeAttributeName, nodeAttributeName,
                                                               attrtypes.kMFnMessageAttribute).object(), False)
         else:
             destinationPlug = dep.findPlug(nodeAttributeName, False)
-            if destinationPlug.isDestination:
-                mod = om2.MDGModifier()
-                mod.disconnect(destinationPlug.connectedTo(True, False)[0], destinationPlug)
-                mod.doIt()
+            plugs.disconnectPlug(destinationPlug)
 
         if self._mfn.hasAttribute(attributeName):
             # we should have been disconnected from the destination control above
@@ -468,7 +509,85 @@ class MetaBase(object):
             if newAttr is not None:
                 sourcePlug = self._mfn.findPlug(newAttr.object(), False)
             else:
-                sourcePlug=self._mfn.findPlug(attributeName, False)
+                sourcePlug = self._mfn.findPlug(attributeName, False)
         with plugs.setLockedContext(sourcePlug):
+            if destinationPlug.isLocked:
+                destinationPlug.isLocked = False
             plugs.connectPlugs(sourcePlug, destinationPlug)
+            destinationPlug.isLocked = True
         return destinationPlug
+
+    def metaRoot(self):
+        parent = self.metaParent()
+        while parent is not None:
+            coParent = parent.metaParent()
+            if coParent is not None and coParent.root.asBool():
+                return coParent
+            parent = coParent
+
+    def metaParent(self):
+        parentPlug = self._mfn.findPlug("metaParent", False)
+        if parentPlug.isConnected:
+            return MetaBase(parentPlug.connectedTo(True, False)[0].node())
+
+    def metaChildren(self):
+        return [i for i in self.iterMetaChildren()]
+
+    def iterMetaChildren(self, depthLimit=256):
+        childPlug = self._mfn.findPlug("metaChildren", False)
+        for child in plugs.iterDependencyGraph(childPlug, depthLimit=depthLimit):
+            yield MetaBase(child.node())
+
+    def addChild(self, child):
+        child.removeParent()
+        child.addParent(self)
+
+    def addParent(self, parent):
+        if isinstance(parent, om2.MObject):
+            parent = MetaBase(parent)
+        metaParent = self.metaParent()
+        if metaParent is not None or metaParent == parent:
+            raise ValueError("MetaNode already has a parent, call removeParent first")
+        parentPlug = self._mfn.findPlug("metaParent", False)
+        with plugs.setLockedContext(parentPlug):
+            plugs.connectPlugs(parent.findPlug("metaChildren", False), parentPlug)
+
+    def findChildrenByFilter(self, filter):
+        children = []
+        for child in self.iterMetaChildren():
+            grp = re.search(filter, nodes.nameFromMObject(child))
+            if grp:
+                children.append(child)
+        return children
+
+    def findChildByType(self, Type):
+        children = []
+        for child in self.iterMetaChildren(depthLimit=1):
+            if child.apiType() == Type:
+                children.append(child)
+        return children
+
+    def removeParent(self):
+        parent = self.metaParent()
+        if parent is None:
+            return
+        mod = om2.MDGModifier()
+        source = parent.findPlug("metaChildren", False)
+        destination = self.findPlug("metaParent", False)
+        with plugs.setLockedContext(source):
+            destination.isLocked = False
+            mod.disconnect(source, destination)
+            mod.doIt()
+
+    def removeChild(self, node):
+        if isinstance(node, MetaBase.MetaBase):
+            node.removeParent()
+            return True
+        childPlug = self._mfn.findPlug("metaChildren", False)
+        mod = om2.MDGModifier()
+        destination = om2.MFnDependencyNode(node).findPlug("metaParent", False)
+        with plugs.setLockedContext(childPlug):
+            destination.isLocked = False
+        mod.disconnect(childPlug, destination)
+        mod.doIt()
+        return True
