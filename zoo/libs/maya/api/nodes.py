@@ -482,9 +482,9 @@ def delete(node):
 
 
 def getOffsetMatrix(startObj, endObj):
-    start = getParentInverseMatrix(startObj)
+    start = getWorldMatrix(startObj)
     end = getWorldMatrix(endObj)
-    mOutputMatrix = om2.MTransformationMatrix(end * start)
+    mOutputMatrix = om2.MTransformationMatrix(end * start.inverse())
     return mOutputMatrix.asMatrix()
 
 
@@ -504,9 +504,8 @@ def getWorldMatrix(mobject):
     :param mobject: MObject, the MObject that points the dagNode
     :return: MMatrix
     """
-    dag = om2.MFnDagNode(mobject).getPath()
-
-    return dag.inclusiveMatrix()
+    matplug = om2.MFnDependencyNode(mobject).findPlug("worldMatrix", False).elementByPhysicalIndex(0)
+    return plugs.getPlugValue(matplug)
 
 
 def getWorldInverseMatrix(mobject):
@@ -515,8 +514,8 @@ def getWorldInverseMatrix(mobject):
     :param mobject: MObject
     :return: MMatrix
     """
-    dag = om2.MFnDagNode(mobject).getPath()
-    return dag.inclusiveMatrixInverse()
+    matplug = om2.MFnDependencyNode(mobject).findPlug("worldInverseMatrix", False).elementByPhysicalIndex(0)
+    return plugs.getPlugValue(matplug)
 
 
 def getParentMatrix(mobject):
@@ -525,9 +524,8 @@ def getParentMatrix(mobject):
     :param mobject: MObject
     :return: MMatrix
     """
-    dag = om2.MFnDagNode(mobject).getPath()
-
-    return dag.exclusiveMatrix()
+    matplug = om2.MFnDependencyNode(mobject).findPlug("parentMatrix", False).elementByPhysicalIndex(0)
+    return plugs.getPlugValue(matplug)
 
 
 def getParentInverseMatrix(mobject):
@@ -536,9 +534,8 @@ def getParentInverseMatrix(mobject):
     :param mobject: MObject
     :return: MMatrix
     """
-    dag = om2.MFnDagNode(mobject).getPath()
-
-    return dag.exclusiveMatrixInverse()
+    matplug = om2.MFnDependencyNode(mobject).findPlug("parentInverseMatrix", False).elementByPhysicalIndex(0)
+    return plugs.getPlugValue(matplug)
 
 
 def hasAttribute(node, name):

@@ -75,6 +75,10 @@ def asEuler(rotation):
     return om2.MEulerRotation([om2.MAngle(i, om2.MAngle.kDegrees).asRadians() for i in rotation])
 
 
+def eulerToDegrees(euler):
+    return [om2.MAngle(i, om2.MAngle.kRadians).asDegrees() for i in euler]
+
+
 def softSelection():
     """Gets the current component softSelection
 
@@ -94,4 +98,3 @@ def softSelection():
                 weight = fnComp.weight(cIdx).influence
                 data.add((fnComp.element(cIdx), weight))
     return data
-

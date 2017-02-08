@@ -7,7 +7,7 @@ from zoo.libs.maya.api import plugs
 logger = zlogging.zooLogger
 
 
-def poleVectorPosition(start, mid, end):
+def poleVectorPosition(start, mid, end, multiplier=1.0):
     """This function gets the position of the polevector from 3 MVectors
 
     :param start: the start vector
@@ -32,8 +32,7 @@ def poleVectorPosition(start, mid, end):
 
     startEndN = startEnd.normal()
     projV = startEndN * proj
-    arrowV = startMid - projV
-    arrowV *= 1
+    arrowV = (startMid - projV) * multiplier
     finalV = arrowV + mid
 
     return finalV
