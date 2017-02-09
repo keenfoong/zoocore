@@ -547,7 +547,7 @@ class MetaBase(object):
             parent = MetaBase(parent)
         metaParent = self.metaParent()
         if metaParent is not None or metaParent == parent:
-            raise ValueError("MetaNode already has a parent, call removeParent first")
+            self.removeParent()
         parentPlug = self._mfn.findPlug("metaParent", False)
         with plugs.setLockedContext(parentPlug):
             plugs.connectPlugs(parent.findPlug("metaChildren", False), parentPlug)

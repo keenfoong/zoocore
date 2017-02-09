@@ -77,7 +77,6 @@ class Control(object):
 
         if parent is not None:
             nodes.setParent(newSrt, parent, True)
-
         nodes.setParent(self.mobject(), newSrt, True)
         self.srt = newSrt
         return newSrt

@@ -261,9 +261,10 @@ def setParent(mobject, newParent, maintainOffset=False):
     :type maintainOffset: bool
     :rtype bool
     """
+
+    newParent = newParent if newParent is not None else om2.MObject.kNullObj
     if mobject == newParent:
         return False
-    newParent = newParent if newParent is not None else om2.MObject.kNullObj
     dag = om2.MDagModifier()
     if maintainOffset:
         start = getWorldMatrix(newParent)
@@ -504,7 +505,9 @@ def getWorldMatrix(mobject):
     :param mobject: MObject, the MObject that points the dagNode
     :return: MMatrix
     """
-    matplug = om2.MFnDependencyNode(mobject).findPlug("worldMatrix", False).elementByPhysicalIndex(0)
+    wm = om2.MFnDependencyNode(mobject).findPlug("worldMatrix", False)
+    wm.evaluateNumElements()
+    matplug = wm.elementByPhysicalIndex(0)
     return plugs.getPlugValue(matplug)
 
 
@@ -514,7 +517,9 @@ def getWorldInverseMatrix(mobject):
     :param mobject: MObject
     :return: MMatrix
     """
-    matplug = om2.MFnDependencyNode(mobject).findPlug("worldInverseMatrix", False).elementByPhysicalIndex(0)
+    wm = om2.MFnDependencyNode(mobject).findPlug("worldInverseMatrix", False)
+    wm.evaluateNumElements()
+    matplug = wm.elementByPhysicalIndex(0)
     return plugs.getPlugValue(matplug)
 
 
@@ -524,7 +529,9 @@ def getParentMatrix(mobject):
     :param mobject: MObject
     :return: MMatrix
     """
-    matplug = om2.MFnDependencyNode(mobject).findPlug("parentMatrix", False).elementByPhysicalIndex(0)
+    wm = om2.MFnDependencyNode(mobject).findPlug("parentMatrix", False)
+    wm.evaluateNumElements()
+    matplug = wm.elementByPhysicalIndex(0)
     return plugs.getPlugValue(matplug)
 
 
@@ -534,7 +541,9 @@ def getParentInverseMatrix(mobject):
     :param mobject: MObject
     :return: MMatrix
     """
-    matplug = om2.MFnDependencyNode(mobject).findPlug("parentInverseMatrix", False).elementByPhysicalIndex(0)
+    wm = om2.MFnDependencyNode(mobject).findPlug("parentInverseMatrix", False)
+    wm.evaluateNumElements()
+    matplug = wm.elementByPhysicalIndex(0)
     return plugs.getPlugValue(matplug)
 
 
