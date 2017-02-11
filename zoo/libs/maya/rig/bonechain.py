@@ -1,9 +1,12 @@
+# @todo deal with proper naming conventions
 from maya.api import OpenMaya as om2
 from maya import cmds
 
 from zoo.libs.maya.api import nodes
 from zoo.libs.maya.api import plugs
+from zoo.libs.maya.api import constraints
 from zoo.libs.maya.rig import control
+from zoo.libs.maya.rig import skeletonutils
 from zoo.libs.utils import zlogging
 
 logger = zlogging.getLogger(__name__)
@@ -66,6 +69,7 @@ class FkChain(BoneChain):
         super(FkChain, self).__init__(joints)
 
         self.ctrls = []
+        self.extras = []
 
     def create(self, shapes, names, positions, orientations, rotationOrders, skipLast=True):
         try:
@@ -78,6 +82,8 @@ class FkChain(BoneChain):
             cntClass.create(shapes[x], om2.MVector(positions[x]), orientations[x], rotationOrder=rotationOrders[x])
             cntClass.addSrt("srt")
             self.ctrls.append(cntClass)
+            constraint = constraints.ParentConstraint()
+            constraint.create(cntClass.mobject(), self.joints[x])
 
         revList = list(self.ctrls)
         revList.reverse()
@@ -97,13 +103,30 @@ class IkChain(BoneChain):
 
         self.ikCtrl = None
         self.upVector = None
-        self.ikHandle = None
+        self.extras = []
 
     def create(self, shape, names, positions, orientations, rotationOrders, skipLast=True):
         try:
             super(IkChain, self).create(names, positions, orientations, rotationOrders)
         except ValueError:
             logger.debug("Joints having already been created, skipping joint creation, moving to create Fk controls")
+        self.ikCtrl = control.Control(names[-1].replace("jnt", "anim"))
+        self.upVector = control.Control(names[-2].replace("jnt", "upvec_anim"))
+        self.alignUpVector()
+        ikHandle, ikEffector = cmds.ikHandle(sj=self.joints[0], ee=self.joints[-1], solver="RPSolver",
+                                             n="_".join([names[0], "ikHandle"]))
+        upVecConstraint = nodes.asMObject(
+            cmds.poleVectorConstraint(self.upVector.dagPath.fullPathName(), ikHandle))
+        ikHandle = nodes.asMObject(ikHandle)
+        nodes.setParent(ikHandle, self.ikCtrl.mobject())
+
+        endConstraint = constraints.ParentConstraint()
+        endConstraint.create(self.ikCtrl.mobject(), self.joints[-1])
+        self.extras = [ikHandle, nodes.asMObject(ikEffector), endConstraint.mobject(), upVecConstraint]
 
     def alignUpVector(self):
-        pass
+        startPos = nodes.getTranslation(self.joints[0], om2.MSpace.kWorld)
+        midPos = nodes.getTranslation(self.joints[1], om2.MSpace.kWorld)
+        endPos = nodes.getTranslation(self.joints[2], om2.MSpace.kWorld)
+        pvPos = skeletonutils.poleVectorPosition(startPos, midPos, endPos, 2.0)
+        self.upVector.setPosition(pvPos, space=om2.MSpace.kWorld, useParent=True)

@@ -28,9 +28,9 @@ class ParentConstraint(object):
         drivenName = nodes.nameFromMObject(driven)
 
         const = cmds.parentConstraint(driverName, drivenName, skipRotate=skipRotate or [], skipTranslate=skipTranslate or [],
-                                      weight=1.0, maintainOffset=False)
+                                      weight=1.0, maintainOffset=maintainOffset)
         self.node = om2.MObjectHandle(nodes.asMObject(const[0]))
-        return self.node
+        return self.node.object()
 
     def drivenObject(self):
         plug = self.mfn.findPlug("constraintParentInverseMatrix", False)

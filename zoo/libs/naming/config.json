@@ -1,0 +1,8 @@
+{"rules": {"object":{"expression": "{side}{counter}_{area}_{type}", "description": "Standard object type convention",
+          "creator": "davidsp"}
+          },
+"tokens": {"side": {"l":"L", "r": "R", "m": "M", "default": "m", "choice":"m"},
+          "objectType": {"ktransform": "srt", "control": "anim", "kjoint": "jnt", "default": "kTransform", "choice": "kTransform"},
+          "area": {"arm": "arm", "choice": "arm", "control": "anim", "default": "null", "null": "null"}
+          }
+}

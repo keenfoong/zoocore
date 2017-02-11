@@ -123,7 +123,7 @@ class Control(object):
             self.setRotationOrder(rotationOrder)
         return self.dagPath
 
-    def setPosition(self, position, cvs=False, space=None):
+    def setPosition(self, position, cvs=False, space=None, useParent=True):
         """Sets the translation component of this control, if cvs is True then translate the cvs instead
 
         :param position: The MVector that represent the position based on the space given.
@@ -146,7 +146,12 @@ class Control(object):
                 for pnt in cvsPositions:
                     newPositions.append(om2.MPoint(pnt.x * position.x, pnt.y * position.y, pnt.z * position.z))
                 nodes.setCurvePositions(i, newPositions, space=space)
-
+        if useParent:
+            parent = nodes.getParent(self.dagPath.node())
+            if not parent:
+                raise ValueError("Control node has no parent")
+            nodes.setTranslation(parent, position, space)
+            return
         nodes.setTranslation(self.dagPath.node(), position, space)
 
     def setRotation(self, rotation, space=om2.MSpace.kTransform, cvs=False):
