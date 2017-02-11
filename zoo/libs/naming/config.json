@@ -1,8 +1,65 @@
-{"rules": {"object":{"expression": "{side}{counter}_{area}_{type}", "description": "Standard object type convention",
-          "creator": "davidsp"}
-          },
-"tokens": {"side": {"l":"L", "r": "R", "m": "M", "default": "m", "choice":"m"},
-          "objectType": {"ktransform": "srt", "control": "anim", "kjoint": "jnt", "default": "kTransform", "choice": "kTransform"},
-          "area": {"arm": "arm", "choice": "arm", "control": "anim", "default": "null", "null": "null"}
-          }
+{
+  "rules": {
+    "object": {
+      "creator": "davidsp",
+      "description": "Standard object type convention",
+      "expression": "{area}_{section}_{side}_{counter}_{type}"
+    },
+  },
+  "tokens": {
+    "area": {
+      "arm": "arm",
+      "choice": "arm",
+      "control": "anim",
+      "default": "null",
+      "null": "null",
+      "leg": "leg",
+      "head": "head",
+      "spine": "spine",
+      "neck": "neck",
+      "jaw": "jaw",
+      "eye": "eye",
+      "brow": "brow",
+      "toe": "toe",
+      "foot": "foot"
+    },
+    "section": {
+    	"index": "index",
+      "mid": "mid",
+      "ring": "ring",
+      "pinky": "pinky",
+      "thumb": "thumb"
+  	},
+    "objectType": {
+      "choice": "transform",
+      "default": "transform",
+      "control": "anim",
+      "joint": "jnt",
+      "transform": "srt",
+      "hrc": "hrc",
+      "ik": "ikhandle",
+      "eff": "ikeffector",
+      "annotation": "ann",
+      "curve": "crv",
+      "parentConstraint": "parentConstraint",
+      "scaleConstraint": "scaleConstraint",
+      "orientConstraint": "orientConstraint",
+      "pointConstraint": "pointConstraint",
+      "matrixDecompose": "decomp",
+      "matrixMult": "mult",
+      "plusMinusAverage": "pma"
+    },
+    "side": {
+      "choice": "m",
+      "default": "m",
+      "l": "L",
+      "m": "M",
+      "r": "R",
+      "c": "C",
+      "L": "l",
+      "M": "m",
+      "R": "r",
+      "C": "c"
+    }
+  }
 }
