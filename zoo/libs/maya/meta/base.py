@@ -242,7 +242,8 @@ class MetaBase(object):
 
     def __init__(self, node=None, name="", initDefaults=True):
         if node is None:
-            node = nodes.createDGNode(name or self.__class__.__name__, "network")
+            name = "_".join([name or self.__class__.__name__, "meta"])
+            node = nodes.createDGNode(name, "network")
 
         self._handle = om2.MObjectHandle(node)
 

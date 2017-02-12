@@ -15,7 +15,7 @@ class Control(object):
     :note: transformations to most likely be on the srt as thats the preferred method in rigging
     """
 
-    def __init__(self, name="", colour=(0, 0, 0)):
+    def __init__(self, node=None, name="", colour=(0, 0, 0)):
         """
         :param name:The name of the curve, can be an existing node transform
         :type name: str
@@ -25,11 +25,13 @@ class Control(object):
         """
         self._name = name
         self.colour = colour
-        try:
-            self.dagPath = om2.MFnDagNode(nodes.asMObject(name)).getPath()  # test if it already existing
+        if node is not None:
+            self.dagPath = om2.MFnDagNode(node).getPath()
             self._name = self.dagPath.partialPathName()
-        except RuntimeError:
+        else:
             self.dagPath = None
+            self._name = name
+        self.srt = None
 
     def __repr__(self):
         result = "name: {0}, colour: {0}".format(self.name if not self.dagPath else self.dagPath.fullPathName(),
