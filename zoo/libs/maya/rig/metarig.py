@@ -103,7 +103,6 @@ class MetaRig(base.MetaBase):
 
     def addSubSystem(self, node=None, name=None):
         if node is None:
-            name = "_".join([name, "meta"])
             node = MetaSubSystem(name=name)
         elif isinstance(node, om2.MObject):
             node = MetaSubSystem(node)

@@ -119,7 +119,7 @@ class Control(object):
             self.setPosition(position, space=om2.MSpace.kWorld)
         if rotation is not None:
             self.setRotation(rotation, space=om2.MSpace.kWorld)
-        if scale != (1, 1, 1):
+        if scale != (1, 1, 1) and scale:
             self.setScale(scale, space=om2.MSpace.kWorld)
         if rotationOrder is not None:
             self.setRotationOrder(rotationOrder)
@@ -150,10 +150,9 @@ class Control(object):
                 nodes.setCurvePositions(i, newPositions, space=space)
         if useParent:
             parent = nodes.getParent(self.dagPath.node())
-            if not parent:
-                raise ValueError("Control node has no parent")
-            nodes.setTranslation(parent, position, space)
-            return
+            if parent:
+                nodes.setTranslation(parent, position, space)
+                return
         nodes.setTranslation(self.dagPath.node(), position, space)
 
     def setRotation(self, rotation, space=om2.MSpace.kTransform, cvs=False):
