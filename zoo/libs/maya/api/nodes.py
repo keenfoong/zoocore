@@ -599,6 +599,13 @@ def setRotation(node, rotation, space=om2.MSpace.kTransform):
     trans.setRotation(rotation, space)
 
 
+def addProxyAttribute(node, sourcePlug, longName, shortName, attrType=attrtypes.kMFnNumericDouble):
+    attr1 = addAttribute(node, longName, shortName, attrType)
+    attr1.isProxyAttribute = False
+    plugs.connectPlugs(sourcePlug, om2.MPlug(node, attr1.object()))
+    return attr1
+
+
 def addAttribute(node, longName, shortName, attrType=attrtypes.kMFnNumericDouble):
     """This function uses the api to create attributes on the given node, currently WIP but currently works for
     string,int, float, bool, message. if the attribute exists a ValueError will be raised.

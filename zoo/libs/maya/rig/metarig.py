@@ -31,12 +31,11 @@ class MetaRig(base.MetaBase):
         attrname = "_".join([self._geoPrefix, name])
         return self.connectTo(attrname, node)
 
-    def controls(self, recursive=True):
+    def controls(self, filter=None, recursive=True):
         ctrls = self.findPlugsByFilteredName(self._ctrlPrefix)
         if recursive:
             for m in self.iterMetaChildren():
-                ctrls.extend(m.findPlugsByFilteredName(self._ctrlPrefix))
-
+                ctrls.extend(m.findPlugsByFilteredName(filter or self._ctrlPrefix))
         return ctrls
 
     def joints(self, recursive=True):

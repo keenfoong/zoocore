@@ -531,8 +531,8 @@ class MetaBase(object):
         if parentPlug.isConnected:
             return MetaBase(parentPlug.connectedTo(True, False)[0].node())
 
-    def metaChildren(self):
-        return [i for i in self.iterMetaChildren()]
+    def metaChildren(self, depthLimit=256):
+        return [i for i in self.iterMetaChildren(depthLimit=depthLimit)]
 
     def iterMetaChildren(self, depthLimit=256):
         childPlug = self._mfn.findPlug("metaChildren", False)

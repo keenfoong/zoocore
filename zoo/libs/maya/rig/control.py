@@ -48,6 +48,9 @@ class Control(object):
             return self.dagPath.fullPathName()
         return self._name
 
+    def exists(self):
+        return self.dagPath is not None and self.dagPath.isValid()
+
     def mobject(self):
         """Returns the mobject from the dagPath node
 
@@ -58,7 +61,7 @@ class Control(object):
 
     def setParent(self, parent):
         if self.srt is not None:
-            nodes.setParent(self.srt, parent)
+            nodes.setParent(self.srt.object(), parent)
         else:
             nodes.setParent(self.mobject(), parent)
 
@@ -80,7 +83,7 @@ class Control(object):
         if parent is not None:
             nodes.setParent(newSrt, parent, True)
         nodes.setParent(self.mobject(), newSrt, True)
-        self.srt = newSrt
+        self.srt = om2.MObjectHandle(newSrt)
         return newSrt
 
     def parent(self):

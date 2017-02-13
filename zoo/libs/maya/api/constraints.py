@@ -14,6 +14,9 @@ class ParentConstraint(object):
             self.node = om2.MObjectHandle(node)
         self._mfn = None
 
+    def mobject(self):
+        return self.node.object()
+
     @property
     def mfn(self):
         if self._mfn is not None:
@@ -27,7 +30,8 @@ class ParentConstraint(object):
         driverName = nodes.nameFromMObject(driver)
         drivenName = nodes.nameFromMObject(driven)
 
-        const = cmds.parentConstraint(driverName, drivenName, skipRotate=skipRotate or [], skipTranslate=skipTranslate or [],
+        const = cmds.parentConstraint(driverName, drivenName, skipRotate=skipRotate or [],
+                                      skipTranslate=skipTranslate or [],
                                       weight=1.0, maintainOffset=maintainOffset)
         self.node = om2.MObjectHandle(nodes.asMObject(const[0]))
         return self.node.object()
@@ -74,14 +78,19 @@ class ParentConstraint(object):
         weightAttr.keyable = True
         driverFn = om2.MFnDependencyNode(driver)
         targetPlug = self.mfn.findPlug("target", False).elementByLogicalIndex(nextWeightIndex)
-        cmds.connectAttr(driverFn.findPlug("parentMatrix", False).elementByPhysicalIndex(0).name(), targetPlug.child(0).name())  # targetParentMatrix
+        cmds.connectAttr(driverFn.findPlug("parentMatrix", False).elementByPhysicalIndex(0).name(),
+                         targetPlug.child(0).name())  # targetParentMatrix
         cmds.connectAttr(driverFn.findPlug("scale", False).name(), targetPlug.child(13).name())  # targetScale
-        cmds.connectAttr(driverFn.findPlug("rotateOrder", False).name(), targetPlug.child(8).name())  # targetRotateOrder
+        cmds.connectAttr(driverFn.findPlug("rotateOrder", False).name(),
+                         targetPlug.child(8).name())  # targetRotateOrder
         cmds.connectAttr(driverFn.findPlug("rotate", False).name(), targetPlug.child(7).name())  # targetRotate
-        cmds.connectAttr(driverFn.findPlug("rotatePivotTranslate", False).name(), targetPlug.child(5).name())  # targetRotateTranslate
-        cmds.connectAttr(driverFn.findPlug("rotatePivot", False).name(), targetPlug.child(4).name())  # targetRotatePivot
+        cmds.connectAttr(driverFn.findPlug("rotatePivotTranslate", False).name(),
+                         targetPlug.child(5).name())  # targetRotateTranslate
+        cmds.connectAttr(driverFn.findPlug("rotatePivot", False).name(),
+                         targetPlug.child(4).name())  # targetRotatePivot
         cmds.connectAttr(driverFn.findPlug("translate", False).name(), targetPlug.child(3).name())  # targetTranslate
-        cmds.connectAttr(om2.MPlug(self.mfn.object(), weightAttr.object()).name(), targetPlug.child(1).name())  # targetWeight
+        cmds.connectAttr(om2.MPlug(self.mfn.object(), weightAttr.object()).name(),
+                         targetPlug.child(1).name())  # targetWeight
         # setting offset value
         plugs.setAttr(targetPlug.child(6), translation)  # targetOffsetTranslate
         plugs.setAttr(targetPlug.child(10), rotation)  # targetOffsetRotate
