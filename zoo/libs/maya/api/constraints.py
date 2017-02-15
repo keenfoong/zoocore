@@ -7,7 +7,7 @@ from zoo.libs.maya.api import generic
 from zoo.libs.maya.api import attrtypes
 
 
-class ParentConstraint(object):
+class BaseConstraint(object):
     def __init__(self, node=None, name=None):
         self.name = name
         if node is not None:
@@ -26,16 +26,6 @@ class ParentConstraint(object):
         self._mfn = om2.MFnDependencyNode(self.node.object())
         return self._mfn
 
-    def create(self, driver, driven, skipRotate=None, skipTranslate=None, maintainOffset=False):
-        driverName = nodes.nameFromMObject(driver)
-        drivenName = nodes.nameFromMObject(driven)
-
-        const = cmds.parentConstraint(driverName, drivenName, skipRotate=skipRotate or [],
-                                      skipTranslate=skipTranslate or [],
-                                      weight=1.0, maintainOffset=maintainOffset)
-        self.node = om2.MObjectHandle(nodes.asMObject(const[0]))
-        return self.node.object()
-
     def drivenObject(self):
         plug = self.mfn.findPlug("constraintParentInverseMatrix", False)
         if plug.isDestination:
@@ -52,6 +42,22 @@ class ParentConstraint(object):
                     targets.append(child.source().node())
                     break
         return targets
+
+    def numTargets(self):
+        mfn = self.mfn
+        return mfn.findPlug("target", False).evaluateNumElements()
+
+
+class ParentConstraint(BaseConstraint):
+    def create(self, driver, driven, skipRotate=None, skipTranslate=None, maintainOffset=False):
+        driverName = nodes.nameFromMObject(driver)
+        drivenName = nodes.nameFromMObject(driven)
+
+        const = cmds.parentConstraint(driverName, drivenName, skipRotate=skipRotate or [],
+                                      skipTranslate=skipTranslate or [],
+                                      weight=1.0, maintainOffset=maintainOffset)
+        self.node = om2.MObjectHandle(nodes.asMObject(const[0]))
+        return self.node.object()
 
     def addTarget(self, driver):
         """Adds the given driver transform to the constraint
@@ -94,7 +100,3 @@ class ParentConstraint(object):
         # setting offset value
         plugs.setAttr(targetPlug.child(6), translation)  # targetOffsetTranslate
         plugs.setAttr(targetPlug.child(10), rotation)  # targetOffsetRotate
-
-    def numTargets(self):
-        mfn = self.mfn
-        return mfn.findPlug("target", False).evaluateNumElements()

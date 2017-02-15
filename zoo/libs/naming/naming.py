@@ -56,10 +56,20 @@ class NameManager(object):
         data.update(value)
         self.config["tokens"][name] = data
 
+    def hasToken(self, tokenName):
+        return tokenName in self.config["tokens"]
+
+    def hasTokenValue(self, tokenName, value):
+        return self.hasToken(tokenName) and value in self.config["tokens"][tokenName]
+
     def updateTokenValue(self, name, value):
+        if not self.hasToken(name):
+            raise ValueError("Config has no token called {}".format(name))
         self.config["tokens"][name].update(value)
 
     def tokenValue(self, name):
+        if not self.hasToken(name):
+            raise ValueError("Config has no token called {}".format(name))
         if name == "counter":
             return self.config["tokens"][name]["value"]
         return self.config["tokens"][name]["choice"]
@@ -80,6 +90,9 @@ class NameManager(object):
             tokens[name]["default"] = value
 
     def overrideToken(self, name, value, **kwargs):
+        if not self.hasToken(name):
+            self.addToken(name, {value, value}, default=value, choice=value)
+
         if name == "counter":
             configData = self.config["tokens"][name]
             self.config["tokens"][name].update({"value": value,

@@ -343,7 +343,7 @@ def iterChildren(mObject, recursive=False, filter=None):
     :type mObject: MObject
     :param recursive: Whether to do a recursive search
     :type recursive: bool
-    :param filter: om.MFn or 'all', the node type to find, can be either 'all' for returning everything or a om.MFn type constant
+    :param filter: om.MFn or None, the node type to find, can be either 'all' for returning everything or a om.MFn type constant
                     does not include shapes
     :type filter: str or int
     :return: om.MObject
