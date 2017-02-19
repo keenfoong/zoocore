@@ -241,6 +241,8 @@ class Control(object):
             return
         if rotateOrder is None:
             rotateOrder = om2.MTransformationMatrix.kXYZ
+        else:
+            rotateOrder = generic.intToMTransformRotationOrder(rotateOrder)
         trans = om2.MFnTransform(self.dagPath)
         trans.setRotationOrder(rotateOrder, True)
 

@@ -40,7 +40,7 @@ def loadFromLib(shapeName, parent=None):
                 return curves.createCurveShape(parent, data)
             if data:
                 return data
-    raise ValueError("The shape name doesn't exist in the library")
+    raise ValueError("The shape name '{}' doesn't exist in the library".format(shapeName))
 
 
 def saveToLib(node, name, override=True):

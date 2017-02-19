@@ -28,13 +28,15 @@ def asMObject(name):
         return name.node()
 
 
-def nameFromMObject(mobject, partialName=False):
+def nameFromMObject(mobject, partialName=False, includeNamespace=True):
     """This returns the full name or partial name for a given mobject, the mobject must be valid.
 
     :param mobject:
     :type mobject: MObject
     :param partialName: if False then this function will return the fullpath of the mobject.
     :type partialName: bool
+    :param includeNamespace: if False the namespace will be stripped
+    :type includeNamespace: bool
     :return:  the name of the mobject
     :rtype: str
 
@@ -46,10 +48,17 @@ def nameFromMObject(mobject, partialName=False):
     """
     if mobject.hasFn(om2.MFn.kDagNode):
         if partialName:
-            return om2.MFnDagNode(mobject).partialPathName()
-        return om2.MFnDagNode(mobject).fullPathName()
-    # dependency node
-    return om2.MFnDependencyNode(mobject).name()
+
+            name = om2.MFnDagNode(mobject).partialPathName()
+        else:
+            name = om2.MFnDagNode(mobject).fullPathName()
+    else:
+        # dependency node
+        name = om2.MFnDependencyNode(mobject).name()
+    if not includeNamespace:
+        name = om2.MNamespace.stripNamespaceFromName(name)
+
+    return name
 
 
 def toApiObject(node):
@@ -595,8 +604,8 @@ def setRotation(node, rotation, space=om2.MSpace.kTransform):
     path = om2.MFnDagNode(node).getPath()
     trans = om2.MFnTransform(path)
     if isinstance(rotation, (list, tuple)):
-        rotation = om2.MEulerRotation([om2.MAngle(i, om2.MAngle.kDegrees).asRadians() for i in rotation]).asQuaternion()
-    trans.setRotation(rotation, space)
+        rotation = om2.MEulerRotation([om2.MAngle(i, om2.MAngle.kDegrees).asRadians() for i in rotation])
+    trans.setRotation(rotation, om2.MSpace.kTransform)
 
 
 def addProxyAttribute(node, sourcePlug, longName, shortName, attrType=attrtypes.kMFnNumericDouble):

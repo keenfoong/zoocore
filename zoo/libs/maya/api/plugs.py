@@ -131,7 +131,7 @@ def filterConnectedNodes(plug, filter, source=True, destination=False):
     return filteredNodes
 
 
-def iterDependencyGraph(plug, alternativeName="", depthLimit=256):
+def iterDependencyGraph(plug, alternativeName="", depthLimit=256, transverseType="down"):
     """This recursive function walks the dependency graph based on the name. so each node it visits if that attribute
     exists it will be return.
     example connections : nodeA.test -> nodeB.test -> nodeC.test
@@ -148,7 +148,10 @@ def iterDependencyGraph(plug, alternativeName="", depthLimit=256):
     """
 
     plugSearchname = alternativeName or plug.partialName(useLongNames=True)
-    connections = plug.connectedTo(False, True)
+    if transverseType == "down":
+        connections = plug.destinations()
+    else:
+        connections = [plug.source()]
     for connection in connections:
         node = connection.node()
         dep = om2.MFnDependencyNode(node)
@@ -158,9 +161,53 @@ def iterDependencyGraph(plug, alternativeName="", depthLimit=256):
         if depthLimit < 1:
             return
         yield nodePlug
-        if nodePlug.connectedTo(False, True):
-            for i in iterDependencyGraph(nodePlug, plugSearchname, depthLimit=depthLimit - 1):
+        if nodePlug.isConnected:
+            for i in iterDependencyGraph(nodePlug, plugSearchname, depthLimit=depthLimit - 1,
+                                         transverseType=transverseType):
                 yield i
+
+
+def serializePlug(plug, includeSourceConnections=False, includeDestinationConnections=False):
+    """Take's a plug and serializes all necessary information into a dict.
+    :param plug: the valid MPlug to serialize
+    :type plug: MPlug
+    :param includeSourceConnections: if  True then we serialize any connections if this plug is the destination
+    :type includeSourceConnections: bool
+    :param includeDestinationConnections: if  True then we serialize any connections if this plug is the source
+    :type includeDestinationConnections: bool
+    :return: with out connection data {name: str, "isDynamic": bool, "default": type,
+                                      "min": type, "max": type, "softMin": type, "softMax": type}
+    :rtype: dict
+    """
+    data = {"name": plug.partialName(includeNonMandatoryIndices=True, useLongNames=True)}
+    if plug.isDynamic:
+        data.update({"isDynamic": True, "default": plugDefault(plug), "min": getPlugMin(plug), "max": getPlugMax(plug),
+                     "softMin": getSoftMin(plug), "softMax": getSoftMax(plug)})
+    else:
+        data["isDynamic"] = False
+    data.update({"channelBox": plug.isChannelBox, "keyable": plug.isKeyable,
+                 "locked": plug.isLocked, "type": plugType(plug), "value": getPythonTypeFromPlugValue(plug)})
+    if includeSourceConnections and plug.isDestination:
+        source = plug.source()
+        node = source.node()
+        if node.hasFn(om2.MFn.kDagNode):
+            nodeName = om2.MFnDagNode(node).fullPathName()
+        else:
+            nodeName = om2.MFnDependencyNode(node).name()
+        data["inConnections"] = (nodeName, source.partialName(includeNonMandatoryIndices=True, useLongNames=True))
+    if includeDestinationConnections and plug.isSource:
+        destinations = plug.destinations()
+        outConnections = []
+        for conn in destinations:
+            node = conn.node()
+            if node.hasFn(om2.MFn.kDagNode):
+                nodeName = om2.MFnDagNode(node).fullPathName()
+            else:
+                nodeName = om2.MFnDependencyNode(node).name()
+            outConnections.append((nodeName, conn.partialName(includeNonMandatoryIndices=True, useLongNames=True)))
+        if outConnections:
+            data["outConnections"] = outConnections
+    return data
 
 
 def enumNames(plug):
@@ -188,6 +235,8 @@ def plugDefault(plug):
         default = attr.default
         if default.apiType() == om2.MFn.kInvalid:
             return None
+        elif default.apiType() == om2.MFn.kStringData:
+            return om2.MFnStringData(default).string()
         return default
     elif obj.hasFn(om2.MFn.kUnitAttribute):
         attr = om2.MFnUnitAttribute(obj)
@@ -731,7 +780,7 @@ def plugType(plug):
 
 def getPythonTypeFromPlugValue(plug):
     dataType, value = getPlugAndType(plug)
-    types = (attrtypes.kMFnDataString, attrtypes.kMFnDataMatrix, attrtypes.kMFnDataFloatArray,
+    types = (attrtypes.kMFnDataMatrix, attrtypes.kMFnDataFloatArray,
              attrtypes.kMFnDataFloatArray, attrtypes.kMFnDataDoubleArray,
              attrtypes.kMFnDataIntArray, attrtypes.kMFnDataPointArray, attrtypes.kMFnDataStringArray,
              attrtypes.kMFnNumeric2Double, attrtypes.kMFnNumeric2Float, attrtypes.kMFnNumeric2Int,

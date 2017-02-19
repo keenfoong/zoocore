@@ -113,7 +113,7 @@ class NameManager(object):
             if token == "counter":
                 val = str(self.counter["value"]).zfill(self.counter["padding"])
             else:
-                val = self.config["tokens"][token][self.tokenValue(token)]
+                val = self.config["tokens"][token]["choice"]
             newStr = re.sub("{" + token + "}", val, newStr)
         return newStr
 

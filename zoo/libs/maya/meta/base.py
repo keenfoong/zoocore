@@ -10,6 +10,7 @@ import re
 from maya.api import OpenMaya as om2
 from zoo.libs.utils import modules
 from zoo.libs.utils import zlogging
+from zoo.libs.utils import classtypes
 from zoo.libs.maya.api import plugs
 from zoo.libs.maya.api import nodes
 from zoo.libs.maya.api import attrtypes
@@ -94,6 +95,12 @@ def iterSceneMetaNodes():
 
 
 def isMetaNode(node):
+    """Determines if the node is a meta node by seeing if the attribute mnode exists and mclass value(classname) is
+    within the current meta registry
+    :param node:
+    :type node: MObject
+    :rtype: bool
+    """
     if isinstance(node, MetaBase) or issubclass(type(node), MetaBase):
         return True
     dep = om2.MFnDependencyNode(node)
@@ -113,15 +120,8 @@ def getConnectMetaNodes(node):
 
 class MetaRegistry(object):
     """Singleton class to handle global registration to metaclasses"""
+    __metaclass__ = classtypes.Singleton
     types = {}
-    _instance = None
-
-    @classmethod
-    def __new__(cls, *args, **kwargs):
-        """Overridden to make the registry a singleton"""
-        if cls._instance is None:
-            cls._instance = super(MetaRegistry, cls).__new__(*args, **kwargs)
-        return cls._instance
 
     @classmethod
     def isInRegistry(cls, typeName):
@@ -530,6 +530,11 @@ class MetaBase(object):
         parentPlug = self._mfn.findPlug("metaParent", False)
         if parentPlug.isConnected:
             return MetaBase(parentPlug.connectedTo(True, False)[0].node())
+
+    def iterParents(self, depthLimit=256):
+        parentPlug = self._mfn.findPlug("metaParent", False)
+        for parent in plugs.iterDependencyGraph(parentPlug, depthLimit=depthLimit, transverseType="up"):
+            yield MetaBase(parent.node())
 
     def metaChildren(self, depthLimit=256):
         return [i for i in self.iterMetaChildren(depthLimit=depthLimit)]

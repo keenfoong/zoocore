@@ -72,8 +72,9 @@ def floatMath(floatA, floatB, operation, name):
         plugs.connectPlugs(floatA, floatMathFn.findPlug("floatA", False))
     else:
         plugs.setAttr(floatMathFn.findPlug("floatA", False), floatA)
+
     if isinstance(floatB, om2.MPlug):
-        plugs.connectPlugs(floatA, floatMathFn.findPlug("floatB", False))
+        plugs.connectPlugs(floatB, floatMathFn.findPlug("floatB", False))
     else:
         plugs.setAttr(floatMathFn.findPlug("floatB", False), floatB)
     plugs.setAttr(floatMathFn.findPlug("operation", False), operation)
