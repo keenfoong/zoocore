@@ -114,7 +114,7 @@ class NameManager(object):
                 val = str(self.counter["value"]).zfill(self.counter["padding"])
             else:
                 val = self.config["tokens"][token]["choice"]
-            newStr = re.sub("{" + token + "}", val, newStr)
+            newStr = re.sub("{" + token + "}", val or "null", newStr)
         return newStr
 
     def save(self):

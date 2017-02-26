@@ -440,9 +440,21 @@ class MetaBase(object):
         return True
 
     def iterAttributes(self):
-        node = self._mfn
-        for i in range(node.attributeCount()):
-            yield node.findPlug((node.attribute(i)), False)
+        for i in nodes.iterAttributes(self.mobject()):
+            yield i
+
+    def findConnectedNodesByAttributeName(self, filter, recursive=False):
+        plugs = self.findPlugsByFilteredName(filter)
+        results = []
+        for p in iter(plugs):
+            if p.isSource:
+                results.extend([i.node() for i in p.destinations()])
+        if recursive:
+            for m in iter(self.iterMetaChildren()):
+                for p in iter(m.findPlugsByFilteredName(filter)):
+                    if p.isSource:
+                        results.extend([i.node() for i in p.destinations()])
+        return results
 
     def findPlugsByFilteredName(self, filter=""):
         """Finds all plugs with the given filter with in name

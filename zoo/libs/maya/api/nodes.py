@@ -354,7 +354,7 @@ def iterChildren(mObject, recursive=False, filter=None):
     :type recursive: bool
     :param filter: om.MFn or None, the node type to find, can be either 'all' for returning everything or a om.MFn type constant
                     does not include shapes
-    :type filter: str or int
+    :type filter: int
     :return: om.MObject
     """
     dagNode = om2.MFnDagNode(mObject)
@@ -486,6 +486,8 @@ def delete(node):
         return
     lockNode(node, False)
     unlockedAndDisconnectConnectedAttributes(node)
+    if not isValidMObject(node):
+        return
     mod = om2.MDagModifier()
     mod.deleteNode(node)
     mod.doIt()

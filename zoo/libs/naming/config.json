@@ -8,13 +8,13 @@
     "organisationNodes": {
       "creator": "davidsp",
       "description": "Convention for nodes that are used to organise node hierarchies",
-      "expression": "{area}_{side}_{type}"
+      "expression": "{side}_{area}_{type}"
     }
   },
   "tokens": {
     "area": {
       "arm": "arm",
-      "choice": "arm",
+      "choice": "null",
       "default": "null",
       "null": "null",
       "leg": "leg",
@@ -37,13 +37,16 @@
       "upr": "upr",
       "lwr": "lwr",
       "end": "end",
-      "polevector": "pv"
+      "polevector": "pv",
+      "choice": "index",
+      "default": "index"
   	},
     "system":{
       "fk": "fk",
       "ik": "ik",
       "skin": "skin",
-      "choice": "skin"
+      "choice": "skin",
+      "default": "skin"
     },
     "type": {
       "choice": "transform",
@@ -74,7 +77,8 @@
       "L": "l",
       "M": "m",
       "R": "r",
-      "C": "c"
+      "C": "c",
+      "LEFT": "left"
     }
   }
 }
