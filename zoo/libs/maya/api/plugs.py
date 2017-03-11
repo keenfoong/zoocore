@@ -98,9 +98,10 @@ def setLockState(plug, state):
 
 
 def filterConnected(plug, filter):
-    filteredNodes = []
     if not plug.isConnected:
-        return []
+        return list()
+
+    filteredNodes = []
     for connected in plug.connectedTo(False, True) + plug.connectedTo(True, False):
         grp = re.search(filter, connected.name())
         if grp:

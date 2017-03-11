@@ -25,12 +25,12 @@ def getSelectedNodes():
     :return: list(MObject)
     """
     sel = om2.MGlobal.getActiveSelectionList()
-    nodes = []
+    nodes = [None] * sel.length()
     for i in range(sel.length()):
         try:
-            nodes.append(sel.getDagPath(i).node())
+            nodes[i] = sel.getDagPath(i).node()
         except TypeError:
-            nodes.append(sel.getDependNode(i))
+            nodes[i] = sel.getDependNode(i)
     return nodes
 
 
@@ -92,11 +92,13 @@ def iterDag(root, includeRoot=True, nodeType=None):
     """
     stack = [om2.MFnDagNode(root)]
     if includeRoot:
-        yield stack[0]
+        yield stack[0].object()
+
     while stack:
         child = stack.pop(0)
-        if child.childCount() > 0:
-            for i in range(child.childCount()):
+        children = child.childCount()
+        if children > 0:
+            for i in xrange(children):
                 subChild = child.child(i)
                 stack.append(om2.MFnDagNode(subChild))
                 if nodeType is not None and subChild.apiType() != nodeType:

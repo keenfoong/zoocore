@@ -1,6 +1,14 @@
 import os
 import subprocess
+import shutil
+import errno
+import zipfile
+import cStringIO
+
 from zoo.libs.utils import env
+from zoo.libs.utils import zlogging
+
+logger = zlogging.getLogger(__name__)
 
 
 def upDirectory(path, depth=1):
@@ -59,3 +67,66 @@ def openLocation(path):
         os.startfile('%s' % path)
     elif env.isMac():
         subprocess.call(['open', '-R', path])
+
+
+def copyDirectoy(src, dst):
+    try:
+        shutil.copytree(src, dst)
+    except OSError as exc:
+        if exc.errno == errno.ENOTDIR:
+            shutil.copy(src, dst)
+        else:
+            logger.error("Failed to copy directory {} to destination: {}".format(src, dst), exc_info=True)
+            raise
+
+
+def zipwalk(zfilename):
+    """Zip file tree generator.
+
+    For each file entry in a zip archive, this yields
+    a two tuple of the zip information and the data
+    of the file as a StringIO object.
+
+    zipinfo, filedata
+
+    zipinfo is an instance of zipfile.ZipInfo class
+    which gives information of the file contained
+    in the zip archive. filedata is a StringIO instance
+    representing the actual file data.
+
+    If the file again a zip file, the generator extracts
+    the contents of the zip file and walks them.
+
+    Inspired by os.walk .
+    """
+
+    tempdir = os.environ.get('TEMP', os.environ.get('TMP', os.environ.get('TMPDIR', '/tmp')))
+
+    try:
+        z = zipfile.ZipFile(zfilename, "r")
+        for info in z.infolist():
+            fname = info.filename
+            data = z.read(fname)
+
+            if fname.endswith(".zip"):
+                tmpfpath = os.path.join(tempdir, os.path.basename(fname))
+                try:
+                    open(tmpfpath, 'w+b').write(data)
+                except (IOError, OSError):
+                    logger.error("Failed to write file, {}".format(tmpfpath), exc_info=True)
+
+                if zipfile.is_zipfile(tmpfpath):
+                    try:
+                        for x in zipwalk(tmpfpath):
+                            yield x
+                    except Exception:
+                        logger.error("Failed", exc_info=True)
+                        raise
+                try:
+                    os.remove(tmpfpath)
+                except:
+                    pass
+            else:
+                yield (info, cStringIO.StringIO(data))
+    except (RuntimeError, zipfile.error):
+        raise

@@ -20,6 +20,10 @@ class NameManager(object):
     counter = {"value": 0, "padding": 3, "default": 0}
 
     def __init__(self, activeRule=None):
+        """
+        :param activeRule: the active rule to set, see setActiveRule()
+        :type activeRule: str
+        """
         self._activeRule = None
         self.config = None
         self.load()
@@ -28,10 +32,24 @@ class NameManager(object):
         self.config["tokens"]["counter"] = self.counter
 
     def setActiveRule(self, rule):
+        """Sets the active rule, rules a basic expression that dictate how a name is resolved
+        :param rule: the rule name, see method rules()
+        :type rule: str
+        """
         self._activeRule = rule
 
     def activeRule(self):
+        """Returns the currently active rule name
+        :rtype: str
+        """
         return self._activeRule
+
+    def rules(self):
+        """returns all the currently active rules
+        :return: a list of active rule names
+        :rtype: list
+        """
+        return self.config["rules"].keys()
 
     def expression(self):
         return self.config["rules"][self.activeRule()]["expression"]
@@ -123,11 +141,11 @@ class NameManager(object):
 
     def load(self):
         configPath = os.environ[NameManager.BASE_CONFIG_VAR]
-        configPath = file.loadJson(configPath)
-        data = configPath
-        if NameManager.USER_CONFIG_VAR in os.environ:
-            for p in os.environ[NameManager.USER_CONFIG_VAR].split(os.path.sep):
-                if not p or not os.path.exists(p):
+        data = file.loadJson(configPath)
+
+        if os.environ.get(NameManager.USER_CONFIG_VAR):
+            for p in os.environ[NameManager.USER_CONFIG_VAR].split(os.pathsep):
+                if not p or not os.path.exists(p) or not p.endswith(".json"):
                     continue
                 userData = file.loadJson(p)
                 rules = userData.get("rules")

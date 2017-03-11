@@ -142,7 +142,7 @@ class MetaRig(base.MetaBase):
 
 
 class MetaSupportSystem(MetaRig):
-    def __init__(self, node=None, name="", initDefaults=True):
+    def __init__(self, node=None, name=None, initDefaults=True):
         super(MetaRig, self).__init__(node, name, initDefaults)
 
 

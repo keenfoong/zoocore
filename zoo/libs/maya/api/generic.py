@@ -20,7 +20,7 @@ def isValidMObject(mObj):
     return isValidMObjectHandle(om2.MObjectHandle(mObj))
 
 
-def cmpMObjects(a, b):
+def compareMObjects(a, b):
     """Compares two nodes and returns whether they're equivalent or not - the compare is done on MObjects
     not strings.
     """
