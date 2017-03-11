@@ -44,8 +44,8 @@ def saveJson(data, filepath, **kws):
     return True
 
 
-def createZip(zippath, files):
-    """Creates a zip file for the files, each path will be stored relative to the zippath which avoids abspath
+def createZipWithProgress(zippath, files):
+    """Same as function createZip() but has a stdout progress bar which is useful for commandline work
     :param zippath: the file path for the zip file
     :type zippath: str
     :param files: A Sequence of file paths that will be archived.
@@ -63,4 +63,21 @@ def createZip(zippath, files):
             logger.debug("Archiving file: {} ----> :{}\n".format(p[0], p[1]))
             archive.write(p[0], p[1])
             progressBar.increment(1)
+    logger.debug("finished writing zip file to : {}".format(zippath))
+
+
+def createZip(zippath, files):
+    """Creates a zip file for the files, each path will be stored relative to the zippath which avoids abspath
+    :param zippath: the file path for the zip file
+    :type zippath: str
+    :param files: A Sequence of file paths that will be archived.
+    :type files: seq(str)
+    """
+    dir = os.path.dirname(zippath)
+    if not os.path.exists(os.path.join(dir, os.path.dirname(zippath))):
+        os.makedirs(os.path.join(dir, os.path.dirname(zippath)))
+    logger.debug("writing file: {}".format(zippath))
+    with zipfile.ZipFile(zippath, "w", zipfile.ZIP_DEFLATED) as archive:
+        for p in iter(files):
+            archive.write(p[0], p[1])
     logger.debug("finished writing zip file to : {}".format(zippath))

@@ -4,11 +4,13 @@ import shutil
 import errno
 import zipfile
 import cStringIO
-
+import re
 from zoo.libs.utils import env
 from zoo.libs.utils import zlogging
 
 logger = zlogging.getLogger(__name__)
+
+FILENAMEEXP = re.compile(u'[^\w\.-1]', re.UNICODE)
 
 
 def upDirectory(path, depth=1):
@@ -78,6 +80,66 @@ def copyDirectoy(src, dst):
         else:
             logger.error("Failed to copy directory {} to destination: {}".format(src, dst), exc_info=True)
             raise
+
+
+def folderSize(path):
+    """Retrieves the total folder size in bytes
+    :param path:
+    :type path:
+    :return: size in bytes
+    :rtype: int
+    """
+    totalSize = 0
+    for root, dirs, files in os.walk(path):
+        for f in files:
+            fp = os.path.join(root, f)
+            totalSize += os.path.getsize(fp)
+    return totalSize
+
+
+def ensureFolderExists(path, permissions=0775, createPlaceHolderFile=False):
+    """if the folder doesnt exist then one will be created.
+    Function built due to version control mishaps with uncommited empty folders, this folder can generate
+    a place holder file
+    :param path: the folderpath to check or create
+    :type path: str
+    :param permissions: folder permissions mode
+    :type permissions: int
+    :param createPlaceHolderFile: if True create a placeholder text file
+    :type createPlaceHolderFile: bool
+    :raise OSError: raise OSError if the creation of the folder fails
+    """
+    if not os.path.exists(path):
+        try:
+            logger.debug("Creating folder {} [{}]".format(path, permissions))
+            os.makedirs(path, permissions)
+            if createPlaceHolderFile:
+                placePath = os.path.join(path, "placeholder")
+                if not os.path.exists(placePath):
+                    with open(placePath, "wt") as fh:
+                        fh.write("Automatically Generated placeHolder file.")
+                        fh.write("The reason why this file exists is due to source control system's which do not "
+                                 "handle empty folders.")
+
+        except OSError, e:
+            # more less work if network race conditions(joy!)
+            if e.errno != errno.EEXIST:
+                raise
+
+
+def createValidfilename(name):
+    """Sanitizer for file names which everyone tends to screw up, this function replace spaces and random character with
+    underscore.
+    Some random file name == Some_random_file_name
+    :param name: the name to convert
+    :type name: str
+    :rtype: the same format as the passed argument type(utf8 etc)
+    """
+    value = name.strip()
+    if isinstance(value, unicode):
+        return FILENAMEEXP.sub("_", value)
+    else:
+        return FILENAMEEXP.sub("_", value.decode("utf-8")).encode("utf-8")
 
 
 def zipwalk(zfilename):
