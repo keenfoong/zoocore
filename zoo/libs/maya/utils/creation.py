@@ -9,10 +9,14 @@ def distanceBetween(firstNode, secondNode, name):
 
     distanceBetweenNode = nodes.createDGNode(name, "distanceBetween")
     distFn = om2.MFnDependencyNode(distanceBetweenNode)
+    firstFnWorldMat = firstFn.findPlug("worldMatrix", False)
+    firstFnWorldMat.evaluateNumElements()
+    secondFnWorldMat = secondFn.findPlug("worldMatrix", False)
+    secondFnWorldMat.evaluateNumElements()
     plugs.connectPlugs(firstFn.findPlug("rotatePivotTranslate", False), distFn.findPlug("point1", False))
-    plugs.connectPlugs(firstFn.findPlug("worldMatrix", False), distFn.findPlug("matrix1", False))
+    plugs.connectPlugs(firstFnWorldMat.elementByPhysicalIndex(0), distFn.findPlug("inMatrix1", False))
     plugs.connectPlugs(secondFn.findPlug("rotatePivotTranslate", False), distFn.findPlug("point2", False))
-    plugs.connectPlugs(secondFn.findPlug("worldMatrix", False), distFn.findPlug("matrix2", False))
+    plugs.connectPlugs(secondFnWorldMat.elementByPhysicalIndex(0), distFn.findPlug("inMatrix2", False))
 
     return distanceBetweenNode
 
@@ -86,5 +90,5 @@ def blendTwoAttr(input1, input2, blender, name):
     inputArray = fn.findPlug("input", False)
     plugs.connectPlugs(input1, inputArray.elementByLogicalIndex(-1))
     plugs.connectPlugs(input2, inputArray.elementByLogicalIndex(-1))
-    plugs.connectPlugs(blender, fn.findPlug("attributeBlender", False))
+    plugs.connectPlugs(blender, fn.findPlug("attributesBlender", False))
     return fn.object()
