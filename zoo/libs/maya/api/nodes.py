@@ -28,13 +28,15 @@ def asMObject(name):
         return name.node()
 
 
-def nameFromMObject(mobject, partialName=False):
+def nameFromMObject(mobject, partialName=False, includeNamespace=True):
     """This returns the full name or partial name for a given mobject, the mobject must be valid.
 
     :param mobject:
     :type mobject: MObject
     :param partialName: if False then this function will return the fullpath of the mobject.
     :type partialName: bool
+    :param includeNamespace: if False the namespace will be stripped
+    :type includeNamespace: bool
     :return:  the name of the mobject
     :rtype: str
 
@@ -46,10 +48,17 @@ def nameFromMObject(mobject, partialName=False):
     """
     if mobject.hasFn(om2.MFn.kDagNode):
         if partialName:
-            return om2.MFnDagNode(mobject).partialPathName()
-        return om2.MFnDagNode(mobject).fullPathName()
-    # dependency node
-    return om2.MFnDependencyNode(mobject).name()
+
+            name = om2.MFnDagNode(mobject).partialPathName()
+        else:
+            name = om2.MFnDagNode(mobject).fullPathName()
+    else:
+        # dependency node
+        name = om2.MFnDependencyNode(mobject).name()
+    if not includeNamespace:
+        name = om2.MNamespace.stripNamespaceFromName(name)
+
+    return name
 
 
 def toApiObject(node):
@@ -261,9 +270,10 @@ def setParent(mobject, newParent, maintainOffset=False):
     :type maintainOffset: bool
     :rtype bool
     """
+
+    newParent = newParent if newParent is not None else om2.MObject.kNullObj
     if mobject == newParent:
         return False
-    newParent = newParent if newParent is not None else om2.MObject.kNullObj
     dag = om2.MDagModifier()
     if maintainOffset:
         start = getWorldMatrix(newParent)
@@ -342,9 +352,9 @@ def iterChildren(mObject, recursive=False, filter=None):
     :type mObject: MObject
     :param recursive: Whether to do a recursive search
     :type recursive: bool
-    :param filter: om.MFn or 'all', the node type to find, can be either 'all' for returning everything or a om.MFn type constant
+    :param filter: om.MFn or None, the node type to find, can be either 'all' for returning everything or a om.MFn type constant
                     does not include shapes
-    :type filter: str or int
+    :type filter: int
     :return: om.MObject
     """
     dagNode = om2.MFnDagNode(mObject)
@@ -476,15 +486,17 @@ def delete(node):
         return
     lockNode(node, False)
     unlockedAndDisconnectConnectedAttributes(node)
+    if not isValidMObject(node):
+        return
     mod = om2.MDagModifier()
     mod.deleteNode(node)
     mod.doIt()
 
 
 def getOffsetMatrix(startObj, endObj):
-    start = getParentInverseMatrix(startObj)
+    start = getWorldMatrix(startObj)
     end = getWorldMatrix(endObj)
-    mOutputMatrix = om2.MTransformationMatrix(end * start)
+    mOutputMatrix = om2.MTransformationMatrix(end * start.inverse())
     return mOutputMatrix.asMatrix()
 
 
@@ -504,9 +516,10 @@ def getWorldMatrix(mobject):
     :param mobject: MObject, the MObject that points the dagNode
     :return: MMatrix
     """
-    dag = om2.MFnDagNode(mobject).getPath()
-
-    return dag.inclusiveMatrix()
+    wm = om2.MFnDependencyNode(mobject).findPlug("worldMatrix", False)
+    wm.evaluateNumElements()
+    matplug = wm.elementByPhysicalIndex(0)
+    return plugs.getPlugValue(matplug)
 
 
 def getWorldInverseMatrix(mobject):
@@ -515,8 +528,10 @@ def getWorldInverseMatrix(mobject):
     :param mobject: MObject
     :return: MMatrix
     """
-    dag = om2.MFnDagNode(mobject).getPath()
-    return dag.inclusiveMatrixInverse()
+    wm = om2.MFnDependencyNode(mobject).findPlug("worldInverseMatrix", False)
+    wm.evaluateNumElements()
+    matplug = wm.elementByPhysicalIndex(0)
+    return plugs.getPlugValue(matplug)
 
 
 def getParentMatrix(mobject):
@@ -525,9 +540,10 @@ def getParentMatrix(mobject):
     :param mobject: MObject
     :return: MMatrix
     """
-    dag = om2.MFnDagNode(mobject).getPath()
-
-    return dag.exclusiveMatrix()
+    wm = om2.MFnDependencyNode(mobject).findPlug("parentMatrix", False)
+    wm.evaluateNumElements()
+    matplug = wm.elementByPhysicalIndex(0)
+    return plugs.getPlugValue(matplug)
 
 
 def getParentInverseMatrix(mobject):
@@ -536,9 +552,10 @@ def getParentInverseMatrix(mobject):
     :param mobject: MObject
     :return: MMatrix
     """
-    dag = om2.MFnDagNode(mobject).getPath()
-
-    return dag.exclusiveMatrixInverse()
+    wm = om2.MFnDependencyNode(mobject).findPlug("parentInverseMatrix", False)
+    wm.evaluateNumElements()
+    matplug = wm.elementByPhysicalIndex(0)
+    return plugs.getPlugValue(matplug)
 
 
 def hasAttribute(node, name):
@@ -589,8 +606,15 @@ def setRotation(node, rotation, space=om2.MSpace.kTransform):
     path = om2.MFnDagNode(node).getPath()
     trans = om2.MFnTransform(path)
     if isinstance(rotation, (list, tuple)):
-        rotation = om2.MEulerRotation([om2.MAngle(i, om2.MAngle.kDegrees).asRadians() for i in rotation]).asQuaternion()
-    trans.setRotation(rotation, space)
+        rotation = om2.MEulerRotation([om2.MAngle(i, om2.MAngle.kDegrees).asRadians() for i in rotation])
+    trans.setRotation(rotation, om2.MSpace.kTransform)
+
+
+def addProxyAttribute(node, sourcePlug, longName, shortName, attrType=attrtypes.kMFnNumericDouble):
+    attr1 = addAttribute(node, longName, shortName, attrType)
+    attr1.isProxyAttribute = False
+    plugs.connectPlugs(sourcePlug, om2.MPlug(node, attr1.object()))
+    return attr1
 
 
 def addAttribute(node, longName, shortName, attrType=attrtypes.kMFnNumericDouble):

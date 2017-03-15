@@ -1,16 +1,12 @@
 import logging
 import os
+from zoo.libs.utils import classtypes
 
 
 class CentralLogManager(object):
     """This class is a singleton object that globally handles logging, any log added will managed by the class
     """
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if CentralLogManager._instance is None:
-            CentralLogManager._instance = super(CentralLogManager, cls).__new__(cls, *args, **kwargs)
-        return CentralLogManager._instance
+    __metaclass__ = classtypes.Singleton
 
     def __init__(self):
         self.logs = {"root": logging.root}

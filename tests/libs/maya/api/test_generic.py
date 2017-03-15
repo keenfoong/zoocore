@@ -26,8 +26,8 @@ class TestGeneric(mayatestutils.BaseMayaTest):
 
     def test_cmpNodes(self):
         obj = nodes.asMObject(self.node)
-        self.assertTrue(generic.cmpMObjects(obj, obj))
-        self.assertFalse(generic.cmpMObjects(obj, nodes.asMObject(cmds.createNode("multiplyDivide"))))
+        self.assertTrue(generic.compareMObjects(obj, obj))
+        self.assertFalse(generic.compareMObjects(obj, nodes.asMObject(cmds.createNode("multiplyDivide"))))
 
     # def test_asMObject(self):
     #     pass

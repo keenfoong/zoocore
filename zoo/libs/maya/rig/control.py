@@ -1,3 +1,6 @@
+"""
+@todo hassrt method
+"""
 from maya import cmds
 from maya.api import OpenMaya as om2
 from zoo.libs.maya.api import nodes
@@ -12,7 +15,7 @@ class Control(object):
     :note: transformations to most likely be on the srt as thats the preferred method in rigging
     """
 
-    def __init__(self, name="", colour=(0, 0, 0)):
+    def __init__(self, node=None, name="", colour=(0, 0, 0)):
         """
         :param name:The name of the curve, can be an existing node transform
         :type name: str
@@ -22,11 +25,13 @@ class Control(object):
         """
         self._name = name
         self.colour = colour
-        try:
-            self.dagPath = om2.MFnDagNode(nodes.asMObject(name)).getPath()  # test if it already existing
+        if node is not None:
+            self.dagPath = om2.MFnDagNode(node).getPath()
             self._name = self.dagPath.partialPathName()
-        except RuntimeError:
+        else:
             self.dagPath = None
+            self._name = name
+        self.srt = None
 
     def __repr__(self):
         result = "name: {0}, colour: {0}".format(self.name if not self.dagPath else self.dagPath.fullPathName(),
@@ -43,6 +48,9 @@ class Control(object):
             return self.dagPath.fullPathName()
         return self._name
 
+    def exists(self):
+        return self.dagPath is not None and self.dagPath.isValid()
+
     def mobject(self):
         """Returns the mobject from the dagPath node
 
@@ -50,6 +58,12 @@ class Control(object):
         """
         if self.dagPath is not None:
             return self.dagPath.node()
+
+    def setParent(self, parent):
+        if self.srt is not None:
+            nodes.setParent(self.srt.object(), parent)
+        else:
+            nodes.setParent(self.mobject(), parent)
 
     def addSrt(self, suffix="", parent=None):
         """Adds a parent transform to the curve transform
@@ -68,9 +82,8 @@ class Control(object):
 
         if parent is not None:
             nodes.setParent(newSrt, parent, True)
-
         nodes.setParent(self.mobject(), newSrt, True)
-
+        self.srt = om2.MObjectHandle(newSrt)
         return newSrt
 
     def parent(self):
@@ -109,13 +122,13 @@ class Control(object):
             self.setPosition(position, space=om2.MSpace.kWorld)
         if rotation is not None:
             self.setRotation(rotation, space=om2.MSpace.kWorld)
-        if scale != (1, 1, 1):
+        if scale != (1, 1, 1) and scale:
             self.setScale(scale, space=om2.MSpace.kWorld)
         if rotationOrder is not None:
             self.setRotationOrder(rotationOrder)
         return self.dagPath
 
-    def setPosition(self, position, cvs=False, space=None):
+    def setPosition(self, position, cvs=False, space=None, useParent=True):
         """Sets the translation component of this control, if cvs is True then translate the cvs instead
 
         :param position: The MVector that represent the position based on the space given.
@@ -138,7 +151,11 @@ class Control(object):
                 for pnt in cvsPositions:
                     newPositions.append(om2.MPoint(pnt.x * position.x, pnt.y * position.y, pnt.z * position.z))
                 nodes.setCurvePositions(i, newPositions, space=space)
-
+        if useParent:
+            parent = nodes.getParent(self.dagPath.node())
+            if parent:
+                nodes.setTranslation(parent, position, space)
+                return
         nodes.setTranslation(self.dagPath.node(), position, space)
 
     def setRotation(self, rotation, space=om2.MSpace.kTransform, cvs=False):
@@ -224,6 +241,8 @@ class Control(object):
             return
         if rotateOrder is None:
             rotateOrder = om2.MTransformationMatrix.kXYZ
+        else:
+            rotateOrder = generic.intToMTransformRotationOrder(rotateOrder)
         trans = om2.MFnTransform(self.dagPath)
         trans.setRotationOrder(rotateOrder, True)
 

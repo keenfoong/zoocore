@@ -10,6 +10,7 @@ import re
 from maya.api import OpenMaya as om2
 from zoo.libs.utils import modules
 from zoo.libs.utils import zlogging
+from zoo.libs.utils import classtypes
 from zoo.libs.maya.api import plugs
 from zoo.libs.maya.api import nodes
 from zoo.libs.maya.api import attrtypes
@@ -94,6 +95,12 @@ def iterSceneMetaNodes():
 
 
 def isMetaNode(node):
+    """Determines if the node is a meta node by seeing if the attribute mnode exists and mclass value(classname) is
+    within the current meta registry
+    :param node:
+    :type node: MObject
+    :rtype: bool
+    """
     if isinstance(node, MetaBase) or issubclass(type(node), MetaBase):
         return True
     dep = om2.MFnDependencyNode(node)
@@ -113,15 +120,8 @@ def getConnectMetaNodes(node):
 
 class MetaRegistry(object):
     """Singleton class to handle global registration to metaclasses"""
+    __metaclass__ = classtypes.Singleton
     types = {}
-    _instance = None
-
-    @classmethod
-    def __new__(cls, *args, **kwargs):
-        """Overridden to make the registry a singleton"""
-        if cls._instance is None:
-            cls._instance = super(MetaRegistry, cls).__new__(*args, **kwargs)
-        return cls._instance
 
     @classmethod
     def isInRegistry(cls, typeName):
@@ -242,7 +242,8 @@ class MetaBase(object):
 
     def __init__(self, node=None, name="", initDefaults=True):
         if node is None:
-            node = nodes.createDGNode(name or self.__class__.__name__, "network")
+            name = "_".join([name or self.__class__.__name__, "meta"])
+            node = nodes.createDGNode(name, "network")
 
         self._handle = om2.MObjectHandle(node)
 
@@ -439,9 +440,21 @@ class MetaBase(object):
         return True
 
     def iterAttributes(self):
-        node = self._mfn
-        for i in range(node.attributeCount()):
-            yield node.findPlug((node.attribute(i)), False)
+        for i in nodes.iterAttributes(self.mobject()):
+            yield i
+
+    def findConnectedNodesByAttributeName(self, filter, recursive=False):
+        plugs = self.findPlugsByFilteredName(filter)
+        results = []
+        for p in iter(plugs):
+            if p.isSource:
+                results.extend([i.node() for i in p.destinations()])
+        if recursive:
+            for m in iter(self.iterMetaChildren()):
+                for p in iter(m.findPlugsByFilteredName(filter)):
+                    if p.isSource:
+                        results.extend([i.node() for i in p.destinations()])
+        return results
 
     def findPlugsByFilteredName(self, filter=""):
         """Finds all plugs with the given filter with in name
@@ -530,8 +543,13 @@ class MetaBase(object):
         if parentPlug.isConnected:
             return MetaBase(parentPlug.connectedTo(True, False)[0].node())
 
-    def metaChildren(self):
-        return [i for i in self.iterMetaChildren()]
+    def iterParents(self, depthLimit=256):
+        parentPlug = self._mfn.findPlug("metaParent", False)
+        for parent in plugs.iterDependencyGraph(parentPlug, depthLimit=depthLimit, transverseType="up"):
+            yield MetaBase(parent.node())
+
+    def metaChildren(self, depthLimit=256):
+        return [i for i in self.iterMetaChildren(depthLimit=depthLimit)]
 
     def iterMetaChildren(self, depthLimit=256):
         childPlug = self._mfn.findPlug("metaChildren", False)
@@ -547,7 +565,7 @@ class MetaBase(object):
             parent = MetaBase(parent)
         metaParent = self.metaParent()
         if metaParent is not None or metaParent == parent:
-            raise ValueError("MetaNode already has a parent, call removeParent first")
+            self.removeParent()
         parentPlug = self._mfn.findPlug("metaParent", False)
         with plugs.setLockedContext(parentPlug):
             plugs.connectPlugs(parent.findPlug("metaChildren", False), parentPlug)

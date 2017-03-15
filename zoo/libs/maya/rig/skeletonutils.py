@@ -7,7 +7,7 @@ from zoo.libs.maya.api import plugs
 logger = zlogging.zooLogger
 
 
-def poleVectorPosition(start, mid, end):
+def poleVectorPosition(start, mid, end, multiplier=1.0):
     """This function gets the position of the polevector from 3 MVectors
 
     :param start: the start vector
@@ -32,8 +32,7 @@ def poleVectorPosition(start, mid, end):
 
     startEndN = startEnd.normal()
     projV = startEndN * proj
-    arrowV = startMid - projV
-    arrowV *= 1
+    arrowV = (startMid - projV) * multiplier
     finalV = arrowV + mid
 
     return finalV
@@ -74,3 +73,28 @@ def convertToSkeleton(rootNode, prefix="skel_", parentObj=None):
     for c in nodes.getChildren(rootNode):
         convertToSkeleton(c, prefix, j)
     return j
+
+
+def jointLength(joint):
+    jointFn = om2.MFnDagNode(joint)
+    parent = jointFn.parent()
+    if nodes.isSceneRoot(parent):
+        return 0.0
+    parentPos = nodes.getTranslation(parent, space=om2.MSpace.kWorld)
+    jointPos = nodes.getTranslation(joint, space=om2.MSpace.kWorld)
+    return (jointPos - parentPos).length()
+
+
+def chainLength(start, end):
+    joints = [end]
+    for i in nodes.iterParents(end):
+        if i.apiType() == om2.MFn.kJoint:
+            joints.append(i)
+            if i == start:
+                break
+    joints.reverse()
+    total = 0
+    for j in iter(joints):
+        total += jointLength(j)
+
+    return total

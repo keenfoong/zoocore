@@ -8,7 +8,8 @@ class Plugin(object):
     """Base plugin class that all plugins inherent from.
     """
 
-    def __init__(self):
+    def __init__(self, manager=None):
+        self.manager = manager
         self.stats = PluginStats(self)
 
 

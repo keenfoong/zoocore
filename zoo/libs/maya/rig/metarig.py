@@ -31,34 +31,23 @@ class MetaRig(base.MetaBase):
         attrname = "_".join([self._geoPrefix, name])
         return self.connectTo(attrname, node)
 
-    def controls(self, recursive=True):
-        ctrls = self.findPlugsByFilteredName(self._ctrlPrefix)
-        if recursive:
-            for m in self.iterMetaChildren():
-                ctrls.extend(m.findPlugsByFilteredName(self._ctrlPrefix))
+    def control(self, name, recursive):
+        results = self.findConnectedNodesByAttributeName("_".join([self._ctrlPrefix, name]), recursive=recursive)
+        if results:
+            return results[0]
+        return None
 
-        return ctrls
+    def controls(self, recursive=True):
+        return self.findConnectedNodesByAttributeName(self._ctrlPrefix, recursive=recursive)
 
     def joints(self, recursive=True):
-        jnts = self.findPlugsByFilteredName(self._jntPrefix)
-        if recursive:
-            for m in self.iterMetaChildren():
-                jnts.extend(m.findPlugsByFilteredName(self._jntPrefix))
-        return jnts
+        return self.findConnectedNodesByAttributeName(self._jntPrefix, recursive=recursive)
 
     def skinJoints(self, recursive):
-        skJnts = self.findPlugsByFilteredName(self._skinJntPrefix)
-        if recursive:
-            for m in self.iterMetaChildren():
-                skJnts.extend(m.findPlugsByFilteredName(self._skinJntPrefix))
-        return skJnts
+        return self.findConnectedNodesByAttributeName(self._jntPrefix, recursive=recursive)
 
     def geo(self, recursive=True):
-        geos = self.findPlugsByFilteredName(self._geoPrefix)
-        if recursive:
-            for m in self.iterMetaChildren():
-                geos.extend(m.findPlugsByFilteredName(self._geoPrefix))
-        return geos
+        return self.findConnectedNodesByAttributeName(self._geoPrefix, recursive=recursive)
 
     def filterSubSystemByName(self, name):
         for subsys in iter(self.subSystems()):
@@ -103,7 +92,6 @@ class MetaRig(base.MetaBase):
 
     def addSubSystem(self, node=None, name=None):
         if node is None:
-            name = "sub_meta#" if not name else "_".join([name, "meta"])
             node = MetaSubSystem(name=name)
         elif isinstance(node, om2.MObject):
             node = MetaSubSystem(node)
@@ -154,7 +142,7 @@ class MetaRig(base.MetaBase):
 
 
 class MetaSupportSystem(MetaRig):
-    def __init__(self, node=None, name="", initDefaults=True):
+    def __init__(self, node=None, name=None, initDefaults=True):
         super(MetaRig, self).__init__(node, name, initDefaults)
 
 

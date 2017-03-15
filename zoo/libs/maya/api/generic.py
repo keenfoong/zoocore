@@ -20,7 +20,7 @@ def isValidMObject(mObj):
     return isValidMObjectHandle(om2.MObjectHandle(mObj))
 
 
-def cmpMObjects(a, b):
+def compareMObjects(a, b):
     """Compares two nodes and returns whether they're equivalent or not - the compare is done on MObjects
     not strings.
     """
@@ -75,6 +75,10 @@ def asEuler(rotation):
     return om2.MEulerRotation([om2.MAngle(i, om2.MAngle.kDegrees).asRadians() for i in rotation])
 
 
+def eulerToDegrees(euler):
+    return [om2.MAngle(i, om2.MAngle.kRadians).asDegrees() for i in euler]
+
+
 def softSelection():
     """Gets the current component softSelection
 
@@ -95,3 +99,18 @@ def softSelection():
                 data.add((fnComp.element(cIdx), weight))
     return data
 
+
+def intToMTransformRotationOrder(rotateOrder):
+    if rotateOrder == 0:
+        return om2.MTransformationMatrix.kXYZ
+    elif rotateOrder == 1:
+        return om2.MTransformationMatrix.kXZY
+    elif rotateOrder == 2:
+        return om2.MTransformationMatrix.kYXZ
+    elif rotateOrder == 3:
+        return om2.MTransformationMatrix.kYZX
+    elif rotateOrder == 4:
+        return om2.MTransformationMatrix.kZXY
+    elif rotateOrder == 5:
+        return om2.MTransformationMatrix.kZYX
+    return -1

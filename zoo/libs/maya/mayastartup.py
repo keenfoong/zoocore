@@ -12,7 +12,7 @@ class ZooMayaStartUp(object):
 
     def startUp(self):
         ZooMayaStartUp.setupLogger()
-        ZooMayaStartUp.setupPlugins()
+        # ZooMayaStartUp.setupPlugins()
         ZooMayaStartUp.setupIcons()
 
     @staticmethod

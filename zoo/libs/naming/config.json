@@ -1,0 +1,84 @@
+{
+  "rules": {
+    "object": {
+      "creator": "davidsp",
+      "description": "Standard object type convention",
+      "expression": "{area}_{section}_{system}_{side}_{type}"
+    },
+    "organisationNodes": {
+      "creator": "davidsp",
+      "description": "Convention for nodes that are used to organise node hierarchies",
+      "expression": "{side}_{area}_{type}"
+    }
+  },
+  "tokens": {
+    "area": {
+      "arm": "arm",
+      "choice": "null",
+      "default": "null",
+      "null": "null",
+      "leg": "leg",
+      "head": "head",
+      "spine": "spine",
+      "neck": "neck",
+      "jaw": "jaw",
+      "eye": "eye",
+      "brow": "brow",
+      "toe": "toe",
+      "foot": "foot",
+      "root": "root"
+    },
+    "section": {
+      "index": "index",
+      "mid": "mid",
+      "ring": "ring",
+      "pinky": "pinky",
+      "thumb": "thumb",
+      "upr": "upr",
+      "lwr": "lwr",
+      "end": "end",
+      "polevector": "pv",
+      "choice": "index",
+      "default": "index"
+  	},
+    "system":{
+      "fk": "fk",
+      "ik": "ik",
+      "skin": "skin",
+      "choice": "skin",
+      "default": "skin"
+    },
+    "type": {
+      "choice": "transform",
+      "default": "transform",
+      "control": "anim",
+      "joint": "jnt",
+      "transform": "srt",
+      "hrc": "hrc",
+      "ikHandle": "ikhandle",
+      "eff": "ikeffector",
+      "annotation": "ann",
+      "curve": "crv",
+      "parentConstraint": "parentConstraint",
+      "scaleConstraint": "scaleConstraint",
+      "orientConstraint": "orientConstraint",
+      "pointConstraint": "pointConstraint",
+      "matrixDecompose": "decomp",
+      "matrixMult": "mult",
+      "plusMinusAverage": "pma"
+    },
+    "side": {
+      "choice": "m",
+      "default": "m",
+      "l": "L",
+      "m": "M",
+      "r": "R",
+      "c": "C",
+      "L": "l",
+      "M": "m",
+      "R": "r",
+      "C": "c",
+      "LEFT": "left"
+    }
+  }
+}
