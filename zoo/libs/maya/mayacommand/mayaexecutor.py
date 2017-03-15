@@ -10,6 +10,7 @@ class MayaExecutor(base.ExecutorBase):
     def __init__(self):
         super(MayaExecutor, self).__init__()
         self.undoStack = om2._ZOOCOMMAND
+
         om2._COMMANDEXECUTOR = self
 
     def execute(self, commandName, **kwargs):
@@ -17,13 +18,20 @@ class MayaExecutor(base.ExecutorBase):
         if command is None:
             raise ValueError("No command by the name -> {} exists within the registry!".format(commandName))
         command = command()
-        command.prepareCommand()
+        command._prepareCommand()
         if not command.isEnabled:
+            return
+        try:
+            command.resolveArguments(kwargs)
+        except base.UserCancel:
+            # @todo should probably raise here?
+            return
+        except Exception:
             raise
         exc_tb = None
         exc_type = None
         exc_value = None
-        command.resolveArguments(kwargs)
+
         try:
             command.stats = base.CommandStats(command)
             cmds.undoInfo(openChunk=True)
@@ -40,7 +48,6 @@ class MayaExecutor(base.ExecutorBase):
             if exc_type and exc_value and exc_tb:
                 tb = traceback.format_exception(exc_type, exc_value, exc_tb)
             command.stats.finish(tb)
-
             cmds.undoInfo(closeChunk=True)
 
         return result
@@ -48,4 +55,5 @@ class MayaExecutor(base.ExecutorBase):
     def undoLast(self):
         cmds.undo()
 
-
+    def redoLast(self):
+        cmds.redo()

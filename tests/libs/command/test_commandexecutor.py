@@ -60,9 +60,3 @@ class TestCommandExecutor(unittestBase.BaseUnitest):
         self.assertEquals(len(self.executor.undoStack), 1)
         self.executor.flush()
         self.assertEquals(len(self.executor.undoStack), 0)
-
-        # def testResolveCommandArgumentDefinition(self):
-        #     pass
-        #
-        # def testResolveCommandArguments(self):
-        #     pass
