@@ -23,6 +23,7 @@ class ExecutorBase(object):
         self.redoStack = deque()
 
     def execute(self, name, **kwargs):
+        # @todo should we pop the undostack on exception ?
         command = self.findCommand(name)
         if command is None:
             raise ValueError("No command by the name -> {} exists within the registry!".format(name))
@@ -37,12 +38,15 @@ class ExecutorBase(object):
         exc_tb = None
         exc_type = None
         exc_value = None
+        result = None
         try:
             command.stats = CommandStats(command)
-            self.undoStack.append(command)
+            if command.isUndoable:
+                self.undoStack.append(command)
             result = self._callDoIt(command)
         except UserCancel:
-            return
+            self.undoStack.remove(command)
+            return result
         except Exception:
             exc_type, exc_value, exc_tb = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_tb)
@@ -68,14 +72,18 @@ class ExecutorBase(object):
     def redoLast(self):
         result = None
         if self.redoStack:
-            command = self.redoStack[-1]
+            command = self.redoStack.pop()
             if command is not None:
                 exc_tb = None
                 exc_type = None
                 exc_value = None
                 try:
                     command.stats = CommandStats(command)
+                    if command.isUndoable:
+                        self.undoStack.append(command)
                     result = self._callDoIt(command)
+                except UserCancel:
+                    return
                 except Exception:
                     exc_type, exc_value, exc_tb = sys.exc_info()
                     traceback.print_exception(exc_type, exc_value, exc_tb)
@@ -85,7 +93,7 @@ class ExecutorBase(object):
                     if exc_type and exc_value and exc_tb:
                         tb = traceback.format_exception(exc_type, exc_value, exc_tb)
                     command.stats.finish(tb)
-                self.redoStack.remove(command)
+
         return result
 
     def registerCommand(self, clsobj):
@@ -109,13 +117,14 @@ class ExecutorBase(object):
                 added = True
         return added
 
-    def findCommand(self, name):
-        for command in iter(self.commands.values()):
-            if command.id == name:
-                return command
+    def findCommand(self, id):
+        command = self.commands.get(id)
+        if command is not None:
+            return command
 
     def flush(self):
         self.undoStack.clear()
+        self.redoStack.clear()
 
     def _callDoIt(self, command):
         return command.doIt(**command.arguments)

@@ -2,7 +2,7 @@ from zoo.libs.command import command
 
 
 class TestCommandReg(command.ZooCommand):
-    id = "Test.TestCommand"
+    id = "test.testCommand"
     creator = "davidsp"
     isUndoable = False
     isEnabled = True
@@ -12,7 +12,7 @@ class TestCommandReg(command.ZooCommand):
 
 
 class FailCommandArguments(command.ZooCommand):
-    id = "Test.FailCommandArguments"
+    id = "test.failCommandArguments"
     creator = "davidsp"
     isUndoable = False
     isEnabled = True
@@ -22,7 +22,7 @@ class FailCommandArguments(command.ZooCommand):
 
 
 class TestCommandUndoable(command.ZooCommand):
-    id = "Test.TestCommandUndoable"
+    id = "test.testCommandUndoable"
     creator = "davidsp"
     isUndoable = True
     isEnabled = True
@@ -37,7 +37,7 @@ class TestCommandUndoable(command.ZooCommand):
 
 
 class TestCommandNotUndoable(command.ZooCommand):
-    id = "Test.TestCommandNotUndoable"
+    id = "test.testCommandNotUndoable"
     creator = "davidsp"
     isUndoable = False
     isEnabled = True

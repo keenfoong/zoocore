@@ -49,4 +49,3 @@ class TestCommand(unittestBase.BaseUnitest):
         command._prepareCommand()
         self.assertTrue(command._resolveArguments({"shouldFail": "hopeful", "value": "hello"}))
         self.assertRaises(ValueError, command._resolveArguments, {"shouldFail": "hopeful", "badArgument": "hello"})
-

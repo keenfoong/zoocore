@@ -53,7 +53,9 @@ class MayaExecutor(base.ExecutorBase):
         return result
 
     def undoLast(self):
+        self.undoStack.pop()
         cmds.undo()
 
     def redoLast(self):
+        self.redoStack.pop()
         cmds.redo()

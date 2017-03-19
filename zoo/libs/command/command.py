@@ -41,7 +41,6 @@ class ZooCommand(CommandInterface):
     def _resolveArguments(self, arguments):
         kwargs = self.arguments
         unacceptedArgs = []
-        print kwargs, arguments
         for arg, value in iter(arguments.items()):
             if arg not in kwargs:
                 unacceptedArgs.append(arg)
