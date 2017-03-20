@@ -14,7 +14,6 @@
   "tokens": {
     "area": {
       "arm": "arm",
-      "choice": "null",
       "default": "null",
       "null": "null",
       "leg": "leg",
@@ -38,18 +37,15 @@
       "lwr": "lwr",
       "end": "end",
       "polevector": "pv",
-      "choice": "index",
       "default": "index"
   	},
     "system":{
       "fk": "fk",
       "ik": "ik",
       "skin": "skin",
-      "choice": "skin",
       "default": "skin"
     },
     "type": {
-      "choice": "transform",
       "default": "transform",
       "control": "anim",
       "joint": "jnt",
@@ -64,11 +60,12 @@
       "orientConstraint": "orientConstraint",
       "pointConstraint": "pointConstraint",
       "matrixDecompose": "decomp",
-      "matrixMult": "mult",
+      "matrixMult": "matMult",
+      "matrixInverse": "invMult",
+      "multiplyDivide": "mult",
       "plusMinusAverage": "pma"
     },
     "side": {
-      "choice": "m",
       "default": "m",
       "l": "L",
       "m": "M",

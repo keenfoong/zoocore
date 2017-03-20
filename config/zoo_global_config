@@ -1,0 +1,7 @@
+{
+  "PYTHONPATH":"../",
+  "ZOO_BASE": "../",
+  "ZOO_LOG_STATE": "DEBUG",
+  "ZOO_LOG_CONFIG": ".config/logging_config",
+  "ZOO_ICONS": "./icons"
+}

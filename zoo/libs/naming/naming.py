@@ -69,8 +69,8 @@ class NameManager(object):
     def setCreator(self, creator):
         self.config[self.activeRule()]["creator"] = creator
 
-    def addToken(self, name, value, default, choice):
-        data = {"default": default, "choice": choice}
+    def addToken(self, name, value, default):
+        data = {"default": default}
         data.update(value)
         self.config["tokens"][name] = data
 
@@ -90,7 +90,7 @@ class NameManager(object):
             raise ValueError("Config has no token called {}".format(name))
         if name == "counter":
             return self.config["tokens"][name]["value"]
-        return self.config["tokens"][name]["choice"]
+        return self.config["tokens"][name]["default"]
 
     def addRule(self, name, expression, description, asActive=True):
         self.config["rule"].update({name: {"expression": expression,
@@ -109,7 +109,7 @@ class NameManager(object):
 
     def overrideToken(self, name, value, **kwargs):
         if not self.hasToken(name):
-            self.addToken(name, {value, value}, default=value, choice=value)
+            self.addToken(name, {value, value}, default=value)
 
         if name == "counter":
             configData = self.config["tokens"][name]
@@ -120,7 +120,7 @@ class NameManager(object):
 
         tokens = self.config["tokens"]
         if name in tokens:
-            tokens[name]["choice"] = value
+            tokens[name]["default"] = value
             tokens[name].update(kwargs)
 
     def resolve(self):
@@ -131,7 +131,7 @@ class NameManager(object):
             if token == "counter":
                 val = str(self.counter["value"]).zfill(self.counter["padding"])
             else:
-                val = self.config["tokens"][token]["choice"]
+                val = self.config["tokens"][token]["default"]
             newStr = re.sub("{" + token + "}", val or "null", newStr)
         return newStr
 

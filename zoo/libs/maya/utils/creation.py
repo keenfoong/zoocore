@@ -86,6 +86,7 @@ def floatMath(floatA, floatB, operation, name):
 
 
 def blendTwoAttr(input1, input2, blender, name):
+    #@todo evaluate array for query.
     fn = om2.MFnDependencyNode(nodes.createDGNode(name, "blendTwoAttr"))
     inputArray = fn.findPlug("input", False)
     plugs.connectPlugs(input1, inputArray.elementByLogicalIndex(-1))

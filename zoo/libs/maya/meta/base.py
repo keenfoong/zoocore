@@ -125,10 +125,17 @@ class MetaRegistry(object):
 
     @classmethod
     def isInRegistry(cls, typeName):
+        "Checks to see if the type is currently available in the registry"
         return typeName in cls.types
 
     @classmethod
     def getType(cls, typeName):
+        """Returns the class of the type
+        :param typeName: the class name
+        :type typeName: str
+        :return: returns the class object for the given type name
+        :rtype: object
+        """
         return cls.types.get(typeName)
 
     @classmethod
@@ -232,6 +239,13 @@ class MetaBase(object):
 
     @staticmethod
     def classNameFromPlug(node):
+        """Given the MObject node or metaClass return the associated class name which should exist on the maya node
+        as an attribute
+        :param node: the node to find the class name for
+        :type node: MObject or MetaBase instance
+        :return:  the mClass name
+        :rtype: str
+        """
         if isinstance(node, MetaBase):
             return node.mClass.asString()
         dep = om2.MFnDependencyNode(node)
@@ -588,7 +602,7 @@ class MetaBase(object):
     def removeParent(self):
         parent = self.metaParent()
         if parent is None:
-            return
+            return False
         mod = om2.MDGModifier()
         source = parent.findPlug("metaChildren", False)
         destination = self.findPlug("metaParent", False)
@@ -596,11 +610,17 @@ class MetaBase(object):
             destination.isLocked = False
             mod.disconnect(source, destination)
             mod.doIt()
+        return True
 
     def removeChild(self, node):
+        """Removes the meta child from this node which should currently be the meta parent
+        :param node:
+        :type node: MObject or MetaBase instance
+        :return: True if removed
+        :rtype: bool
+        """
         if isinstance(node, MetaBase.MetaBase):
-            node.removeParent()
-            return True
+            return node.removeParent()
         childPlug = self._mfn.findPlug("metaChildren", False)
         mod = om2.MDGModifier()
         destination = om2.MFnDependencyNode(node).findPlug("metaParent", False)

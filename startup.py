@@ -18,7 +18,7 @@ def _initEnv():
     """
     logger.debug("initializing zoo environment")
     # setup standard envs
-    zootoolsPath = str(filesystem.upDirectory(__file__, 2))
+    zootoolsPath = os.path.dirname(__file__)
     pPaths = ""
     if "PYTHONPATH" in os.environ:
         pPaths = os.environ["PYTHONPATH"].split(os.pathsep)
