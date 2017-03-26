@@ -1,7 +1,7 @@
 import os
 
 from tests import mayatestutils
-from tests.testdata import testmayacommand
+from tests.testdata.mayacomanddata import testmayacommand
 from zoo.libs.command import executor
 
 

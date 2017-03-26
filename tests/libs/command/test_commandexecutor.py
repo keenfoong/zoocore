@@ -2,14 +2,14 @@ import os
 
 from tests import unittestBase
 from zoo.libs.command import base
-from tests.testdata import testcommands
+from tests.testdata.commanddata import testcommands
 
 
 class TestCommandExecutor(unittestBase.BaseUnitest):
     @classmethod
     def setUpClass(cls):
         super(TestCommandExecutor, cls).setUpClass()
-        os.environ["TESTDATA"] = "tests.testdata"
+        os.environ["TESTDATA"] = "tests.testdata.commanddata"
 
     def setUp(self):
         self.executor = base.ExecutorBase()
@@ -34,7 +34,7 @@ class TestCommandExecutor(unittestBase.BaseUnitest):
         self.executor.registerEnv(self.env)
         with self.assertRaises(ValueError) as context:
             self.executor.execute("test.failCommandArguments", value="helloWorld")
-        self.assertTrue('Test.FailCommandArguments' in str(context.exception))
+            self.assertTrue('Test.FailCommandArguments' in str(context.exception))
 
     def testUndoLast(self):
         self.executor.registerEnv(self.env)

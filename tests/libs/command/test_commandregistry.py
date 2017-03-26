@@ -2,7 +2,7 @@ import os
 
 from tests import unittestBase
 from zoo.libs.command import commandregistry
-from tests.testdata import testcommands
+from tests.testdata.commanddata import testcommands
 
 
 class TestCommandRegistry(unittestBase.BaseUnitest):
@@ -15,23 +15,23 @@ class TestCommandRegistry(unittestBase.BaseUnitest):
 
     def testRegisterByModule(self):
         path = os.path.realpath(os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir,
-                            "testdata", "testcommands.py"))
+                            "testdata", "commanddata", "testcommands.py"))
         commands = self.registry.registerByModule(path)
         self.assertTrue(len(commands) > 0)
 
     def testRegistryByDottedPath(self):
-        path = "tests.testdata.testcommands"
+        path = "tests.testdata.commanddata.testcommands"
         commands = self.registry.registerByModule(path)
         self.assertTrue(len(commands) > 0)
 
     def testRegisterEnv(self):
         env = "ZOO_COMMAND_TEST"
-        os.environ[env] = "tests.testdata.testcommands"
+        os.environ[env] = "tests.testdata.commanddata.testcommands"
         commands = self.registry.registryByEnv(env)
         self.assertTrue(len(commands) != 0)
 
     def testRegisterByPackage(self):
         env = "ZOO_COMMAND_TEST"
-        os.environ[env] = "tests.testdata"
+        os.environ[env] = "tests.testdata.commanddata"
         commands = self.registry.registryByEnv(env)
         self.assertTrue(len(commands) != 0)

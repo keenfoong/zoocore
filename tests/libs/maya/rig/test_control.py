@@ -72,5 +72,4 @@ class TestControl(mayatestutils.BaseMayaTest):
         con.addSrt("testNode")
         self.assertTrue(nodes.hasParent(con.dagPath.node()))
         parent = con.dagPath.pop()
-        print parent.partialPathName()
         self.assertTrue(parent.partialPathName().endswith("_testNode"))

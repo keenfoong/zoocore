@@ -9,7 +9,6 @@ class MayaTestCreateNodeCommand(command.ZooCommand):
     _testNode = None
 
     def doIt(self):
-        print "inside command"
         node = nodes.createDagNode("testNode", "transform")
         self._testNode = om2.MObjectHandle(node)
 
@@ -27,7 +26,6 @@ class MayaTestCommandFailsOnDoIt(command.ZooCommand):
     _testNode = None
 
     def doIt(self):
-        print "inside command"
         node = nodes.createDagNode("testNode", "transform")
         self._testNode = om2.MObjectHandle(node)
 
@@ -45,7 +43,6 @@ class MayaTestCommandFailsOnUndoIt(command.ZooCommand):
     _testNode = None
 
     def doIt(self):
-        print "inside command"
         node = nodes.createDagNode("testNode", "transform")
         self._testNode = om2.MObjectHandle(node)
 
@@ -63,7 +60,6 @@ class MayaTestCommandFailsOnResolveArgs(command.ZooCommand):
     _testNode = None
 
     def doIt(self):
-        print "inside command"
         node = nodes.createDagNode("testNode", "transform")
         self._testNode = om2.MObjectHandle(node)
 
