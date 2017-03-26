@@ -71,11 +71,13 @@ def getTests(filterApplication=""):
                 logger.debug("skipping file for testing {}".format(file))
                 continue
             name = os.path.splitext(os.path.basename(os.path.join(root, file)))[0]
+
             try:
                 module = imp.load_source(name, os.path.realpath(os.path.join(root, file)))
-            except ImportError:
+            except ImportError as e:
                 logger.info("import failed for {}".format(file), exc_info=True)
                 continue
+
             for member in inspect.getmembers(module, predicate=inspect.isclass):
                 cl = member[1]
                 try:
@@ -106,5 +108,7 @@ if __name__ == '__main__':
     import logging
 
     logger = logging.getLogger(__name__)
+    logger.addHandler(logging.NullHandler())
     logger.setLevel(logging.DEBUG)
-    runTests(getTests("standalone").get("standalone"))
+    testss = getTests("standalone").get("standalone")
+    runTests(testss)

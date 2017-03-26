@@ -12,12 +12,40 @@ class TestZooCommand(command.ZooCommand):
         return "helloWorld"
 
 
+class TestZooPrepareFailsCommand(command.ZooCommand):
+    id = "zooPrepareFailsCommand"
+    creator = "davidsp"
+    isUndoable = False
+    isEnabled = True
+
+    def doIt(self, shouldfail, value="bob"):
+        return "helloWorld"
+
+
+class TestZooPreparePassesCommand(command.ZooCommand):
+    id = "zooPreparePassesCommand"
+    creator = "davidsp"
+    isUndoable = False
+    isEnabled = True
+
+    def doIt(self, shouldFail="yea baby", value="bob"):
+        return "helloWorld"
+
+
 class TestCommand(unittestBase.BaseUnitest):
     def setUp(self):
         self.command = TestZooCommand()
 
     def testPrepareCommand(self):
-        pass
+        self.command._prepareCommand()
+        self.assertEquals(self.command.arguments, dict())
+        prepped = TestZooPrepareFailsCommand()
+        self.assertRaises(ValueError, prepped._prepareCommand)
+        passCommand = TestZooPreparePassesCommand()
+        self.assertEquals(len(passCommand._prepareCommand()), 2)
 
     def testResolveArguments(self):
-        pass
+        command = TestZooPreparePassesCommand()
+        command._prepareCommand()
+        self.assertTrue(command._resolveArguments({"shouldFail": "hopeful", "value": "hello"}))
+        self.assertRaises(ValueError, command._resolveArguments, {"shouldFail": "hopeful", "badArgument": "hello"})

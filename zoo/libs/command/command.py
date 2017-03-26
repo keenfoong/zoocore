@@ -11,11 +11,10 @@ class CommandInterface(object):
 
     @abstractproperty
     def id(self):
-        raise NotImplementedError("Subclasses should implement the doIt Propertie")
+        raise NotImplementedError("Subclasses should implement the doIt Property")
 
 
 class ZooCommand(CommandInterface):
-    id = None
     creator = ""
     isUndoable = False
     isEnabled = True
@@ -33,10 +32,13 @@ class ZooCommand(CommandInterface):
     def undoIt(self):
         pass
 
+    def resolveArguments(self, arguments):
+        pass
+
     def hasArgument(self, name):
         return name in self.arguments
 
-    def resolveArguments(self, arguments):
+    def _resolveArguments(self, arguments):
         kwargs = self.arguments
         unacceptedArgs = []
         for arg, value in iter(arguments.items()):
@@ -46,15 +48,17 @@ class ZooCommand(CommandInterface):
         if unacceptedArgs:
             raise ValueError("unaccepted arguments({}) for command -> {}".format(unacceptedArgs, self.id))
         self.arguments = kwargs
+        self.resolveArguments(kwargs)
+        return True
 
-    def prepareCommand(self):
+    def _prepareCommand(self):
         funcArgs = inspect.getargspec(self.doIt)
         args = funcArgs.args[1:]
-        defaults = funcArgs.defaults
-        if not defaults:
-            raise ValueError("The command doIt function({}) must use keyword argwords eg. value='hello'".format(
-                self.id))
-
-        if not args or not defaults:
-            raise
-        self.arguments = dict(zip(args, defaults))
+        defaults = funcArgs.defaults or tuple()
+        if len(args) != len(defaults):
+            raise ValueError("The command doIt function({}) must use keyword argwords".format(self.id))
+        elif args and defaults:
+            arguments = dict(zip(args, defaults))
+            self.arguments = arguments
+            return arguments
+        return dict()
