@@ -11,21 +11,21 @@ from zoo.libs.maya.rig import control
 
 class TestControl(mayatestutils.BaseMayaTest):
     def test_init(self):
-        con = control.Control("testControl")
+        con = control.Control(name="testControl")
         self.assertEquals(con.colour, (0, 0, 0))
         self.assertEquals(con.name, "testControl")
         curve = cmds.circle(ch=False)[0]
-        con = control.Control(curve)
+        con = control.Control(node=nodes.asMObject(curve))
         self.assertTrue(cmds.objExists(con.dagPath.fullPathName()))
 
     def test_createControlFromLib(self):
-        con = control.Control("testControl")
+        con = control.Control(name="testControl")
         node = con.create(shape="arrow")
         cmds.objExists(node.fullPathName())
         self.assertEquals(node.partialPathName(), "testControl")
 
     def test_setPosition(self):
-        con = control.Control("testControl")
+        con = control.Control(name="testControl")
         con.create(shape="arrow")
         con.setPosition(om2.MVector(10, 10, 10))
         trans = nodes.getTranslation(con.dagPath.node())
@@ -35,7 +35,7 @@ class TestControl(mayatestutils.BaseMayaTest):
         self.assertEquals(trans, om2.MVector(10, 10, 10))
 
     def test_setRotation(self):
-        con = control.Control("testControl")
+        con = control.Control(name="testControl")
         con.create(shape="arrow")
         con.setRotation(om2.MEulerRotation(10, 10, 10))
         trans = om2.MFnTransform(con.dagPath.node())
@@ -46,7 +46,7 @@ class TestControl(mayatestutils.BaseMayaTest):
         self.assertEquals(trans.rotation(), om2.MEulerRotation(10, 10, 10))
 
     def test_setScale(self):
-        con = control.Control("testControl")
+        con = control.Control(name="testControl")
         con.create(shape="arrow")
         con.setScale((2, 2, 2))
         trans = om2.MFnTransform(con.dagPath.node())
@@ -54,11 +54,11 @@ class TestControl(mayatestutils.BaseMayaTest):
         con.setScale((2, 2, 2), cvs=True)
 
     def test_setRotationOrder(self):
-        con = control.Control("testControl")
+        con = control.Control(name="testControl")
         con.create(shape="arrow")
         con.setRotationOrder(om2.MTransformationMatrix.kXZY)
-        trans = om2.MFnTransform(con.dagPath.node())
-        self.assertEqual(trans.rotationOrder(), om2.MTransformationMatrix.kXZY)
+        trans = om2.MFnTransform(con.dagPath.node()).transformation()
+        self.assertEqual(int(trans.rotationOrder()), om2.MTransformationMatrix.kXZY)
 
     def test_setPivot(self):
         pass
@@ -67,7 +67,7 @@ class TestControl(mayatestutils.BaseMayaTest):
         pass
 
     def test_addSrt(self):
-        con = control.Control("testControl")
+        con = control.Control(name="testControl")
         con.create(shape="arrow")
         con.addSrt("testNode")
         self.assertTrue(nodes.hasParent(con.dagPath.node()))

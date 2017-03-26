@@ -30,9 +30,8 @@ def lockMetaManager(func):
         try:
             return func(*args, **kwargs)
         finally:
-            pass
-            # if node.exists():
-            #     nodes.lockNode(node.mobject(), True)
+            if node.exists():
+                nodes.lockNode(node.mobject(), True)
 
     return locker
 
@@ -223,7 +222,7 @@ class MetaFactory(type):
 
         registeredType = MetaRegistry().getType(classType)
         if registeredType is None:
-            return type.__call__(*args, **kwargs)
+            return type.__call__(cls, *args, **kwargs)
         return registeredType(*args, **kwargs)
 
 
@@ -255,6 +254,7 @@ class MetaBase(object):
         # self.lock(True)
         if initDefaults:
             self._initMeta()
+        self.lock(True)
 
     def _initMeta(self):
         """Initializes the standard attributes for the meta nodes
@@ -367,8 +367,6 @@ class MetaBase(object):
         :param state: True to lock the node else False
         :type state: bool
         """
-        if self._mfn.isLocked == state:
-            return
         nodes.lockNode(self._handle.object(), state)
 
     def getAttribute(self, name, networked=False):
@@ -598,7 +596,7 @@ class MetaBase(object):
             mod.doIt()
 
     def removeChild(self, node):
-        if isinstance(node, MetaBase.MetaBase):
+        if isinstance(node, MetaBase):
             node.removeParent()
             return True
         childPlug = self._mfn.findPlug("metaChildren", False)
