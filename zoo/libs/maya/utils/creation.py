@@ -13,12 +13,19 @@ def distanceBetween(firstNode, secondNode, name):
     firstFnWorldMat.evaluateNumElements()
     secondFnWorldMat = secondFn.findPlug("worldMatrix", False)
     secondFnWorldMat.evaluateNumElements()
-    plugs.connectPlugs(firstFn.findPlug("rotatePivotTranslate", False), distFn.findPlug("point1", False))
-    plugs.connectPlugs(firstFnWorldMat.elementByPhysicalIndex(0), distFn.findPlug("inMatrix1", False))
-    plugs.connectPlugs(secondFn.findPlug("rotatePivotTranslate", False), distFn.findPlug("point2", False))
-    plugs.connectPlugs(secondFnWorldMat.elementByPhysicalIndex(0), distFn.findPlug("inMatrix2", False))
 
-    return distanceBetweenNode
+    startDecomposeMat = nodes.createDGNode("_".join([firstFn.name(), secondFn.name(), "start_decomp"]),
+                                           "decomposeMatrix")
+    endDecomposeMat = nodes.createDGNode("_".join([firstFn.name(), secondFn.name(), "end_decomp"]), "decomposeMatrix")
+    startDecomFn = om2.MFnDependencyNode(startDecomposeMat)
+    endDecomFn = om2.MFnDependencyNode(endDecomposeMat)
+    plugs.connectPlugs(firstFnWorldMat.elementByPhysicalIndex(0), startDecomFn.findPlug("inputMatrix", False))
+    plugs.connectPlugs(secondFnWorldMat.elementByPhysicalIndex(0), endDecomFn.findPlug("inputMatrix", False))
+
+    plugs.connectPlugs(startDecomFn.findPlug("outputTranslate", False), distFn.findPlug("point1", False))
+    plugs.connectPlugs(endDecomFn.findPlug("outputTranslate", False), distFn.findPlug("point2", False))
+
+    return distanceBetweenNode, startDecomposeMat, endDecomposeMat
 
 
 def multiplyDivide(input1, input2, operation, name):
@@ -92,3 +99,27 @@ def blendTwoAttr(input1, input2, blender, name):
     plugs.connectPlugs(input2, inputArray.elementByLogicalIndex(-1))
     plugs.connectPlugs(blender, fn.findPlug("attributesBlender", False))
     return fn.object()
+
+
+def blendPair(name, inRotateA=None, inRotateB=None, inTranslateA=None, inTranslateB=None, weight=None,
+              rotInterpolation=None):
+    blendPairNode = om2.MFnDependencyNode(nodes.createDGNode("_".join([name, "blendPair"]), "blendPair"))
+    if inRotateA is not None:
+        plugs.connectPlugs(inRotateA, blendPairNode.findPlug("inRotate1", False))
+    if inRotateB is not None:
+        plugs.connectPlugs(inRotateB, blendPairNode.findPlug("inRotate2", False))
+    if inTranslateA is not None:
+        plugs.connectPlugs(inTranslateA, blendPairNode.findPlug("inTranslate1", False))
+    if inTranslateB is not None:
+        plugs.connectPlugs(inTranslateB, blendPairNode.findPlug("inTranslate2", False))
+    if weight is not None:
+        if isinstance(weight, om2.MPlug):
+            plugs.connectPlugs(weight, blendPairNode.findPlug("weight", False))
+        else:
+            plugs.setAttr(blendPairNode.findPlug("weight", False), weight)
+    if rotInterpolation is not None:
+        if isinstance(weight, om2.MPlug):
+            plugs.connectPlugs(rotInterpolation, blendPairNode.findPlug("rotInterpolation", False))
+        else:
+            plugs.setAttr(blendPairNode.findPlug("rotInterpolation", False), rotInterpolation)
+    return blendPairNode.object()

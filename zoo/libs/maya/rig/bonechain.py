@@ -120,6 +120,7 @@ class FkChain(BoneChain):
             nodes.showHideAttributes(cntClass.mobject(), ["visibility"])
             constraint = constraints.ParentConstraint()
             constraint.create(cntClass.mobject(), self.joints[index].object())
+
             self.ctrls.append(cntClass)
             self.extras.append(constraint.node)
             index += 1
@@ -139,8 +140,8 @@ class FkChain(BoneChain):
 
         for x in xrange(1, len(self.ctrls)):
             joint = om2.MFnDependencyNode(nodes.getParent(self.ctrls[x].mobject()))
-            floatNode = creation.floatMath(lengthPlugs[x - 1], initalLengthPlugs[x - 1], 2,
-                                           "_".join([joint.name(), "length_mult"]))
+            floatNode = creation.floatMath(lengthPlugs[x - 1], initalLengthPlugs[x - 1], 0,
+                                           "_".join([joint.name(), "length_add"]))
             floatFn = om2.MFnDependencyNode(floatNode)
             plugs.connectPlugs(floatFn.findPlug("outFloat", False), joint.findPlug("translateX", False))
             self.extras.append(om2.MObjectHandle(floatNode))
@@ -224,6 +225,7 @@ class VChain(BoneChain):
 
         ikHandle = nodes.asMObject(ikHandle)
         nodes.setParent(ikHandle, self.ikCtrl.mobject(), True)
+        plugs.setAttr(om2.MFnDependencyNode(ikHandle).findPlug("rotate", False), om2.MVector(0.0, 0.0, 0.0))
         self.extras["ikhandle"] = om2.MObjectHandle(ikHandle)
         self.extras["ikEffector"] = om2.MObjectHandle(nodes.asMObject(ikEffector))
         self.extras["upVectorConstraint"] = om2.MObjectHandle(upVecConstraint)
@@ -243,7 +245,6 @@ class VChain(BoneChain):
         return pvPos
 
     def createIkStretch(self, name, controlPanel, constantsPanel, counterScale):
-
         ik = VChainStretch(self.joints[1].object(), self.joints[2].object(), self.ikCtrl.mobject(),
                            self.upVector.mobject(),
                            ikhandle=self.extras["ikhandle"].object(), name=name)
@@ -271,6 +272,7 @@ class VChainStretch(object):
     # todo rethink this, could possible try serializing the node network to JSON and then load into the class for connections
     def __init__(self, midJoint, endJoint, endTransform, upVec, ikhandle, name):
         self.startTransform = om2.MObjectHandle(nodes.createDagNode("ikStretch_start_pos", "transform"))
+        nodes.setMatrix(self.startTransform.object(), nodes.getWorldMatrix(nodes.getParent(midJoint)))
         # node initializers
         self.midJoint = midJoint
         self.endJoint = endJoint
@@ -319,14 +321,21 @@ class VChainStretch(object):
         self.lwrLengthMult = None
 
     def constructNodes(self):
+        lockReverseNode = om2.MFnDependencyNode(nodes.createDGNode("_".join([self.name, "lock_rev"]), "reverse"))
+        lockReverseOutPlug = lockReverseNode.findPlug("outputX", False)
+        plugs.connectPlugs(self.elbowLockPlug, lockReverseNode.findPlug("inputX", False))
         # builder all the nodes for soft ik
-        self.totalDistanceNode = om2.MFnDependencyNode(creation.distanceBetween(self.startTransform.object(), self.endTransform,
-                                                                                "_".join([self.name, "totalDist"])))
+        self.totalDistanceNode = creation.distanceBetween(self.startTransform.object(), self.endTransform,
+                                                          "_".join([self.name, "totalDist"]))
+        self.totalDistanceNode = om2.MFnDependencyNode(self.totalDistanceNode[0])
+
         currentTotalDistancePlug = self.totalDistanceNode.findPlug("distance", False)
-        self.uprDistanceNode = om2.MFnDependencyNode(creation.distanceBetween(self.startTransform.object(), self.upVec,
-                                                                              "_".join([self.name, "uprDist"])))
-        self.lwrDistanceNode = om2.MFnDependencyNode(creation.distanceBetween(self.upVec, self.endTransform,
-                                                                              "_".join([self.name, "lwrDist"])))
+        self.uprDistanceNode = creation.distanceBetween(self.startTransform.object(), self.upVec,
+                                                        "_".join([self.name, "uprDist"]))
+        self.uprDistanceNode = om2.MFnDependencyNode(self.uprDistanceNode[0])
+        self.lwrDistanceNode = creation.distanceBetween(self.upVec, self.endTransform,
+                                                        "_".join([self.name, "lwrDist"]))
+        self.lwrDistanceNode = om2.MFnDependencyNode(self.lwrDistanceNode[0])
         self.daSubNode = om2.MFnDependencyNode(creation.floatMath(self.totalLengthPlug, self.softPlug,
                                                                   operation=1,
                                                                   name="_".join([self.name, "daSub"])))
@@ -334,12 +343,18 @@ class VChainStretch(object):
         self.xMinusDaNode = om2.MFnDependencyNode(creation.floatMath(currentTotalDistancePlug, daOutPlug,
                                                                      operation=1,
                                                                      name="_".join([self.name, "da", "xMinusSub"])))
-        self.divBySoftNode = om2.MFnDependencyNode(creation.floatMath(self.xMinusDaNode.findPlug("outFloat", False),
+        self.negxMinusNode = om2.MFnDependencyNode(creation.floatMath(self.xMinusDaNode.findPlug("outFloat", False),
+                                                                      self.constantnegOne,
+                                                                      operation=2,
+                                                                      name="_".join(
+                                                                          [self.name, "negate", "xMinusSub"])))
+
+        self.divBySoftNode = om2.MFnDependencyNode(creation.floatMath(self.negxMinusNode.findPlug("outFloat", False),
                                                                       self.softPlug,
                                                                       operation=3,
                                                                       name="_".join([self.name, "divBySoftSub"])))
-        self.powENode = om2.MFnDependencyNode(creation.floatMath(self.constantSoft,
-                                                                 self.divBySoftNode.findPlug("outFloat", False),
+        self.powENode = om2.MFnDependencyNode(creation.floatMath(self.divBySoftNode.findPlug("outFloat", False),
+                                                                 self.constantSoft,
                                                                  operation=6,
                                                                  name="_".join([self.name, "powESoftSub"])))
         self.oneMinuspowENode = om2.MFnDependencyNode(creation.floatMath(self.constantone,
@@ -375,16 +390,19 @@ class VChainStretch(object):
             creation.blendTwoAttr(self.distdiffIkStretchSub.findPlug("outFloat", False),
                                   self.constantzero, self.stretchPlug,
                                   "_".join([self.name, "stretchikHandle", "Blend"])))
+        ikHandleSourcePlug = self.stretchikHandleBlend.findPlug("output", False)
+        #
+        value = ikHandleSourcePlug.asFloat()
+        if value > 0:
+            self.stretchikHandleNeg = om2.MFnDependencyNode(
+                creation.floatMath(ikHandleSourcePlug,
+                                   self.constantnegOne,
+                                   operation=2,
+                                   name="_".join([self.name, "stretchikHandle", "Blend"])))
 
-        self.stretchikHandleNeg = om2.MFnDependencyNode(
-            creation.floatMath(self.stretchikHandleBlend.findPlug("output", False),
-                               self.constantnegOne,
-                               operation=2,
-                               name="_".join([self.name, "stretchikHandle", "Blend"])))
-
-        plugs.connectPlugs(self.stretchikHandleNeg.findPlug("outFloat", False),
-                           om2.MFnDependencyNode(self.ikhandle).findPlug("translateX", False))
-
+            plugs.connectPlugs(self.stretchikHandleNeg.findPlug("outFloat", False),
+                               om2.MFnDependencyNode(self.ikhandle).findPlug("translateX", False))
+        plugs.connectPlugs(ikHandleSourcePlug, om2.MFnDependencyNode(self.ikhandle).findPlug("translateX", False))
         # locking and uprlwr lengths
         self.distdiffStretch = om2.MFnDependencyNode(creation.floatMath(currentTotalDistancePlug,
                                                                         self.daConditionSoftNode.findPlug("outColorR",
@@ -412,12 +430,12 @@ class VChainStretch(object):
         self.uprLockBlendNode = om2.MFnDependencyNode(
             creation.blendTwoAttr(self.uprDistanceNode.findPlug("distance", False),
                                   self.uprInitLengthMult.findPlug("outFloat", False),
-                                  blender=self.elbowLockPlug,
+                                  blender=lockReverseOutPlug,
                                   name="_".join([self.name, "uprLockBlend"])))
         self.lwrLockBlendNode = om2.MFnDependencyNode(
             creation.blendTwoAttr(self.lwrDistanceNode.findPlug("distance", False),
                                   self.lwrInitLengthMult.findPlug("outFloat", False),
-                                  blender=self.elbowLockPlug,
+                                  blender=lockReverseOutPlug,
                                   name="_".join([self.name, "lwrLockBlend"])))
         self.uprLengthMult = om2.MFnDependencyNode(creation.floatMath(self.uprLengthPlug,
                                                                       self.uprLockBlendNode.findPlug("output", False),
@@ -431,3 +449,31 @@ class VChainStretch(object):
                            om2.MFnDependencyNode(self.midJoint).findPlug("translateX", False))
         plugs.connectPlugs(self.lwrLengthMult.findPlug("outFloat", False),
                            om2.MFnDependencyNode(self.endJoint).findPlug("translateX", False))
+
+
+def blendChains(drivenChain, targetAChain, targetBChain, blendAttribute, rotInterpolation=None, includeScale=False):
+    """Uses Pair blend nodes to blend translate rotation and scale attributes"""
+    blendNodes = []
+    rotInterpolation = 1.0 if rotInterpolation is None else rotInterpolation
+    for i in xrange(len(drivenChain)):
+        driven = om2.MFnDependencyNode(drivenChain[i])
+        targetA = om2.MFnDependencyNode(targetAChain[i])
+        targetB = om2.MFnDependencyNode(targetBChain[i])
+        blendNode= creation.blendPair("_".join([targetA.name(), targetB.name(), driven.name()]),
+                                      targetA.findPlug("rotate", False), targetB.findPlug("rotate", False),
+                                      targetA.findPlug("translate", False), targetB.findPlug("translate", False),
+                                      blendAttribute, rotInterpolation)
+        blendNodeFn = om2.MFnDependencyNode(blendNode)
+        plugs.connectPlugs(blendNodeFn.findPlug("outRotate", False), driven.findPlug("rotate", False))
+        plugs.connectPlugs(blendNodeFn.findPlug("outTranslate", False), driven.findPlug("translate", False))
+
+        blendNodes.append(blendNode)
+        if includeScale:
+            blendNode = creation.blendPair("_".join([targetA.name(), targetB.name(), driven.name()]),
+                                           False, False,
+                                           targetA.findPlug("scale", False), targetB.findPlug("scale", False),
+                                           blendAttribute, rotInterpolation)
+            blendNodes.append(blendNode)
+    return blendNodes
+
+
