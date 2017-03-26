@@ -64,8 +64,8 @@ def filterSceneByAttributeValues(attributeNames, filter):
     :rtype: seq(MPlug)
     """
     for meta in iterSceneMetaNodes():
+        dep = om2.MFnDependencyNode(meta)
         for attr in attributeNames:
-            dep = om2.MFnDependencyNode(meta)
             try:
                 plug = dep.findPlug(attr, False)
             except RuntimeError:
@@ -75,9 +75,8 @@ def filterSceneByAttributeValues(attributeNames, filter):
                 grp = re.search(filter, value)
                 if grp:
                     yield plug
-            else:
-                if value == filter:
-                    yield plug
+            elif value == filter:
+                yield plug
 
 
 def iterSceneMetaNodes():
@@ -108,7 +107,7 @@ def isMetaNode(node):
     return False
 
 
-def getConnectMetaNodes(node):
+def getConnectedMetaNodes(node):
     mNodes = []
     for dest, source in nodes.iterConnections(node, True, False):
         node = source.node()
@@ -206,6 +205,8 @@ class MetaRegistry(object):
 
 
 class MetaFactory(type):
+    """MetaClass for metabase class to create the correct metaBase subclass based on class plug name if a meta
+    node(MObject) exists in the arguments"""
     def __call__(cls, *args, **kwargs):
         """Custom constructor to pull the cls type from the node if it exists and recreates the class instance
         from the registry. If that class doesnt exist then the normal __new__ behaviour will be used
