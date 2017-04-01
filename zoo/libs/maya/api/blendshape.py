@@ -1,6 +1,5 @@
 """This module is for handling blendshapes in maya
-We're using OpenMaya 1.0 due to the extreme lack of support from autodesk in having a function set
-for blendshapes in 2.0
+@note, this needs a big update so right no one should use it until i've gotten around to fixing it.
 """
 
 from maya.api import OpenMaya as om2
