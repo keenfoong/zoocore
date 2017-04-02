@@ -10,7 +10,7 @@ import sys
 
 from maya.api import OpenMaya as om2
 
-if not hasattr(om2, "_ZOOSTACK"):
+if not hasattr(om2, "_ZOOCOMMAND"):
     om2._ZOOCOMMAND = None
     om2._COMMANDEXECUTOR = None
 
