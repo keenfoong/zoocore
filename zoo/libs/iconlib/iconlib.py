@@ -44,6 +44,7 @@ class Icon(object):
         :param size: int, the size of the icon, the size will be used for both the width and height
         :return: QtGui.Qicon
         """
+        # if we're in standalone then qt fails, so lets return nothing
         if env.isMayapy():
             return
 

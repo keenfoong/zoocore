@@ -57,6 +57,9 @@ class NameManager(object):
     def setExpression(self, value):
         self.config["rules"][self.activeRule()]["expression"] = value
 
+    def expressionList(self):
+        return [i["expression"] for i in self.config["rules"]]
+
     def description(self):
         return self.config["rules"][self.activeRule()]["description"]
 
@@ -69,8 +72,8 @@ class NameManager(object):
     def setCreator(self, creator):
         self.config[self.activeRule()]["creator"] = creator
 
-    def addToken(self, name, value, default, choice):
-        data = {"default": default, "choice": choice}
+    def addToken(self, name, value, default):
+        data = {"default": default}
         data.update(value)
         self.config["tokens"][name] = data
 
@@ -88,9 +91,10 @@ class NameManager(object):
     def tokenValue(self, name):
         if not self.hasToken(name):
             raise ValueError("Config has no token called {}".format(name))
+        # @todo need to update this push it into the config
         if name == "counter":
             return self.config["tokens"][name]["value"]
-        return self.config["tokens"][name]["choice"]
+        return self.config["tokens"][name]["default"]
 
     def addRule(self, name, expression, description, asActive=True):
         self.config["rule"].update({name: {"expression": expression,
@@ -109,7 +113,7 @@ class NameManager(object):
 
     def overrideToken(self, name, value, **kwargs):
         if not self.hasToken(name):
-            self.addToken(name, {value, value}, default=value, choice=value)
+            self.addToken(name, {value, value}, default=value)
 
         if name == "counter":
             configData = self.config["tokens"][name]
@@ -120,7 +124,7 @@ class NameManager(object):
 
         tokens = self.config["tokens"]
         if name in tokens:
-            tokens[name]["choice"] = value
+            tokens[name]["default"] = value
             tokens[name].update(kwargs)
 
     def resolve(self):
@@ -131,13 +135,14 @@ class NameManager(object):
             if token == "counter":
                 val = str(self.counter["value"]).zfill(self.counter["padding"])
             else:
-                val = self.config["tokens"][token]["choice"]
+                val = self.config["tokens"][token]["default"]
             newStr = re.sub("{" + token + "}", val or "null", newStr)
         return newStr
 
     def save(self):
         configPath = os.environ[NameManager.BASE_CONFIG_VAR]
         file.saveJson(self.config, configPath)
+        return configPath
 
     def load(self):
         configPath = os.environ[NameManager.BASE_CONFIG_VAR]
