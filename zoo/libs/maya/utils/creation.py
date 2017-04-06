@@ -123,3 +123,114 @@ def pairBlend(name, inRotateA=None, inRotateB=None, inTranslateA=None, inTransla
         else:
             plugs.setAttr(blendPairNode.findPlug("rotInterpolation", False), rotInterpolation)
     return blendPairNode.object()
+
+
+def graphSerialize(graphNodes):
+    data = []
+    for i in iter(graphNodes):
+        data.append(nodes.serializeNode(i))
+    return data
+
+
+def graphdeserialize(data, inputs):
+    """
+    :param data:
+    :type data: list
+    :param inputs:
+    :type inputs: dict{str: plug instance}
+    :return:
+    :rtype:
+    """
+    for nodeData in iter(data):
+        pass
+
+
+"""
+
+def deserializeNode(data):
+    parent = data.get("parent")
+    name = om2.MNamespace.stripNamespaceFromName(data["name"]).split("|")[-1]
+    nodeType = data["type"]
+    if not parent:
+        newNode = nodes.createDGNode(name, nodeType)
+        dep = om2.MFnDependencyNode(newNode)
+    else:
+        newNode = nodes.createDagNode(name, nodeType)
+        dep = om2.MFnDagNode(newNode)
+    attributes = data.get("attributes")
+    if attributes:
+        for name, attrData in iter(attributes.items()):
+            if not attrData.get("isDynamic"):
+                plugs.setAttr(dep.findPlug(name, False), attrData["value"])
+                continue
+            newAttr = nodes.addAttribute(dep.object(), name, name, attrData["type"])
+            if newAttr is None:
+                continue
+            newAttr.keyable = attrData["keyable"]
+            newAttr.channelBox = attrData["channelBox"]
+            currentPlug = dep.findPlug(newAttr.object(), False)
+            currentPlug.isLocked = attrData["locked"]
+            max = attrData["max"]
+            min = attrData["min"]
+            softMax = attrData["softMax"]
+            softMin = attrData["softMin"]
+            default = attrData["default"]
+            plugs.setMax(currentPlug, max)
+            plugs.setMin(currentPlug, min)
+            plugs.setMin(currentPlug, softMax)
+            plugs.setMin(currentPlug, softMin)
+            # if newAttr.hasFn(om2.MFn.kEnumAttribute):
+                # if default != plugs.plugDefault(currentPlug):
+                #     plugs.setPlugDefault(currentPlug, default)
+    return newNode
+
+
+def deserializeContainer(containerName, data):
+    children = data["children"]
+    newNodes = {}
+    containerName = data["name"]
+    for nodeName, nodeData in iter(data.items()):
+        name = nodeData["name"]
+        if name in newNodes:
+            newNode = newNodes[name]
+        else:
+            newNode = deserializeNode(nodeData)
+            newNodes[name] = newNode
+        parent = nodeData.get("parent")
+        if parent:
+            if parent == containerName:
+                nodes.setParent(newNode, container, maintainOffset=True)
+            elif parent in newNodes:
+                nodes.setParent(newNode, newNodes[parent], maintainOffset=True)
+            else:
+                parentdata = children.get(parent)
+                if parentdata:
+                    newParent = deserializeNode(parentdata)
+                    nodes.setParent(newNode, newParent, maintainOffset=True)
+                    newNodes[parent] = newParent
+        for attrName, attrData in nodeData["connections"]:
+            connections = attrData.get("connections")
+            if connections:
+                for con in iter(connections):
+                    sourceNode = newNodes.get(con[0])
+                    if not sourceNode:
+                        sourceNodeData = children.get(con[0])
+                        if not sourceNodeData:
+                            try:
+                                sourceNode = nodes.asMObject(con[0])
+                            except RuntimeError:
+                                continue
+                        else:
+                            sourceNode = deserializeNode(sourceNodeData)
+                        newNodes[con[0]] = sourceNode
+                    destinationNodeName = nodes.nameFromMObject(newNode)
+                    sourceNodeName = nodes.nameFromMObject(sourceNode)
+                    sourcename = ".".join([sourceNodeName, con[1]])
+                    destName = ".".join([destinationNodeName, con[0]])
+                    destPlug = plugs.asMPlug(destName)
+                    sourcePlug = plugs.asMPlug(sourcename)
+                    plugs.connectPlugs(sourcePlug, destPlug)
+
+    return container
+
+"""
