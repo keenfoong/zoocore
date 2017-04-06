@@ -454,12 +454,12 @@ class VChainStretch(object):
 def blendChains(drivenChain, targetAChain, targetBChain, blendAttribute, rotInterpolation=None, includeScale=False):
     """Uses Pair blend nodes to blend translate rotation and scale attributes"""
     blendNodes = []
-    rotInterpolation = 1.0 if rotInterpolation is None else rotInterpolation
+    rotInterpolation = 1 if rotInterpolation is None else rotInterpolation
     for i in xrange(len(drivenChain)):
         driven = om2.MFnDependencyNode(drivenChain[i])
         targetA = om2.MFnDependencyNode(targetAChain[i])
         targetB = om2.MFnDependencyNode(targetBChain[i])
-        blendNode= creation.blendPair("_".join([targetA.name(), targetB.name(), driven.name()]),
+        blendNode= creation.pairBlend("_".join([targetA.name(), targetB.name(), driven.name()]),
                                       targetA.findPlug("rotate", False), targetB.findPlug("rotate", False),
                                       targetA.findPlug("translate", False), targetB.findPlug("translate", False),
                                       blendAttribute, rotInterpolation)
@@ -469,8 +469,8 @@ def blendChains(drivenChain, targetAChain, targetBChain, blendAttribute, rotInte
 
         blendNodes.append(blendNode)
         if includeScale:
-            blendNode = creation.blendPair("_".join([targetA.name(), targetB.name(), driven.name()]),
-                                           False, False,
+            blendNode = creation.pairBlend("_".join([targetA.name(), targetB.name(), driven.name()]),
+                                           None, None,
                                            targetA.findPlug("scale", False), targetB.findPlug("scale", False),
                                            blendAttribute, rotInterpolation)
             blendNodes.append(blendNode)

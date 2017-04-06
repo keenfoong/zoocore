@@ -584,6 +584,16 @@ class MetaBase(object):
                 children.append(child)
         return children
 
+    def allChildrenNodes(self):
+        n = []
+        for source, destination in nodes.iterConnections(self.mobject(), True, False):
+            node = destination.node()
+            if node not in n:
+                n.append(destination.node())
+        for child in self.iterMetaChildren():
+            n.extend([i for i in child.allChildrenNodes() if i not in n])
+        return nodes
+
     def removeParent(self):
         parent = self.metaParent()
         if parent is None:

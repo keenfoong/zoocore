@@ -8,7 +8,7 @@
     "organisationNodes": {
       "creator": "davidsp",
       "description": "Convention for nodes that are used to organise node hierarchies",
-      "expression": "{side}_{area}_{type}"
+      "expression": "{area}_{side}_{type}"
     }
   },
   "tokens": {

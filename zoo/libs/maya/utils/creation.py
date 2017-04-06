@@ -101,9 +101,9 @@ def blendTwoAttr(input1, input2, blender, name):
     return fn.object()
 
 
-def blendPair(name, inRotateA=None, inRotateB=None, inTranslateA=None, inTranslateB=None, weight=None,
+def pairBlend(name, inRotateA=None, inRotateB=None, inTranslateA=None, inTranslateB=None, weight=None,
               rotInterpolation=None):
-    blendPairNode = om2.MFnDependencyNode(nodes.createDGNode("_".join([name, "blendPair"]), "blendPair"))
+    blendPairNode = om2.MFnDependencyNode(nodes.createDGNode("_".join([name, "pairBlend"]), "pairBlend"))
     if inRotateA is not None:
         plugs.connectPlugs(inRotateA, blendPairNode.findPlug("inRotate1", False))
     if inRotateB is not None:
@@ -118,7 +118,7 @@ def blendPair(name, inRotateA=None, inRotateB=None, inTranslateA=None, inTransla
         else:
             plugs.setAttr(blendPairNode.findPlug("weight", False), weight)
     if rotInterpolation is not None:
-        if isinstance(weight, om2.MPlug):
+        if isinstance(rotInterpolation, om2.MPlug):
             plugs.connectPlugs(rotInterpolation, blendPairNode.findPlug("rotInterpolation", False))
         else:
             plugs.setAttr(blendPairNode.findPlug("rotInterpolation", False), rotInterpolation)
