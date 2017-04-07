@@ -18,7 +18,7 @@ def _initEnv():
     """
     logger.debug("initializing zoo environment")
     # setup standard envs
-    zootoolsPath = str(filesystem.upDirectory(__file__, 2))
+    zootoolsPath = str(filesystem.upDirectory(__file__, 3))
     pPaths = ""
     if "PYTHONPATH" in os.environ:
         pPaths = os.environ["PYTHONPATH"].split(os.pathsep)
@@ -45,7 +45,7 @@ def _initEnv():
                                                                                         os.environ["ZOO_ICON_PATH"]))
         os.environ["ZOO_ICON_PATH"] += os.path.join(zootoolsPath, "icons") + os.pathsep
 
-    site.addsitedir(os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "thirdparty")))
+    site.addsitedir(os.path.realpath(os.path.join(zootoolsPath, "thirdparty")))
 
     if "ZOO_LOG_LEVEL" not in os.environ:
         os.environ['ZOO_LOG_LEVEL'] = 'DEBUG'
