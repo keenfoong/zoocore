@@ -827,10 +827,7 @@ def serializeNode(node, skipAttributes=None, includeConnections=True):
         connections = []
         for destination, source in iterConnections(node, source=True, destination=False):
             sourceNode = source.node()
-            if sourceNode.hasFn(om2.MFn.kDagNode):
-                nodeName = om2.MFnDagNode(sourceNode).fullPathName()
-            else:
-                nodeName = om2.MFnDependencyNode(sourceNode).name()
+            nodeName = om2.MFnDagNode(sourceNode).fullPathName() if sourceNode.hasFn(om2.MFn.kDagNode) else om2.MFnDependencyNode(sourceNode).name()
             connections.append((destination.partialName(includeNonMandatoryIndices=True, useLongNames=True),
                                 nodeName, source.partialName(includeNonMandatoryIndices=True, useLongNames=True)))
         if connections:
