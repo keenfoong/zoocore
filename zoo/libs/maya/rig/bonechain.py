@@ -16,6 +16,13 @@ logger = zlogging.getLogger(__name__)
 general.loadPlugin("lookdevkit")
 
 
+def dagDataIterator(data):
+    for nodeData in iter(data):
+        yield nodeData
+        for i in nodeData.get("children", []):
+            yield dagDataIterator(i)
+
+
 class BoneChain(object):
     def __init__(self, joints=None, nameManager=None):
         """
@@ -181,9 +188,9 @@ class VChain(BoneChain):
         ikCtrlData = None
         pvCtrlData = None
         for d in data:
-            if d["name"] == "end":
+            if d["id"] == "end":
                 ikCtrlData = d
-            elif d["name"] == "upVec":
+            elif d["id"] == "upVec":
                 pvCtrlData = d
                 continue
             newData.append(d)
@@ -459,10 +466,10 @@ def blendChains(drivenChain, targetAChain, targetBChain, blendAttribute, rotInte
         driven = om2.MFnDependencyNode(drivenChain[i])
         targetA = om2.MFnDependencyNode(targetAChain[i])
         targetB = om2.MFnDependencyNode(targetBChain[i])
-        blendNode= creation.pairBlend("_".join([targetA.name(), targetB.name(), driven.name()]),
-                                      targetA.findPlug("rotate", False), targetB.findPlug("rotate", False),
-                                      targetA.findPlug("translate", False), targetB.findPlug("translate", False),
-                                      blendAttribute, rotInterpolation)
+        blendNode = creation.pairBlend("_".join([targetA.name(), targetB.name(), driven.name()]),
+                                       targetA.findPlug("rotate", False), targetB.findPlug("rotate", False),
+                                       targetA.findPlug("translate", False), targetB.findPlug("translate", False),
+                                       blendAttribute, rotInterpolation)
         blendNodeFn = om2.MFnDependencyNode(blendNode)
         plugs.connectPlugs(blendNodeFn.findPlug("outRotate", False), driven.findPlug("rotate", False))
         plugs.connectPlugs(blendNodeFn.findPlug("outTranslate", False), driven.findPlug("translate", False))
@@ -475,5 +482,3 @@ def blendChains(drivenChain, targetAChain, targetBChain, blendAttribute, rotInte
                                            blendAttribute, rotInterpolation)
             blendNodes.append(blendNode)
     return blendNodes
-
-

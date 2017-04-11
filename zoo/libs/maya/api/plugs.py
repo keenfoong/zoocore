@@ -186,8 +186,12 @@ def serializePlug(plug, includeSourceConnections=False, includeDestinationConnec
                      "softMin": getSoftMin(plug), "softMax": getSoftMax(plug)})
     else:
         data["isDynamic"] = False
+    attrType = plugType(plug)
     data.update({"channelBox": plug.isChannelBox, "keyable": plug.isKeyable,
-                 "locked": plug.isLocked, "type": plugType(plug), "value": getPythonTypeFromPlugValue(plug)})
+                 "locked": plug.isLocked, "type": attrType, "value": getPythonTypeFromPlugValue(plug)})
+    if attrType == attrtypes.kMFnkEnumAttribute:
+        data["enums"] = enumNames(plug)
+
     if includeSourceConnections and plug.isDestination:
         source = plug.source()
         node = source.node()

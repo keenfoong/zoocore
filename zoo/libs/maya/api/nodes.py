@@ -1,7 +1,10 @@
+import logging
 from maya.api import OpenMaya as om2
 from maya import cmds
 from zoo.libs.maya.api import plugs
 from zoo.libs.maya.api import attrtypes
+
+logger = logging.getLogger(__name__)
 
 
 def asMObject(name):
@@ -187,12 +190,22 @@ def lockNode(mobject, state=True):
 
 
 def unlockConnectedAttributes(mobject):
+    """Unlocks all connected attributes to this node
+
+    :param mobject: MObject representing the DG node
+    :type mobject: MObject
+    """
     for thisNodeP, otherNodeP in iterConnections(mobject, source=True, destination=True):
         if thisNodeP.isLocked:
             thisNodeP.isLocked = False
 
 
 def unlockedAndDisconnectConnectedAttributes(mobject):
+    """Unlcoks and disocnnects all attributes on the given node
+
+    :param mobject: MObject respresenting the DG node
+    :type mobject: MObject
+    """
     for thisNodeP, otherNodeP in iterConnections(mobject, source=True, destination=True):
         plugs.disconnectPlug(thisNodeP, otherNodeP)
 
@@ -234,10 +247,10 @@ def childPathsByFn(path, fn):
 
 
 def shapes(path):
-    """
+    """Returns all the shape dagpaths directly below this dagpath
 
-    :param path: MDagPath
-    :return: list(MDagPath), all shapes below path
+    :param path: The MDagPath to search
+    :return: list(MDagPath)
     """
     paths = []
     for i in range(path.numberOfShapesDirectlyBelow()):
@@ -382,12 +395,15 @@ def getChildren(mObject, recursive=False, filter=om2.MFn.kTransform):
     return [i for i in iterChildren(mObject, recursive, filter)]
 
 
-def iterAttributes(node):
+def iterAttributes(node, skip=None):
     dep = om2.MFnDependencyNode(node)
     for idx in xrange(dep.attributeCount()):
         attr = dep.attribute(idx)
         plug = om2.MPlug(node, attr)
-        if "]" in plug.name() or plug.isChild:
+        name = plug.name()
+        if skip and any(i in name for i in skip):
+            continue
+        if "]" in name or plug.isChild:
             continue
         for child in plugs.iterChildren(plug):
             yield child
@@ -790,7 +806,7 @@ def getNodesCreatedBy(function, *args, **kwargs):
     return newNodes, ret
 
 
-def serializeNode(node):
+def serializeNode(node, skipAttributes=None, includeSourceConnections=True, includeDestinationConnections=False):
     dep = om2.MFnDagNode(node) if node.hasFn(om2.MFn.kDagNode) else om2.MFnDependencyNode(node)
 
     data = {"name": dep.fullPathName() if node.hasFn(om2.MFn.kDagNode) else dep.name(),
@@ -801,37 +817,80 @@ def serializeNode(node):
         data["requirements"] = req
     if node.hasFn(om2.MFn.kDagNode):
         data["parent"] = nameFromMObject(dep.parent(0))
-    attributes = {}
-    for pl in iterAttributes(node):
-        attrData = {}
-        if pl.isDestination:
-            source = pl.source()
-            nodeName = nameFromMObject(source.node())
-            attrData["connections"] = (nodeName, source.partialName(includeNonMandatoryIndices=True, useLongNames=True))
-
-        if not pl.isDynamic:
-            if pl.isDefaultValue():
-                continue
-        else:
-            # standard data
-            attrData.update({"isDynamic": True, "channelBox": pl.isChannelBox, "keyable": pl.isKeyable,
-                             "locked": pl.isLocked, "type": plugs.plugType(pl), "default": plugs.plugDefault(pl),
-                             "min": plugs.getPlugMin(pl), "max": plugs.getPlugMax(pl),
-                             "softMin": plugs.getSoftMin(pl), "softMax": plugs.getSoftMax(pl)})
-            if pl.attribute().hasFn(om2.MFn.kEnumAttribute):
-                attrData["enums"] = plugs.enumNames(pl)
-        value = plugs.getPythonTypeFromPlugValue(pl)
-        # could be 0.0, False, True which is a valid result so we need to explicitly check
-        if value not in (None, [], {}):
-            attrData["value"] = value
-
+    attributes = []
+    for pl in iterAttributes(node, skip=skipAttributes):
+        attrData = plugs.serializePlug(pl, includeSourceConnections, includeDestinationConnections)
         if attrData:
-            attributes[pl.partialName(includeNonMandatoryIndices=True, useLongNames=True)] = attrData
-
+            attributes.append(attrData)
     if attributes:
         data["attributes"] = attributes
 
     return data
+
+
+def deserializeNode(data, includeSourceConnections=True, includeDestinationConnections=False):
+    name = om2.MNamespace.stripNamespaceFromName(data["name"]).split("|")[-1]
+    nodeType = data["type"]
+    parent = data["parent"]
+    req = data["requirements"]
+    if req:
+        for r in iter(req):
+            try:
+                cmds.loadPlugin(r)
+            except RuntimeError:
+                logger.debug("Could not load plugin->{}".format(r))
+                return
+
+    if not parent:
+        newNode = createDGNode(name, nodeType)
+        dep = om2.MFnDependencyNode(newNode)
+    else:
+        newNode = createDagNode(name, nodeType)
+        dep = om2.MFnDagNode(newNode)
+    # attribute key doesn't need to exist so check
+    attributes = data.get("attributes", {})
+    for attrData in iter(attributes.items()):
+        if not attrData.get("isDynamic"):
+            plug = dep.findPlug(name, False)
+            plugs.setAttr(plug, attrData["value"])
+            attr, at = attrtypes.mayaTypeFromZooType(attrData["type"])
+            if attr is None:
+                continue
+            newAttr = attr(plug.attribute())
+        else:
+            newAttr = addAttribute(newNode, name, name, attrData["type"])
+            if newAttr is None:
+                continue
+            plug = om2.MPlug(newNode, newAttr.object)
+            max = attrData.get("max")
+            min = attrData.get("min")
+            softMax = attrData.get("softMax")
+            softMin = attrData.get("softMin")
+            default = attrData.get("default")
+            if default is not None:
+                plugs.setPlugDefault(plug, default)
+            if max is not None:
+                plugs.setMax(plug, max)
+            if min is not None:
+                plugs.setMin(plug, min)
+            if softMax is not None:
+                plugs.setSoftMax(plug, softMax)
+            if softMin is not None:
+                plugs.setSoftMin(plug, softMin)
+        newAttr.keyable = attrData["keyable"]
+        newAttr.channelBox = attrData["channelBox"]
+        plug.isLocked = attrData["locked"]
+        # connections
+        if includeSourceConnections:
+            inConnections = attrData.get("inconnections")
+            if inConnections:
+                pass
+        if includeDestinationConnections:
+            outConnections = attrData.get("outConnections")
+            if outConnections:
+                pass
+    # connections
+    return newNode
 
 
 def createAnnotation(rootObj, endObj, text=None, name=None):
@@ -853,6 +912,17 @@ def createAnnotation(rootObj, endObj, text=None, name=None):
 
 
 def setlockStateOnAttributes(node, attributes, state=True):
+    """Locks and unlocks the given attributes
+
+    :param node: the node that have its attributes locked
+    :type node: MObject
+    :param attributes: a list of attribute name to lock
+    :type attributes: seq(str)
+    :param state: True to lock and False to unlcck
+    :type state: bool
+    :return: True is successful
+    :rtype: bool
+    """
     dep = om2.MFnDependencyNode(node)
     for attr in attributes:
         plug = dep.findPlug(attr, False)
@@ -862,6 +932,17 @@ def setlockStateOnAttributes(node, attributes, state=True):
 
 
 def showHideAttributes(node, attributes, state=True):
+    """Shows or hides and attribute in the channelbox
+
+    :param node: The MObject representing the DG node
+    :type node: MObject
+    :param attributes: attribute names on the given node
+    :type attributes: seq(str)
+    :param state: True for show False for hide, defaults to True
+    :type state: bool
+    :return: True if successful
+    :rtype: bool
+    """
     dep = om2.MFnDependencyNode(node)
     for attr in attributes:
         plug = dep.findPlug(attr, False)
