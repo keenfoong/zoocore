@@ -168,66 +168,70 @@ def iterDependencyGraph(plug, alternativeName="", depthLimit=256, transverseType
                 yield i
 
 
-def serializePlug(plug, includeSourceConnections=False, includeDestinationConnections=False):
+def serializePlug(plug):
     """Take's a plug and serializes all necessary information into a dict.
     :param plug: the valid MPlug to serialize
     :type plug: MPlug
-    :param includeSourceConnections: if  True then we serialize any connections if this plug is the destination
-    :type includeSourceConnections: bool
-    :param includeDestinationConnections: if  True then we serialize any connections if this plug is the source
-    :type includeDestinationConnections: bool
     :return: with out connection data {name: str, "isDynamic": bool, "default": type,
                                       "min": type, "max": type, "softMin": type, "softMax": type}
     :rtype: dict
     """
-    data = {"name": plug.partialName(includeNonMandatoryIndices=True, useLongNames=True)}
+    data = {}
     if plug.isDynamic:
         data.update({"isDynamic": True, "default": plugDefault(plug), "min": getPlugMin(plug), "max": getPlugMax(plug),
-                     "softMin": getSoftMin(plug), "softMax": getSoftMax(plug)})
+                     "softMin": getSoftMin(plug), "softMax": getSoftMax(plug),
+                     "value": getPythonTypeFromPlugValue(plug),
+                     "name": plug.partialName(includeNonMandatoryIndices=True, useLongNames=True,
+                                              includeInstancedIndices=True),
+                     "channelBox": plug.isChannelBox, "keyable": plug.isKeyable,
+                     "locked": plug.isLocked, "type": plugType(plug)}
+                    )
+        if plugType(plug) == attrtypes.kMFnkEnumAttribute:
+            data["enums"] = enumNames(plug)
     else:
-        data["isDynamic"] = False
-    attrType = plugType(plug)
-    data.update({"channelBox": plug.isChannelBox, "keyable": plug.isKeyable,
-                 "locked": plug.isLocked, "type": attrType, "value": getPythonTypeFromPlugValue(plug)})
-    if attrType == attrtypes.kMFnkEnumAttribute:
-        data["enums"] = enumNames(plug)
+        # for the time being we only store attribute data that has the default value changed
+        if not plug.isDefaultValue():
+            attrType = plugType(plug)
+            data.update({"isDynamic": False, "channelBox": plug.isChannelBox, "keyable": plug.isKeyable,
+                         "locked": plug.isLocked, "type": attrType, "value": getPythonTypeFromPlugValue(plug),
+                         "name": plug.partialName(includeInstancedIndices=True, useLongNames=True,
+                                                  includeNonMandatoryIndices=True)})
+            if plugType(plug) == attrtypes.kMFnkEnumAttribute:
+                data["enums"] = enumNames(plug)
 
-    if includeSourceConnections and plug.isDestination:
-        source = plug.source()
-        node = source.node()
-        if node.hasFn(om2.MFn.kDagNode):
-            nodeName = om2.MFnDagNode(node).fullPathName()
-        else:
-            nodeName = om2.MFnDependencyNode(node).name()
-        data["inConnections"] = (nodeName, source.partialName(includeNonMandatoryIndices=True, useLongNames=True))
-    if includeDestinationConnections and plug.isSource:
-        destinations = plug.destinations()
-        outConnections = []
-        for conn in destinations:
-            node = conn.node()
-            if node.hasFn(om2.MFn.kDagNode):
-                nodeName = om2.MFnDagNode(node).fullPathName()
-            else:
-                nodeName = om2.MFnDependencyNode(node).name()
-            outConnections.append((nodeName, conn.partialName(includeNonMandatoryIndices=True, useLongNames=True)))
-        if outConnections:
-            data["outConnections"] = outConnections
     return data
 
 
 def enumNames(plug):
     obj = plug.attribute()
+    enumoptions = []
     if obj.hasFn(om2.MFn.kEnumAttribute):
         attr = om2.MFnEnumAttribute(obj)
-        return [attr.fieldName(i) for i in xrange(attr.getMax())]
-    return []
+        min = attr.getMin()
+        max = attr.getMax()
+        for i in xrange(min, max, 1):
+            # enums can be a bit screwed, i.e 5 options but max 10
+            try:
+                enumoptions.append(attr.fieldName(i))
+            except:
+                pass
+    return enumoptions
 
 
 def enumIndices(plug):
     obj = plug.attribute()
+    indices = []
     if obj.hasFn(om2.MFn.kEnumAttribute):
         attr = om2.MFnEnumAttribute(obj)
-        return [attr.fieldValue(i) for i in xrange(attr.getMax())]
+        min = attr.getMin()
+        max = attr.getMax()
+        for i in xrange(min, max, 1):
+            # enums can be a bit screwed, i.e 5 options but max 10
+            try:
+                indices.append(attr.fieldValue(i))
+            except:
+                pass
+        return indices
 
 
 def plugDefault(plug):
@@ -466,6 +470,7 @@ def getPlugAndType(plug):
 
     :param plug: MPlug
     :return the dataType of the given plug. Will return standard python types where necessary eg. float else maya type
+    :rtype: tuple(int, plugValue)
     """
     obj = plug.attribute()
 
@@ -577,6 +582,7 @@ def getTypedValue(plug):
     elif dataType == om2.MFnData.kDoubleArray:
         return attrtypes.kMFnDataDoubleArray, om2.MFnDoubleArrayData(plug.asMObject()).array()
     elif dataType == om2.MFnData.kIntArray:
+        print plug, plug.asMObject()
         return attrtypes.kMFnDataIntArray, om2.MFnIntArrayData(plug.asMObject()).array()
     elif dataType == om2.MFnData.kPointArray:
         return attrtypes.kMFnDataPointArray, om2.MFnPointArrayData(plug.asMObject()).array()
@@ -589,7 +595,7 @@ def getTypedValue(plug):
     return None, None
 
 
-def setAttr(plug, value):
+def setPlugValue(plug, value):
     """
     Sets the given plug's value to the passed in value.
 
@@ -599,11 +605,11 @@ def setAttr(plug, value):
 
     if plug.isArray:
         for i in range(plug.evaluateNumElements()):
-            setAttr(plug.elementByPhysicalIndex(i), value[i])
+            setPlugValue(plug.elementByPhysicalIndex(i), value[i])
         return
     elif plug.isCompound:
         for i in range(plug.numChildren()):
-            setAttr(plug.child(i), value[i])
+            setPlugValue(plug.child(i), value[i])
         return
     obj = plug.attribute()
     if obj.hasFn(om2.MFn.kUnitAttribute):

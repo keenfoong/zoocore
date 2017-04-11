@@ -395,19 +395,19 @@ class MetaBase(object):
             if isinstance(value, om2.MObject):
                 self.connectTo(name, value)
             else:
-                plugs.setAttr(newPlug, value)
+                plugs.setPlugValue(newPlug, value)
         newPlug.isLocked = True
         return attr
 
     def setAttribute(self, attr, value):
         if isinstance(attr, om2.MPlug):
             with plugs.setLockedContext(attr):
-                plugs.setAttr(attr, value)
+                plugs.setPlugValue(attr, value)
             return
         if self.hasAttribute(attr):
             plug = self._mfn.findPlug(attr, False)
             with plugs.setLockedContext(plug):
-                plugs.setAttr(plug, value)
+                plugs.setPlugValue(plug, value)
 
     @lockMetaManager
     def removeAttribute(self, name):

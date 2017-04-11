@@ -37,7 +37,6 @@ class BoneChain(object):
 
     def create(self, data):
         """
-
         :param data: [{"name": "upr",
                       "position": [0.0,0.0,0.0],"rotation": [0.0,0.0,0.0],
                       "rotationOrder": 0, "shape": "circle"
@@ -55,8 +54,8 @@ class BoneChain(object):
                 name = self.nameManager.resolve()
             tempJnt = cmds.joint(n=name, position=nodeData["position"], orientation=nodeData["rotation"])
             tempJnt = nodes.asMObject(tempJnt)
-            plugs.setAttr(om2.MFnDependencyNode(tempJnt).findPlug("rotateOrder", False),
-                          generic.intToMTransformRotationOrder(nodeData["rotationOrder"]))
+            plugs.setPlugValue(om2.MFnDependencyNode(tempJnt).findPlug("rotateOrder", False),
+                               generic.intToMTransformRotationOrder(nodeData["rotationOrder"]))
             self.joints.append(om2.MObjectHandle(tempJnt))
 
         revList = list(self.joints)
@@ -78,17 +77,17 @@ class BoneChain(object):
 
     def setOrientations(self, orientations):
         for i in xrange(len(self.joints)):
-            plugs.setAttr(om2.MFnDependencyNode(self.joints[i].object()).findPlug("jointOrient", False),
-                          orientations[i])
+            plugs.setPlugValue(om2.MFnDependencyNode(self.joints[i].object()).findPlug("jointOrient", False),
+                               orientations[i])
 
     def setRotationOrders(self, orders):
         for x in xrange(len(self.joints)):
-            plugs.setAttr(om2.MFnDependencyNode(self.joints[x].object()).findPlug("rotateOrder", False),
-                          generic.intToMTransformRotationOrder(orders[x]))
+            plugs.setPlugValue(om2.MFnDependencyNode(self.joints[x].object()).findPlug("rotateOrder", False),
+                               generic.intToMTransformRotationOrder(orders[x]))
 
     def setPreferredAngles(self, angles):
         for x in xrange(len(self.joints)):
-            plugs.setAttr(om2.MFnDependencyNode(self.joints[x].object()).findPlug("preferredAngle", False), angles[x])
+            plugs.setPlugValue(om2.MFnDependencyNode(self.joints[x].object()).findPlug("preferredAngle", False), angles[x])
 
 
 class FkChain(BoneChain):
@@ -232,7 +231,7 @@ class VChain(BoneChain):
 
         ikHandle = nodes.asMObject(ikHandle)
         nodes.setParent(ikHandle, self.ikCtrl.mobject(), True)
-        plugs.setAttr(om2.MFnDependencyNode(ikHandle).findPlug("rotate", False), om2.MVector(0.0, 0.0, 0.0))
+        plugs.setPlugValue(om2.MFnDependencyNode(ikHandle).findPlug("rotate", False), om2.MVector(0.0, 0.0, 0.0))
         self.extras["ikhandle"] = om2.MObjectHandle(ikHandle)
         self.extras["ikEffector"] = om2.MObjectHandle(nodes.asMObject(ikEffector))
         self.extras["upVectorConstraint"] = om2.MObjectHandle(upVecConstraint)
@@ -380,7 +379,7 @@ class VChainStretch(object):
                                                                    name="_".join([self.name, "plusDaSoftSub"])))
         self.daConditionSoftNode = om2.MFnDependencyNode(nodes.createDGNode("_".join([self.name, "daSoftCond"]),
                                                                             "condition"))
-        plugs.setAttr(self.daConditionSoftNode.findPlug("operation", False), 5)
+        plugs.setPlugValue(self.daConditionSoftNode.findPlug("operation", False), 5)
         plugs.connectPlugs(self.plusDaNode.findPlug("outFloat", False),
                            self.daConditionSoftNode.findPlug("colorIfTrueR", False))
         plugs.connectPlugs(currentTotalDistancePlug, self.daConditionSoftNode.findPlug("colorIfFalseR", False))

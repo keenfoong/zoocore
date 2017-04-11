@@ -108,10 +108,10 @@ def setNodeColour(node, colour):
     enabledPlug = dependNode.findPlug("overrideEnabled", False)
     overrideRGBColors = dependNode.findPlug("overrideRGBColors", False)
     if not plugs.getPlugValue(enabledPlug):
-        plugs.setAttr(enabledPlug, True)
+        plugs.setPlugValue(enabledPlug, True)
     if not plugs.getPlugValue(overrideRGBColors):
-        plugs.setAttr(dependNode.findPlug("overrideRGBColors", False), True)
-    plugs.setAttr(plug, colour)
+        plugs.setPlugValue(dependNode.findPlug("overrideRGBColors", False), True)
+    plugs.setPlugValue(plug, colour)
 
 
 def getNodeColourData(node):
@@ -623,7 +623,7 @@ def setRotation(node, rotation, space=om2.MSpace.kTransform):
     trans = om2.MFnTransform(path)
     if isinstance(rotation, (list, tuple)):
         rotation = om2.MEulerRotation([om2.MAngle(i, om2.MAngle.kDegrees).asRadians() for i in rotation])
-    trans.setRotation(rotation, om2.MSpace.kTransform)
+    trans.setRotation(rotation, space)
 
 
 def addProxyAttribute(node, sourcePlug, longName, shortName, attrType=attrtypes.kMFnNumericDouble):
@@ -806,7 +806,7 @@ def getNodesCreatedBy(function, *args, **kwargs):
     return newNodes, ret
 
 
-def serializeNode(node, skipAttributes=None, includeSourceConnections=True, includeDestinationConnections=False):
+def serializeNode(node, skipAttributes=None, includeConnections=True):
     dep = om2.MFnDagNode(node) if node.hasFn(om2.MFn.kDagNode) else om2.MFnDependencyNode(node)
 
     data = {"name": dep.fullPathName() if node.hasFn(om2.MFn.kDagNode) else dep.name(),
@@ -819,16 +819,38 @@ def serializeNode(node, skipAttributes=None, includeSourceConnections=True, incl
         data["parent"] = nameFromMObject(dep.parent(0))
     attributes = []
     for pl in iterAttributes(node, skip=skipAttributes):
-        attrData = plugs.serializePlug(pl, includeSourceConnections, includeDestinationConnections)
+        attrData = plugs.serializePlug(pl)
         if attrData:
             attributes.append(attrData)
+
+    if includeConnections:
+        connections = []
+        for destination, source in iterConnections(node, source=True, destination=False):
+            sourceNode = source.node()
+            if sourceNode.hasFn(om2.MFn.kDagNode):
+                nodeName = om2.MFnDagNode(sourceNode).fullPathName()
+            else:
+                nodeName = om2.MFnDependencyNode(sourceNode).name()
+            connections.append((destination.partialName(includeNonMandatoryIndices=True, useLongNames=True),
+                                nodeName, source.partialName(includeNonMandatoryIndices=True, useLongNames=True)))
+        if connections:
+            data["connections"] = connections
     if attributes:
         data["attributes"] = attributes
 
     return data
 
 
-def deserializeNode(data, includeSourceConnections=True, includeDestinationConnections=False):
+def deserializeNode(data, includeConnections=True):
+    """
+
+    :param data: Same data as serializeNode() but can be a varient of this, for example the IO
+                connections of the attributes can be MPlugs instead of a (nodeName,plugName).
+                In this way you can inject the node into an existing graph.
+    :type data: dict
+    :return: The createnode MObject
+    :rtype: MObject
+    """
     name = om2.MNamespace.stripNamespaceFromName(data["name"]).split("|")[-1]
     nodeType = data["type"]
     parent = data["parent"]
@@ -850,18 +872,20 @@ def deserializeNode(data, includeSourceConnections=True, includeDestinationConne
     # attribute key doesn't need to exist so check
     attributes = data.get("attributes", {})
     for attrData in iter(attributes.items()):
+        # @todo create deserialize plug function which includes connections?
+        attrName = attrData["name"]
         if not attrData.get("isDynamic"):
-            plug = dep.findPlug(name, False)
-            plugs.setAttr(plug, attrData["value"])
+            plug = dep.findPlug(attrName, False)
+            plugs.setPlugValue(plug, attrData["value"])
             attr, at = attrtypes.mayaTypeFromZooType(attrData["type"])
             if attr is None:
                 continue
             newAttr = attr(plug.attribute())
         else:
-            newAttr = addAttribute(newNode, name, name, attrData["type"])
+            newAttr = addAttribute(newNode, attrName, attrName, attrData["type"])
             if newAttr is None:
                 continue
-            plug = om2.MPlug(newNode, newAttr.object)
+            plug = om2.MPlug(newNode, newAttr.object())
             max = attrData.get("max")
             min = attrData.get("min")
             softMax = attrData.get("softMax")
@@ -880,15 +904,25 @@ def deserializeNode(data, includeSourceConnections=True, includeDestinationConne
         newAttr.keyable = attrData["keyable"]
         newAttr.channelBox = attrData["channelBox"]
         plug.isLocked = attrData["locked"]
-        # connections
-        if includeSourceConnections:
-            inConnections = attrData.get("inconnections")
-            if inConnections:
-                pass
-        if includeDestinationConnections:
-            outConnections = attrData.get("outConnections")
-            if outConnections:
-                pass
+
+    if includeConnections:
+        # tuple(nodeName, plugName) or MPlug
+        connections = data.get("connections", [])
+        for con in iter(connections):
+            if isinstance(con, om2.MPlug):
+                try:
+                    plugs.connectPlugs(con, plug)
+                except RuntimeError:
+                    pass
+            # fastest(computation wise) way to determine if the node exists when we already have the path
+            elif isinstance(con, (tuple, list)) and cmds.objExists(con[0]):
+                sourceNode = om2.MFnDependencyNode(asMObject(con[0]))
+                try:
+                    sourcePlug = sourceNode.findPlug(con[1], False)
+                    plugs.connectPlugs(sourcePlug, plug)
+                except RuntimeError:
+                    pass
+
     # connections
     return newNode
 
@@ -905,13 +939,13 @@ def createAnnotation(rootObj, endObj, text=None, name=None):
     annotationNode = asMObject(cmds.annotate(nameFromMObject(locatorTransform), tx=text))
     annParent = getParent(annotationNode)
     rename(annParent, name)
-    plugs.setAttr(om2.MFnDagNode(annotationNode).findPlug("position", False), center)
+    plugs.setPlugValue(om2.MFnDagNode(annotationNode).findPlug("position", False), center)
     setParent(locatorTransform, rootObj, True)
     setParent(annParent, endObj, False)
     return annotationNode, locatorTransform
 
 
-def setlockStateOnAttributes(node, attributes, state=True):
+def setLockStateOnAttributes(node, attributes, state=True):
     """Locks and unlocks the given attributes
 
     :param node: the node that have its attributes locked

@@ -53,7 +53,7 @@ def convertToNode(node, parent, prefix, nodeType="joint"):
     mod.doIt()
     nodes.rename(jnt, prefix + nodes.nameFromMObject(node, partialName=True))
     nodes.setParent(jnt, parent)
-    plugs.setAttr(om2.MFnDagNode(jnt).findPlug("worldMatrix", False), nodes.getWorldMatrix(node))
+    plugs.setPlugValue(om2.MFnDagNode(jnt).findPlug("worldMatrix", False), nodes.getWorldMatrix(node))
 
     return jnt
 

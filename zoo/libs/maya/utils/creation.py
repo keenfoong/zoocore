@@ -50,12 +50,12 @@ def multiplyDivide(input1, input2, operation, name):
         plugs.connectPlugs(input1, mult.findPlug("input1", False))
     # plug set
     else:
-        plugs.setAttr(mult.findPlug("input1", False), input1)
+        plugs.setPlugValue(mult.findPlug("input1", False), input1)
     if isinstance(input2, om2.MPlug):
         plugs.connectPlugs(input2, mult.findPlug("input2", False))
     else:
-        plugs.setAttr(mult.findPlug("input2", False), input1)
-    plugs.setAttr(mult.findPlug("operation", False), operation)
+        plugs.setPlugValue(mult.findPlug("input2", False), input1)
+    plugs.setPlugValue(mult.findPlug("operation", False), operation)
 
     return mult.object()
 
@@ -65,15 +65,15 @@ def blendColors(color1, color2, name, blender):
     if isinstance(color1, om2.MPlug):
         plugs.connectPlugs(color1, blendFn.findPlug("color1", False))
     else:
-        plugs.setAttr(blendFn.findPlug("color1", False), color1)
+        plugs.setPlugValue(blendFn.findPlug("color1", False), color1)
     if isinstance(color2, om2.MPlug):
         plugs.connectPlugs(color2, blendFn.findPlug("color2", False))
     else:
-        plugs.setAttr(blendFn.findPlug("color2", False), color2)
+        plugs.setPlugValue(blendFn.findPlug("color2", False), color2)
     if isinstance(blender, om2.MPlug):
         plugs.connectPlugs(blender, blendFn.findPlug("blender", False))
     else:
-        plugs.setAttr(blendFn.findPlug("blender", False), blender)
+        plugs.setPlugValue(blendFn.findPlug("blender", False), blender)
     return blendFn.object()
 
 
@@ -82,13 +82,13 @@ def floatMath(floatA, floatB, operation, name):
     if isinstance(floatA, om2.MPlug):
         plugs.connectPlugs(floatA, floatMathFn.findPlug("floatA", False))
     else:
-        plugs.setAttr(floatMathFn.findPlug("floatA", False), floatA)
+        plugs.setPlugValue(floatMathFn.findPlug("floatA", False), floatA)
 
     if isinstance(floatB, om2.MPlug):
         plugs.connectPlugs(floatB, floatMathFn.findPlug("floatB", False))
     else:
-        plugs.setAttr(floatMathFn.findPlug("floatB", False), floatB)
-    plugs.setAttr(floatMathFn.findPlug("operation", False), operation)
+        plugs.setPlugValue(floatMathFn.findPlug("floatB", False), floatB)
+    plugs.setPlugValue(floatMathFn.findPlug("operation", False), operation)
     return floatMathFn.object()
 
 
@@ -116,12 +116,12 @@ def pairBlend(name, inRotateA=None, inRotateB=None, inTranslateA=None, inTransla
         if isinstance(weight, om2.MPlug):
             plugs.connectPlugs(weight, blendPairNode.findPlug("weight", False))
         else:
-            plugs.setAttr(blendPairNode.findPlug("weight", False), weight)
+            plugs.setPlugValue(blendPairNode.findPlug("weight", False), weight)
     if rotInterpolation is not None:
         if isinstance(rotInterpolation, om2.MPlug):
             plugs.connectPlugs(rotInterpolation, blendPairNode.findPlug("rotInterpolation", False))
         else:
-            plugs.setAttr(blendPairNode.findPlug("rotInterpolation", False), rotInterpolation)
+            plugs.setPlugValue(blendPairNode.findPlug("rotInterpolation", False), rotInterpolation)
     return blendPairNode.object()
 
 
