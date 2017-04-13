@@ -1,4 +1,8 @@
-from zoo.libs.pyqt.qt import QtWidgets, wrapinstance, QtGui
+from zoo.libs.pyqt.qt import QtWidgets, QtGui
+try:
+    from shiboken2 import wrapInstance as wrapinstance
+except:
+    from shiboken import wrapInstance as wrapinstance
 
 import maya.OpenMayaUI as apiUI
 from maya import cmds
@@ -36,8 +40,9 @@ def toQtObject(mayaName):
         ptr = apiUI.MQtUtil.findLayout(mayaName)
     if ptr is None:
         ptr = apiUI.MQtUtil.findMenuItem(mayaName)
+
     if ptr is not None:
-        return wrapinstance(long(ptr))
+        return wrapinstance(long(ptr), QtWidgets.QWidget)
 
 
 def getOutliners():

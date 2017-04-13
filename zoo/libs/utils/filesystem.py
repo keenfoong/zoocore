@@ -64,9 +64,9 @@ def openLocation(path):
     :type path: str
     """
     if env.isLinux():
-        os.system('konqueror "%s"&' % path)
+        os.system('konqueror "{}"&'.format(path))
     elif env.isWindows():
-        os.startfile('%s' % path)
+        os.startfile('{}'.format(path))
     elif env.isMac():
         subprocess.call(['open', '-R', path])
 

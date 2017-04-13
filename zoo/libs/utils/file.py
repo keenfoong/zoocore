@@ -1,7 +1,9 @@
+import contextlib
 import os
 import json
 import zipfile
 import zlogging
+
 
 from zoo.libs.utils import commandline
 
@@ -42,6 +44,29 @@ def saveJson(data, filepath, **kws):
     logger.info("------->> file correctly saved to : {0}".format(filepath))
 
     return True
+
+
+@contextlib.contextmanager
+def loadFile(filepath):
+    if filepath.endswith(".zip"):
+        with zipfile.ZipFile(filepath, 'r') as f:
+            yield f
+        return
+    elif ".zip" in filepath:
+        # load from zipfile
+        zippath, relativefilePath = filepath.split(".zip")
+        zipPath = zippath + ".zip"
+
+        with zipfile.ZipFile(zipPath, 'r') as zip:
+            path = relativefilePath.replace("\\", "/").lstrip("/")
+            for i in iter(zip.namelist()):
+                if path == i:
+                    yield zip.open(i)
+                    break
+
+        return
+    with open(filepath, 'r') as f:
+        yield f
 
 
 def createZipWithProgress(zippath, files):
