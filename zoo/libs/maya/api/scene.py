@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 
 from maya.api import OpenMaya as om2
+from zoo.libs.maya.api import nodes
 
 
 def removeFromActiveSelection(node):
@@ -108,12 +109,10 @@ def iterDag(root, includeRoot=True, nodeType=None):
 
 def worldPositionToScreen(camera, point, width, height):
     cam = om2.MFnCamera(camera)
-    projMat = om2.MMatrix(cam.projectionMatrix().matrix())
+
     transMat = cam.getPath().inclusiveMatrix().inverse()
 
-    point = om2.MPoint(point)
-
-    fullMat = point * transMat * projMat
+    fullMat = om2.MPoint(point) * transMat * om2.MMatrix(cam.projectionMatrix().matrix())
     return [(fullMat[0] / fullMat[3] * 0.5 + 0.5) * width,
             (fullMat[1] / fullMat[3] * 0.5 + 0.5) * height]
 
@@ -123,3 +122,21 @@ def isPointInView(camera, point, width, height):
     if x > width or x < 0.0 or y > height or y < 0.0:
         return False
     return True
+
+
+def serializeNodes(graphNodes, skipAttributes=None, includeConnections=True):
+    data = []
+    for n in iter(graphNodes):
+        nData = nodes.serializeNode(n, skipAttributes, includeConnections)
+        if nData:
+            data.append(nData)
+    return data
+
+
+def deserializeNodes(data, includeConnections=True):
+    createNodes = []
+    for n in iter(data):
+        newNode = nodes.deserializeNode(n, includeConnections)
+        if newNode:
+            createNodes.append(newNode)
+    return createNodes

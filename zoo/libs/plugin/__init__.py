@@ -1,0 +1,1 @@
+# @note plugins will probably be merged into commands at some point

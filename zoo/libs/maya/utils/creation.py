@@ -13,12 +13,19 @@ def distanceBetween(firstNode, secondNode, name):
     firstFnWorldMat.evaluateNumElements()
     secondFnWorldMat = secondFn.findPlug("worldMatrix", False)
     secondFnWorldMat.evaluateNumElements()
-    plugs.connectPlugs(firstFn.findPlug("rotatePivotTranslate", False), distFn.findPlug("point1", False))
-    plugs.connectPlugs(firstFnWorldMat.elementByPhysicalIndex(0), distFn.findPlug("inMatrix1", False))
-    plugs.connectPlugs(secondFn.findPlug("rotatePivotTranslate", False), distFn.findPlug("point2", False))
-    plugs.connectPlugs(secondFnWorldMat.elementByPhysicalIndex(0), distFn.findPlug("inMatrix2", False))
 
-    return distanceBetweenNode
+    startDecomposeMat = nodes.createDGNode("_".join([firstFn.name(), secondFn.name(), "start_decomp"]),
+                                           "decomposeMatrix")
+    endDecomposeMat = nodes.createDGNode("_".join([firstFn.name(), secondFn.name(), "end_decomp"]), "decomposeMatrix")
+    startDecomFn = om2.MFnDependencyNode(startDecomposeMat)
+    endDecomFn = om2.MFnDependencyNode(endDecomposeMat)
+    plugs.connectPlugs(firstFnWorldMat.elementByPhysicalIndex(0), startDecomFn.findPlug("inputMatrix", False))
+    plugs.connectPlugs(secondFnWorldMat.elementByPhysicalIndex(0), endDecomFn.findPlug("inputMatrix", False))
+
+    plugs.connectPlugs(startDecomFn.findPlug("outputTranslate", False), distFn.findPlug("point1", False))
+    plugs.connectPlugs(endDecomFn.findPlug("outputTranslate", False), distFn.findPlug("point2", False))
+
+    return distanceBetweenNode, startDecomposeMat, endDecomposeMat
 
 
 def multiplyDivide(input1, input2, operation, name):
@@ -43,12 +50,12 @@ def multiplyDivide(input1, input2, operation, name):
         plugs.connectPlugs(input1, mult.findPlug("input1", False))
     # plug set
     else:
-        plugs.setAttr(mult.findPlug("input1", False), input1)
+        plugs.setPlugValue(mult.findPlug("input1", False), input1)
     if isinstance(input2, om2.MPlug):
         plugs.connectPlugs(input2, mult.findPlug("input2", False))
     else:
-        plugs.setAttr(mult.findPlug("input2", False), input1)
-    plugs.setAttr(mult.findPlug("operation", False), operation)
+        plugs.setPlugValue(mult.findPlug("input2", False), input1)
+    plugs.setPlugValue(mult.findPlug("operation", False), operation)
 
     return mult.object()
 
@@ -58,15 +65,15 @@ def blendColors(color1, color2, name, blender):
     if isinstance(color1, om2.MPlug):
         plugs.connectPlugs(color1, blendFn.findPlug("color1", False))
     else:
-        plugs.setAttr(blendFn.findPlug("color1", False), color1)
+        plugs.setPlugValue(blendFn.findPlug("color1", False), color1)
     if isinstance(color2, om2.MPlug):
         plugs.connectPlugs(color2, blendFn.findPlug("color2", False))
     else:
-        plugs.setAttr(blendFn.findPlug("color2", False), color2)
+        plugs.setPlugValue(blendFn.findPlug("color2", False), color2)
     if isinstance(blender, om2.MPlug):
         plugs.connectPlugs(blender, blendFn.findPlug("blender", False))
     else:
-        plugs.setAttr(blendFn.findPlug("blender", False), blender)
+        plugs.setPlugValue(blendFn.findPlug("blender", False), blender)
     return blendFn.object()
 
 
@@ -75,13 +82,13 @@ def floatMath(floatA, floatB, operation, name):
     if isinstance(floatA, om2.MPlug):
         plugs.connectPlugs(floatA, floatMathFn.findPlug("floatA", False))
     else:
-        plugs.setAttr(floatMathFn.findPlug("floatA", False), floatA)
+        plugs.setPlugValue(floatMathFn.findPlug("floatA", False), floatA)
 
     if isinstance(floatB, om2.MPlug):
         plugs.connectPlugs(floatB, floatMathFn.findPlug("floatB", False))
     else:
-        plugs.setAttr(floatMathFn.findPlug("floatB", False), floatB)
-    plugs.setAttr(floatMathFn.findPlug("operation", False), operation)
+        plugs.setPlugValue(floatMathFn.findPlug("floatB", False), floatB)
+    plugs.setPlugValue(floatMathFn.findPlug("operation", False), operation)
     return floatMathFn.object()
 
 
@@ -93,3 +100,138 @@ def blendTwoAttr(input1, input2, blender, name):
     plugs.connectPlugs(input2, inputArray.elementByLogicalIndex(-1))
     plugs.connectPlugs(blender, fn.findPlug("attributesBlender", False))
     return fn.object()
+
+
+def pairBlend(name, inRotateA=None, inRotateB=None, inTranslateA=None, inTranslateB=None, weight=None,
+              rotInterpolation=None):
+    blendPairNode = om2.MFnDependencyNode(nodes.createDGNode("_".join([name, "pairBlend"]), "pairBlend"))
+    if inRotateA is not None:
+        plugs.connectPlugs(inRotateA, blendPairNode.findPlug("inRotate1", False))
+    if inRotateB is not None:
+        plugs.connectPlugs(inRotateB, blendPairNode.findPlug("inRotate2", False))
+    if inTranslateA is not None:
+        plugs.connectPlugs(inTranslateA, blendPairNode.findPlug("inTranslate1", False))
+    if inTranslateB is not None:
+        plugs.connectPlugs(inTranslateB, blendPairNode.findPlug("inTranslate2", False))
+    if weight is not None:
+        if isinstance(weight, om2.MPlug):
+            plugs.connectPlugs(weight, blendPairNode.findPlug("weight", False))
+        else:
+            plugs.setPlugValue(blendPairNode.findPlug("weight", False), weight)
+    if rotInterpolation is not None:
+        if isinstance(rotInterpolation, om2.MPlug):
+            plugs.connectPlugs(rotInterpolation, blendPairNode.findPlug("rotInterpolation", False))
+        else:
+            plugs.setPlugValue(blendPairNode.findPlug("rotInterpolation", False), rotInterpolation)
+    return blendPairNode.object()
+
+
+def graphSerialize(graphNodes):
+    data = []
+    for i in iter(graphNodes):
+        data.append(nodes.serializeNode(i))
+    return data
+
+
+def graphdeserialize(data, inputs):
+    """
+    :param data:
+    :type data: list
+    :param inputs:
+    :type inputs: dict{str: plug instance}
+    :return:
+    :rtype:
+    """
+    for nodeData in iter(data):
+        pass
+
+
+"""
+
+def deserializeNode(data):
+    parent = data.get("parent")
+    name = om2.MNamespace.stripNamespaceFromName(data["name"]).split("|")[-1]
+    nodeType = data["type"]
+    if not parent:
+        newNode = nodes.createDGNode(name, nodeType)
+        dep = om2.MFnDependencyNode(newNode)
+    else:
+        newNode = nodes.createDagNode(name, nodeType)
+        dep = om2.MFnDagNode(newNode)
+    attributes = data.get("attributes")
+    if attributes:
+        for name, attrData in iter(attributes.items()):
+            if not attrData.get("isDynamic"):
+                plugs.setAttr(dep.findPlug(name, False), attrData["value"])
+                continue
+            newAttr = nodes.addAttribute(dep.object(), name, name, attrData["type"])
+            if newAttr is None:
+                continue
+            newAttr.keyable = attrData["keyable"]
+            newAttr.channelBox = attrData["channelBox"]
+            currentPlug = dep.findPlug(newAttr.object(), False)
+            currentPlug.isLocked = attrData["locked"]
+            max = attrData["max"]
+            min = attrData["min"]
+            softMax = attrData["softMax"]
+            softMin = attrData["softMin"]
+            default = attrData["default"]
+            plugs.setMax(currentPlug, max)
+            plugs.setMin(currentPlug, min)
+            plugs.setMin(currentPlug, softMax)
+            plugs.setMin(currentPlug, softMin)
+            # if newAttr.hasFn(om2.MFn.kEnumAttribute):
+                # if default != plugs.plugDefault(currentPlug):
+                #     plugs.setPlugDefault(currentPlug, default)
+    return newNode
+
+
+def deserializeContainer(containerName, data):
+    children = data["children"]
+    newNodes = {}
+    containerName = data["name"]
+    for nodeName, nodeData in iter(data.items()):
+        name = nodeData["name"]
+        if name in newNodes:
+            newNode = newNodes[name]
+        else:
+            newNode = deserializeNode(nodeData)
+            newNodes[name] = newNode
+        parent = nodeData.get("parent")
+        if parent:
+            if parent == containerName:
+                nodes.setParent(newNode, container, maintainOffset=True)
+            elif parent in newNodes:
+                nodes.setParent(newNode, newNodes[parent], maintainOffset=True)
+            else:
+                parentdata = children.get(parent)
+                if parentdata:
+                    newParent = deserializeNode(parentdata)
+                    nodes.setParent(newNode, newParent, maintainOffset=True)
+                    newNodes[parent] = newParent
+        for attrName, attrData in nodeData["connections"]:
+            connections = attrData.get("connections")
+            if connections:
+                for con in iter(connections):
+                    sourceNode = newNodes.get(con[0])
+                    if not sourceNode:
+                        sourceNodeData = children.get(con[0])
+                        if not sourceNodeData:
+                            try:
+                                sourceNode = nodes.asMObject(con[0])
+                            except RuntimeError:
+                                continue
+                        else:
+                            sourceNode = deserializeNode(sourceNodeData)
+                        newNodes[con[0]] = sourceNode
+                    destinationNodeName = nodes.nameFromMObject(newNode)
+                    sourceNodeName = nodes.nameFromMObject(sourceNode)
+                    sourcename = ".".join([sourceNodeName, con[1]])
+                    destName = ".".join([destinationNodeName, con[0]])
+                    destPlug = plugs.asMPlug(destName)
+                    sourcePlug = plugs.asMPlug(sourcename)
+                    plugs.connectPlugs(sourcePlug, destPlug)
+
+    return container
+
+"""

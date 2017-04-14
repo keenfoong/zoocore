@@ -98,5 +98,5 @@ class ParentConstraint(BaseConstraint):
         cmds.connectAttr(om2.MPlug(self.mfn.object(), weightAttr.object()).name(),
                          targetPlug.child(1).name())  # targetWeight
         # setting offset value
-        plugs.setAttr(targetPlug.child(6), translation)  # targetOffsetTranslate
-        plugs.setAttr(targetPlug.child(10), rotation)  # targetOffsetRotate
+        plugs.setPlugValue(targetPlug.child(6), translation)  # targetOffsetTranslate
+        plugs.setPlugValue(targetPlug.child(10), rotation)  # targetOffsetRotate

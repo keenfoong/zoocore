@@ -5,29 +5,13 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 class CommandInterface(object):
     __metaclass__ = ABCMeta
 
-    @abstractmethod
-    def doIt(self, **kwargs):
-        raise NotImplementedError("Subclasses should implement the doIt method")
-
-    @abstractproperty
-    def id(self):
-        raise NotImplementedError("Subclasses should implement the doIt Property")
-
-
-class ZooCommand(CommandInterface):
-    creator = ""
-    isUndoable = False
-    isEnabled = True
-
-    def __init__(self):
-        self.stats = None
+    def __init__(self, stats=None):
+        self.stats = stats
         self.arguments = {}
+        self.initialize()
 
-    @classmethod
-    def uiData(cls):
-        return {"title": "",
-                "icon": "",
-                "tooltip": ""}
+    def initialize(self):
+        pass
 
     def undoIt(self):
         pass
@@ -37,6 +21,35 @@ class ZooCommand(CommandInterface):
 
     def hasArgument(self, name):
         return name in self.arguments
+
+    @abstractmethod
+    def doIt(self, **kwargs):
+        pass
+
+    @abstractproperty
+    def id(self):
+        pass
+
+    @abstractproperty
+    def creator(self):
+        pass
+
+    @abstractproperty
+    def isUndoable(self):
+        return False
+
+    @staticmethod
+    def uiData():
+        return {"icon": "",
+                "tooltip": "",
+                "label": "",
+                "color": "",
+                "backgroundColor": ""
+                }
+
+
+class ZooCommand(CommandInterface):
+    isEnabled = True
 
     def _resolveArguments(self, arguments):
         kwargs = self.arguments
@@ -62,3 +75,9 @@ class ZooCommand(CommandInterface):
             self.arguments = arguments
             return arguments
         return dict()
+
+    def getUiWidget(self, uiType):
+        # import locally due to qt dependencies
+        from zoo.libs.command import commandui
+        if uiType == 0:
+            commandui.CommandAction(self)
