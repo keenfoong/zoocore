@@ -30,9 +30,8 @@ def lockMetaManager(func):
         try:
             return func(*args, **kwargs)
         finally:
-            pass
-            # if node.exists():
-            #     nodes.lockNode(node.mobject(), True)
+            if node.exists():
+                nodes.lockNode(node.mobject(), True)
 
     return locker
 
@@ -65,8 +64,8 @@ def filterSceneByAttributeValues(attributeNames, filter):
     :rtype: seq(MPlug)
     """
     for meta in iterSceneMetaNodes():
+        dep = om2.MFnDependencyNode(meta)
         for attr in attributeNames:
-            dep = om2.MFnDependencyNode(meta)
             try:
                 plug = dep.findPlug(attr, False)
             except RuntimeError:
@@ -76,9 +75,8 @@ def filterSceneByAttributeValues(attributeNames, filter):
                 grp = re.search(filter, value)
                 if grp:
                     yield plug
-            else:
-                if value == filter:
-                    yield plug
+            elif value == filter:
+                yield plug
 
 
 def iterSceneMetaNodes():
@@ -109,7 +107,7 @@ def isMetaNode(node):
     return False
 
 
-def getConnectMetaNodes(node):
+def getConnectedMetaNodes(node):
     mNodes = []
     for dest, source in nodes.iterConnections(node, True, False):
         node = source.node()
@@ -214,6 +212,8 @@ class MetaRegistry(object):
 
 
 class MetaFactory(type):
+    """MetaClass for metabase class to create the correct metaBase subclass based on class plug name if a meta
+    node(MObject) exists in the arguments"""
     def __call__(cls, *args, **kwargs):
         """Custom constructor to pull the cls type from the node if it exists and recreates the class instance
         from the registry. If that class doesnt exist then the normal __new__ behaviour will be used
@@ -230,7 +230,7 @@ class MetaFactory(type):
 
         registeredType = MetaRegistry().getType(classType)
         if registeredType is None:
-            return type.__call__(*args, **kwargs)
+            return type.__call__(cls, *args, **kwargs)
         return registeredType(*args, **kwargs)
 
 
@@ -269,6 +269,7 @@ class MetaBase(object):
         # self.lock(True)
         if initDefaults:
             self._initMeta()
+        self.lock(True)
 
     def _initMeta(self):
         """Initializes the standard attributes for the meta nodes
@@ -381,8 +382,6 @@ class MetaBase(object):
         :param state: True to lock the node else False
         :type state: bool
         """
-        if self._mfn.isLocked == state:
-            return
         nodes.lockNode(self._handle.object(), state)
 
     def getAttribute(self, name, networked=False):
@@ -619,8 +618,9 @@ class MetaBase(object):
         :return: True if removed
         :rtype: bool
         """
-        if isinstance(node, MetaBase.MetaBase):
-            return node.removeParent()
+        if isinstance(node, MetaBase):
+            node.removeParent()
+            return True
         childPlug = self._mfn.findPlug("metaChildren", False)
         mod = om2.MDGModifier()
         destination = om2.MFnDependencyNode(node).findPlug("metaParent", False)

@@ -57,6 +57,9 @@ class NameManager(object):
     def setExpression(self, value):
         self.config["rules"][self.activeRule()]["expression"] = value
 
+    def expressionList(self):
+        return [i["expression"] for i in self.config["rules"]]
+
     def description(self):
         return self.config["rules"][self.activeRule()]["description"]
 
@@ -88,6 +91,7 @@ class NameManager(object):
     def tokenValue(self, name):
         if not self.hasToken(name):
             raise ValueError("Config has no token called {}".format(name))
+        # @todo need to update this push it into the config
         if name == "counter":
             return self.config["tokens"][name]["value"]
         return self.config["tokens"][name]["default"]
@@ -138,6 +142,7 @@ class NameManager(object):
     def save(self):
         configPath = os.environ[NameManager.BASE_CONFIG_VAR]
         file.saveJson(self.config, configPath)
+        return configPath
 
     def load(self):
         configPath = os.environ[NameManager.BASE_CONFIG_VAR]

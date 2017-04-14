@@ -11,8 +11,7 @@ class ZooMayaStartUp(object):
         self.startUp()
 
     def startUp(self):
-        ZooMayaStartUp.setupLogger()
-        # ZooMayaStartUp.setupPlugins()
+        ZooMayaStartUp.setupPlugins()
         ZooMayaStartUp.setupIcons()
 
     @staticmethod
@@ -22,13 +21,12 @@ class ZooMayaStartUp(object):
         @todo add plugins from all basepaths generically
         """
         basePaths = os.environ['MAYA_PLUG_IN_PATH'].split(os.pathsep)
-        extraPaths = str(os.path.join(os.environ.get("ZOO_BASE", "").split(os.pathsep)[0], "libs", "maya",
-                                      'plugins'))
+        extraPaths = os.path.join(os.path.dirname(__file__), "plugins")
         if extraPaths not in basePaths:
             basePaths.append(extraPaths)
             # Set the plug-in path
             os.environ["MAYA_PLUG_IN_PATH"] = os.pathsep.join(basePaths)
-        general.loadPlugin("zooundo.py")
+        general.loadPlugin("undo.py")
 
     @staticmethod
     def setupIcons():
@@ -40,7 +38,3 @@ class ZooMayaStartUp(object):
         if icons not in basePaths:
             basePaths.append(icons)
             os.environ['XBMLANGPATH'] = os.pathsep.join(basePaths)
-
-    @staticmethod
-    def setupLogger():
-        zlogging.CentralLogManager()
