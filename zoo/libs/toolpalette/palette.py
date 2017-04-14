@@ -93,7 +93,7 @@ class ToolPalette(pluginmanager.PluginManager):
         color = uiData.get("color", "")
         backgroundColor = uiData.get("backgroundColor", "")
         if color:
-            label.setStyleSheet("QLabel {" + " background-color: {}; color: {};".format(backgroundColor, color) + "}")
+            actionLabel.setStyleSheet("QLabel {" + " background-color: {}; color: {};".format(backgroundColor, color) + "}")
         if icon:
             if isinstance(icon, QtGui.QIcon):
                 newAction.setIcon(icon)
@@ -184,7 +184,10 @@ class ToolDefinition(plugin.Plugin):
     def uiData():
         return {"icon": "",
                 "tooltip": "",
-                "label": ""}
+                "label": "",
+                "color": "",
+                "backgroundColor": ""
+                }
 
     @abc.abstractproperty
     def creator(self):

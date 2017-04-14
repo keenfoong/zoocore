@@ -11,9 +11,8 @@
             "children": [
                 "some_tool definition id",
                 {"name": "nestMenu",
-                "children": ["qactionId"],
-                "color": "red",
-                "backgroundColor": "blue"}
+                "children": ["qactionId"]
+                }
             ]
         }
     ],
