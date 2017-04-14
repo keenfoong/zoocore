@@ -27,4 +27,4 @@ def merge(*args):
                 a[key] = b[key]
         return a
 
-    return reduce(_merge, args)
+    return reduce(_merge, args[0], args[1:])
