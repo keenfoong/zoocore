@@ -105,10 +105,8 @@ class ToolPalette(pluginmanager.PluginManager):
         """
         self.teardown()
         flush.reloadZoo()
-        # from zoo import startup
-        # startup.startUp()
         from zoo.libs.toolpalette import run
-        palette = run.show()
+        run.show()
 
     def executePluginByName(self, name):
         if name in self.loadedPlugins:
