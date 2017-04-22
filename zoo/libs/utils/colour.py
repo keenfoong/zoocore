@@ -12,4 +12,4 @@ def rgbsToLinear(value):
 
 def linearToRgbs(value):
     a = 0.055
-    return value * 12.92 if value <= 0.0031308 else  (1 + a) * pow(value, 1 / 2.4) - a
+    return value * 12.92 if value <= 0.0031308 else (1 + a) * pow(value, 1 / 2.4) - a

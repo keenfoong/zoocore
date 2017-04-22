@@ -1,22 +1,21 @@
 import inspect
 import time
-import uuid
 from zoo.libs.utils import env
 
 
 class Plugin(object):
     """Base plugin class that all plugins inherent from.
     """
+    id = ""
 
-    def __init__(self, manager=None):
-        self.manager = manager
+    def __init__(self):
         self.stats = PluginStats(self)
 
 
 class PluginStats(object):
     def __init__(self, plugin):
         self.plugin = plugin
-        self.id = str(uuid.uuid4())
+        self.id = self.plugin.id
         self.startTime = 0.0
         self.endTime = 0.0
         self.executionTime = 0.0

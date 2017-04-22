@@ -94,12 +94,13 @@ class PluginManager(object):
         tool = self.plugins.get(name)
         if tool:
             logger.debug("Loading Plugin -> {}".format(name))
-            self.loadedPlugins[name] = tool(manager=self)
+            self.loadedPlugins[name] = tool()
             self.loadedPlugins[name].isLoaded = True
 
     def loadAllPlugins(self):
         """Loops over all registered plugins and calls them eg. plugin(manager=self)
         """
+        print self.plugins
         for plugin in self.plugins:
             self.loadPlugin(plugin)
 
