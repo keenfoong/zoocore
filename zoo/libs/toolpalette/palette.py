@@ -7,7 +7,7 @@ import time
 
 from zoo.libs import iconlib
 from zoo.libs.pyqt import utils
-from zoo.libs.pyqt.qt import QtGui, QtWidgets
+from zoo.libs.pyqt.widgets import action
 from zoo.libs.plugin import pluginmanager
 from zoo.libs.utils import flush
 from zoo.libs.utils import zlogging
@@ -29,8 +29,8 @@ class ToolPalette(pluginmanager.PluginManager):
         self.menuName = "Zoo Tools"
         self.menu = None
         self.layout = {}
-        self.loadAllPlugins()
         self._loadLayouts()
+        self.loadAllPlugins()
 
     def removePreviousMenus(self):
         """Removes Any zoo plugin menu from maya by iterating through the children of the main window looking for any
@@ -50,7 +50,7 @@ class ToolPalette(pluginmanager.PluginManager):
         self.menu.setObjectName(self.menuName)
         # load the layout
         for i in iter(self.layout["menu"]):
-            if isinstance(i, basestring) and "separator" in i:
+            if isinstance(i, basestring) and i == "separator":
                 self.menu.addSeparator()
                 continue
             self._menuCreator(self.menu, i)
@@ -71,13 +71,23 @@ class ToolPalette(pluginmanager.PluginManager):
 
     def _menuCreator(self, parentMenu, data):
         menu = self.getMenu(data["name"])
-        if menu is None:
+        if menu is None and data.get("type", "") == "menu":
             menu = parentMenu.addMenu(data["name"])
             menu.setTearOffEnabled(True)
             self.subMenus[data["name"]] = menu
-
+        if "children" not in data:
+            return
         for i in iter(data["children"]):
-            if isinstance(i, dict):
+            if isinstance(i, basestring) and i == "separator":
+                self.menu.addSeparator()
+                continue
+            elif "type" in i:
+                actionType = i["type"]
+                if actionType == "group":
+                    sep = menu.addSeparator()
+                    sep.setText(i["name"])
+                continue
+            elif isinstance(i, dict):
                 self._menuCreator(menu, i)
             self._addAction(i, menu)
 
@@ -85,23 +95,7 @@ class ToolPalette(pluginmanager.PluginManager):
         plugin = self.pluginFromId(pluginId)
         uiData = plugin.uiData()
         label = uiData.get("label", "No_label")
-        newAction = QtWidgets.QWidgetAction(self.parent)
-        actionLabel = QtWidgets.QLabel(label)
-        newAction.setDefaultWidget(actionLabel)
-
-        icon = uiData.get("icon")
-        color = uiData.get("color", "")
-        backgroundColor = uiData.get("backgroundColor", "")
-        if color:
-            actionLabel.setStyleSheet("QLabel {" + " background-color: {}; color: {};".format(backgroundColor, color) + "}")
-        if icon:
-            if isinstance(icon, QtGui.QIcon):
-                newAction.setIcon(icon)
-            else:
-                icon = iconlib.icon(icon)
-                if not icon.isNull():
-                    newAction.setIcon(icon)
-        newAction.setStatusTip(uiData.get("tooltip", ""))
+        newAction = action.ColorAction(uiData, self.parent)
         newAction.triggered.connect(partial(self.executePlugin, plugin))
         parent.addAction(newAction)
         logger.debug("Added action, {}".format(label))
@@ -111,9 +105,10 @@ class ToolPalette(pluginmanager.PluginManager):
         """
         self.teardown()
         flush.reloadZoo()
+        # from zoo import startup
+        # startup.startUp()
         from zoo.libs.toolpalette import run
-        zoo = run.show()
-        zoo.createMenus()
+        palette = run.show()
 
     def executePluginByName(self, name):
         if name in self.loadedPlugins:
@@ -134,7 +129,7 @@ class ToolPalette(pluginmanager.PluginManager):
         logger.debug("Attempting to teardown plugins")
         for plugName, plug in self.loadedPlugins.items():
             plug.teardown()
-            logger.debug("shutting down tool -> {}".format(plug.displayName))
+            logger.debug("shutting down tool -> {}".format(plug.id))
             self.unload(plugName)
         self.plugins = {}
         if self.menu:
@@ -163,17 +158,16 @@ class ToolPalette(pluginmanager.PluginManager):
             raise ValueError("No Layout configuration has been defined")
         layout = {}
         for f in iter(paletteLayout):
-            with file.loadFile(f) as layout:
-                l = file.loadJson(layout)
-                layout.update(l)
+            if os.path.exists(f) and f.endswith(".layout") and os.path.isfile(f):
+                layout.update(file.loadJson(f))
         self.layout = layout
 
 
 class ToolDefinition(plugin.Plugin):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, manager=None):
-        super(ToolDefinition, self).__init__(manager)
+    def __init__(self):
+        super(ToolDefinition, self).__init__()
         self.tool = None
 
     @abc.abstractproperty
@@ -210,3 +204,4 @@ class ToolDefinition(plugin.Plugin):
             tb = traceback.format_exc()
             self.stats.finish(tb)
             raise
+

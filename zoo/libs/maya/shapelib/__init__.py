@@ -18,6 +18,10 @@ def iterAvailableShapesNames():
             yield os.path.splitext(f)[0]
 
 
+def shapeNames():
+    return [i for i in iterAvailableShapesNames()]
+
+
 def loadFromLib(shapeName, parent=None):
     """Loads the data for the given shape Name
 

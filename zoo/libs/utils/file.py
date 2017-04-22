@@ -18,7 +18,7 @@ def loadJson(filePath):
     """
     # load our file
     try:
-        with open(filePath) as f:
+        with loadFile(filePath) as f:
             data = json.load(f)
     except Exception as er:
         logger.debug("file (%s) not loaded" % filePath)
@@ -65,7 +65,7 @@ def loadFile(filepath):
                     break
 
         return
-    with open(filepath, 'r') as f:
+    with open(filepath) as f:
         yield f
 
 

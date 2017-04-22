@@ -9,38 +9,47 @@ logger = zlogging.getLogger(__name__)
 class CommandUi(QtWidgets.QWidget):
     """CommandUi class deals with encapsulating a command as a widget
     """
+    triggered = QtCore.Signal()
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, command):
         self.command = command
+        self.item = None
 
     @abc.abstractmethod
     def create(self):
         pass
 
 
-class CommandAction(CommandUi):
-    triggered = QtCore.Signal()
-
+class MenuItem(CommandUi):
     def create(self):
-        uiData = self.command.uiData()
-        newAction = QtWidgets.QWidgetAction()
+        from maya import cmds
+        uiData = self.command.uiData
+        self.item = cmds.menuItem(l=uiData["uiData"], bld=uiData.get("bold", False),
+                                  itl=uiData.get("italicized", False), c=self.triggered.emit)
+
+
+class CommandAction(CommandUi):
+    def create(self):
+        uiData = self.command.uiData
+        self.item = QtWidgets.QWidgetAction()
         text = uiData.get("label", "NOLABEL")
         actionLabel = QtWidgets.QLabel(text)
-        newAction.setDefaultWidget(actionLabel)
+        self.item.setDefaultWidget(actionLabel)
 
         if self.color:
             actionLabel.setStyleSheet(
-                "QLabel {" + " background-color: {}; color: {};".format(uiData.get("backgroundColor", ""), uiData.get("color", "")) + "}")
+                "QLabel {" + " background-color: {}; color: {};".format(uiData.get("backgroundColor", ""),
+                                                                        uiData.get("color", "")) + "}")
         icon = uiData.get("icon")
         if icon:
             if isinstance(icon, QtGui.QIcon):
-                newAction.setIcon(icon)
+                self.item.setIcon(icon)
             else:
                 icon = iconlib.icon(icon)
                 if not icon.isNull():
-                    newAction.setIcon(icon)
-        newAction.setStatusTip(uiData.get("tooltip"))
-        newAction.triggered.connect(self.triggered.emit)
+                    self.item.setIcon(icon)
+        self.item.setStatusTip(uiData.get("tooltip"))
+        self.item.triggered.connect(self.triggered.emit)
         logger.debug("Added commandUi, {}".format(text))
         return newAction

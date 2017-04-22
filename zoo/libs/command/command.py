@@ -1,5 +1,7 @@
 import inspect
+import os
 from abc import ABCMeta, abstractmethod, abstractproperty
+from zoo.libs.command import errors
 
 
 class CommandInterface(object):
@@ -17,10 +19,7 @@ class CommandInterface(object):
         pass
 
     def resolveArguments(self, arguments):
-        pass
-
-    def hasArgument(self, name):
-        return name in self.arguments
+        return {}
 
     @abstractmethod
     def doIt(self, **kwargs):
@@ -51,6 +50,12 @@ class CommandInterface(object):
 class ZooCommand(CommandInterface):
     isEnabled = True
 
+    def cancel(self, msg=None):
+        raise errors.UserCancel(msg)
+
+    def hasArgument(self, name):
+        return name in self.arguments
+
     def _resolveArguments(self, arguments):
         kwargs = self.arguments
         unacceptedArgs = []
@@ -60,8 +65,9 @@ class ZooCommand(CommandInterface):
             kwargs[arg] = value
         if unacceptedArgs:
             raise ValueError("unaccepted arguments({}) for command -> {}".format(unacceptedArgs, self.id))
+        results = self.resolveArguments(kwargs)
+        kwargs.update(results)
         self.arguments = kwargs
-        self.resolveArguments(kwargs)
         return True
 
     def _prepareCommand(self):
@@ -76,8 +82,38 @@ class ZooCommand(CommandInterface):
             return arguments
         return dict()
 
-    def getUiWidget(self, uiType):
-        # import locally due to qt dependencies
+    def commandUi(self, uiType):
+        # import locally due to avoid qt dependencies by default
         from zoo.libs.command import commandui
         if uiType == 0:
             commandui.CommandAction(self)
+
+
+def generateCommandTemplate(className, id, doItContent, undoItContent, filePath,
+                            creator, doitArgs):
+    code = """
+from zoo.libs.command import command
+
+
+class {className}(command.ZooCommand):
+    id = "{id}"
+    creator = "{creator}"
+    isUndoable = {isUndoable}
+    isEnabled = True
+
+    def doIt(self, {doItArgs}):
+        {doItContent}
+        
+    def undoIt(self):
+        {undoItContent}
+
+""".format(className=className, id=id, isUndoable=True if undoItContent else False,
+           doItArgs=", ".join(doitArgs), doItContent=doItContent or "pass",
+           undoItContent=undoItContent or "pass", creator=creator)
+    if os.path.exists(filePath):
+        with open(filePath, "a") as f:
+            f.write(code)
+        return True
+    with open(os.path.realpath(filePath), "w") as f:
+        f.write(code)
+    return True

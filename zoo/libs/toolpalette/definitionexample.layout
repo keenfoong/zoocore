@@ -7,6 +7,8 @@
             ]
         },
         "separator",
+        {"name": "some group",
+        "type": "groupSeparator"},
         {   "name": "Rigging",
             "children": [
                 "some_tool definition id",

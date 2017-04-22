@@ -123,10 +123,17 @@ class MetaRegistry(object):
 
     @classmethod
     def isInRegistry(cls, typeName):
+        "Checks to see if the type is currently available in the registry"
         return typeName in cls.types
 
     @classmethod
     def getType(cls, typeName):
+        """Returns the class of the type
+        :param typeName: the class name
+        :type typeName: str
+        :return: returns the class object for the given type name
+        :rtype: object
+        """
         return cls.types.get(typeName)
 
     @classmethod

@@ -32,6 +32,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.setWindowIcon(icon)
             else:
                 self.setWindowIcon(iconlib.icon(icon))
+
         if showOnInitialize:
             self.show()
 

@@ -2,18 +2,13 @@ import inspect
 import os, sys
 import traceback
 import time
+from collections import deque
 
 from zoo.libs.command import commandregistry
-from collections import deque
+from zoo.libs.command import errors
 
 from zoo.libs.utils import env
 
-
-class UserCancel(Exception):
-    def __init__(self, message, errors):
-        # Call the base class constructor with the parameters it needs
-        super(UserCancel, self).__init__(message)
-        self.errors = errors
 
 
 class ExecutorBase(object):
@@ -23,7 +18,6 @@ class ExecutorBase(object):
         self.redoStack = deque()
 
     def execute(self, name, **kwargs):
-        # @todo should we pop the undostack on exception ?
         command = self.findCommand(name)
         if command is None:
             raise ValueError("No command by the name -> {} exists within the registry!".format(name))
@@ -31,7 +25,7 @@ class ExecutorBase(object):
         command._prepareCommand()
         try:
             command._resolveArguments(kwargs)
-        except UserCancel:
+        except errors.UserCancel:
             return
         except Exception:
             raise
@@ -41,11 +35,10 @@ class ExecutorBase(object):
         result = None
         try:
             command.stats = CommandStats(command)
-            if command.isUndoable:
-                self.undoStack.append(command)
             result = self._callDoIt(command)
         except UserCancel:
             self.undoStack.remove(command)
+            command.stats.finish(None)
             return result
         except Exception:
             exc_type, exc_value, exc_tb = sys.exc_info()
@@ -55,6 +48,8 @@ class ExecutorBase(object):
             tb = None
             if exc_type and exc_value and exc_tb:
                 tb = traceback.format_exception(exc_type, exc_value, exc_tb)
+            elif command.isUndoable:
+                self.undoStack.append(command)
             command.stats.finish(tb)
 
         return result
@@ -79,10 +74,10 @@ class ExecutorBase(object):
                 exc_value = None
                 try:
                     command.stats = CommandStats(command)
-                    if command.isUndoable:
-                        self.undoStack.append(command)
                     result = self._callDoIt(command)
                 except UserCancel:
+                    self.undoStack.remove(command)
+                    command.stats.finish(None)
                     return
                 except Exception:
                     exc_type, exc_value, exc_tb = sys.exc_info()
@@ -92,6 +87,9 @@ class ExecutorBase(object):
                     tb = None
                     if exc_type and exc_value and exc_tb:
                         tb = traceback.format_exception(exc_type, exc_value, exc_tb)
+                    elif command.isUndoable:
+                        self.undoStack.append(command)
+
                     command.stats.finish(tb)
 
         return result
@@ -128,6 +126,16 @@ class ExecutorBase(object):
 
     def _callDoIt(self, command):
         return command.doIt(**command.arguments)
+
+    def groups(self):
+        groups = {}
+        for c in self.commands:
+            start = c.id.split(".")[0]
+            if start in groups and c not in groups[start]:
+                groups[start].append(c)
+            elif start not in groups:
+                groups[start] = [c]
+        return groups
 
 
 class CommandStats(object):

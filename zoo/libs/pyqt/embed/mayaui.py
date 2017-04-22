@@ -14,7 +14,7 @@ def getMayaWindow():
     """
     ptr = apiUI.MQtUtil.mainWindow()
     if ptr is not None:
-        return wrapinstance(long(ptr))
+        return wrapinstance(long(ptr), QtWidgets.QMainWindow)
 
 
 def fullName(widget):
