@@ -22,8 +22,13 @@ def importModule(modulePath, name=""):
                 name = os.path.splitext(os.path.basename(modulePath))[0]
             if name in sys.modules:
                 return sys.modules[name]
+            if os.path.isdir(modulePath):
+                modulePath = os.path.join(modulePath, "__init__.py")
+                if not os.path.exists(modulePath):
+                    raise ValueError("Cannot find modulepath: {}".format(modulePath))
             return imp.load_source(name, os.path.realpath(modulePath))
     except ImportError:
+        logger.error("Failed to load module {}".format(modulePath))
         raise
 
 

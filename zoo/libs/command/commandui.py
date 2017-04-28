@@ -52,4 +52,4 @@ class CommandAction(CommandUi):
         self.item.setStatusTip(uiData.get("tooltip"))
         self.item.triggered.connect(self.triggered.emit)
         logger.debug("Added commandUi, {}".format(text))
-        return newAction
+        return self.item

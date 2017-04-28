@@ -5,12 +5,38 @@ import errno
 import zipfile
 import cStringIO
 import re
+
+import functools
+
+import sys
+
 from zoo.libs.utils import env
 from zoo.libs.utils import zlogging
 
 logger = zlogging.getLogger(__name__)
 
 FILENAMEEXP = re.compile(u'[^\w\.-1]', re.UNICODE)
+
+
+def clearUnMasked(func):
+    """Decorator which clears the umask for a method.
+    The umask is a permissions mask that gets applied
+    whenever new files or folders are created. For I/O methods
+    that have a permissions parameter, it is important that the
+    umask is cleared prior to execution, otherwise the default
+    umask may alter the resulting permissions
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        # set umask to zero, store old umask
+        oldMask = os.umask(0)
+        try:
+            # execute method payload
+            return func(*args, **kwargs)
+        finally:
+            # set mask back to previous value
+            os.umask(oldMask)
+    return wrapper
 
 
 def upDirectory(path, depth=1):
@@ -71,6 +97,19 @@ def openLocation(path):
         subprocess.call(['open', '-R', path])
 
 
+@clearUnMasked
+def copy_file(src, dst, permissions=0666):
+    """Copy file and sets its permissions.
+
+    :param src: Source file
+    :param dst: destination 
+    :param permissions: Permissions to use for target file. Default permissions will
+                        be readable and writable for all users.
+    """
+    shutil.copy(src, dst)
+    os.chmod(dst, permissions)
+
+
 def copyDirectoy(src, dst):
     try:
         shutil.copytree(src, dst)
@@ -97,7 +136,7 @@ def folderSize(path):
     return totalSize
 
 
-def ensureFolderExists(path, permissions=0775, createPlaceHolderFile=False):
+def ensureFolderExists(path, permissions=0775, placeHolder=False):
     """if the folder doesnt exist then one will be created.
     Function built due to version control mishaps with uncommited empty folders, this folder can generate
     a place holder file
@@ -105,15 +144,15 @@ def ensureFolderExists(path, permissions=0775, createPlaceHolderFile=False):
     :type path: str
     :param permissions: folder permissions mode
     :type permissions: int
-    :param createPlaceHolderFile: if True create a placeholder text file
-    :type createPlaceHolderFile: bool
+    :param placeHolder: if True create a placeholder text file
+    :type placeHolder: bool
     :raise OSError: raise OSError if the creation of the folder fails
     """
     if not os.path.exists(path):
         try:
             logger.debug("Creating folder {} [{}]".format(path, permissions))
             os.makedirs(path, permissions)
-            if createPlaceHolderFile:
+            if placeHolder:
                 placePath = os.path.join(path, "placeholder")
                 if not os.path.exists(placePath):
                     with open(placePath, "wt") as fh:
@@ -130,7 +169,8 @@ def ensureFolderExists(path, permissions=0775, createPlaceHolderFile=False):
 def createValidfilename(name):
     """Sanitizer for file names which everyone tends to screw up, this function replace spaces and random character with
     underscore.
-    Some random file name == Some_random_file_name
+    ::example 
+        "Some random file name" == "Some_random_file_name"
     :param name: the name to convert
     :type name: str
     :rtype: the same format as the passed argument type(utf8 etc)
@@ -192,3 +232,26 @@ def zipwalk(zfilename):
                 yield (info, cStringIO.StringIO(data))
     except (RuntimeError, zipfile.error):
         raise
+
+
+if os.name == "nt" and sys.version_info[0] < 3:
+    def symlink_ms(source, linkname):
+        """Python 2 doesn't have os.symlink on windows so we do it ourselfs
+        :param source: sourceFile
+        :type source: str
+        :param linkname: symlink path
+        :type linkname: str
+        :raises: WindowsError, raises when it fails to create the symlink if the user permissions
+         are incorrect
+        """
+        import ctypes
+        csl = ctypes.windll.kernel32.CreateSymbolicLinkW
+        csl.argtypes = (ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint32)
+        csl.restype = ctypes.c_ubyte
+        flags = 1 if os.path.isdir(source) else 0
+        try:
+            if csl(linkname, source.replace('/', '\\'), flags) == 0:
+                raise ctypes.WinError()
+        except WindowsError:
+            raise WindowsError("Failed to create symbolicLink due to user permissions")
+    os.symlink = symlink_ms

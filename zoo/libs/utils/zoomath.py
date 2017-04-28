@@ -7,7 +7,7 @@ def lerp(current, goal, weight=0.5):
 
 
 def remap(value, oldMin, oldMax, newMin, newMax):
-    return (((value - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin;
+    return (((value - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin
 
 
 def almostEqual(x, y, tailCount):

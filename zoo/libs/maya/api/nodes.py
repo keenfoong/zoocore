@@ -261,6 +261,13 @@ def shapes(path):
 
 
 def shapeAtIndex(path, index):
+    """Finds and returns the shape DagPath under the specified path for the index
+    :param path: the MDagPath to the parent node that you wish to search under
+    :type path: MDagPath
+    :param index: the shape index
+    :type index: int
+    :rtype: om2.MDagPath or None
+    """
     if index in range(path.numberOfShapesDirectlyBelow()):
         return om2.MDagPath(path).extendToShape(index)
 
@@ -274,32 +281,40 @@ def childTransforms(path):
     return childPathsByFn(path, om2.MFn.kTransform)
 
 
-def setParent(mobject, newParent, maintainOffset=False):
-    """Sets the parent for the given mobject, this is undoable
+def setParent(child, newParent, maintainOffset=False):
+    """Sets the parent for the given child
 
-    :param mobject: MObject
-    :param newParent: MObject
-    :param maintainOffset:
+    :param child: the child node which will have its parent changed
+    :type child: MObject
+    :param newParent: The new parent for the child
+    :type newParent: MObject
+    :param maintainOffset: if True then the current transformation is maintained relative to the new parent
     :type maintainOffset: bool
     :rtype bool
     """
 
     newParent = newParent if newParent is not None else om2.MObject.kNullObj
-    if mobject == newParent:
+    if child == newParent:
         return False
     dag = om2.MDagModifier()
+    offset = om2.MMatrix()
     if maintainOffset:
         start = getWorldMatrix(newParent)
-        end = getWorldMatrix(mobject)
+        end = getWorldMatrix(child)
         offset = end * start.inverse()
-    dag.reparentNode(mobject, newParent)
+    dag.reparentNode(child, newParent)
     dag.doIt()
     if maintainOffset:
-        om2.MFnTransform(mobject).setTransformation(om2.MTransformationMatrix(offset))
+        om2.MFnTransform(child).setTransformation(om2.MTransformationMatrix(offset))
     return True
 
 
 def hasParent(mobject):
+    """Determines if the given MObject has a mobject
+    :param mobject: the MObject node to check
+    :type mobject: MObject
+    :rtype: bool
+    """
     parent = getParent(mobject)
     if parent is None or parent.isNull():
         return False
@@ -318,9 +333,8 @@ def rename(mobject, newName):
 
 
 def parentPath(path):
-    """
-
-    :param path:
+    """Returns the parent nodes MDagPath
+    :param path: child DagPath
     :type path: MDagpath
     :return: MDagPath, parent of path or None if path is in the scene root.
     """
@@ -626,6 +640,13 @@ def setRotation(node, rotation, space=om2.MSpace.kTransform):
     trans.setRotation(rotation, space)
 
 
+def getRotation(obj, space):
+    space = space or om2.MSpace.kTransform
+    path = om2.MFnDagNode(obj).getPath()
+    trans = om2.MFnTransform(path)
+    return trans.rotation(space)
+
+
 def addProxyAttribute(node, sourcePlug, longName, shortName, attrType=attrtypes.kMFnNumericDouble):
     attr1 = addAttribute(node, longName, shortName, attrType)
     attr1.isProxyAttribute = False
@@ -827,7 +848,8 @@ def serializeNode(node, skipAttributes=None, includeConnections=True):
         connections = []
         for destination, source in iterConnections(node, source=True, destination=False):
             sourceNode = source.node()
-            nodeName = om2.MFnDagNode(sourceNode).fullPathName() if sourceNode.hasFn(om2.MFn.kDagNode) else om2.MFnDependencyNode(sourceNode).name()
+            nodeName = om2.MFnDagNode(sourceNode).fullPathName() if sourceNode.hasFn(
+                om2.MFn.kDagNode) else om2.MFnDependencyNode(sourceNode).name()
             connections.append((destination.partialName(includeNonMandatoryIndices=True, useLongNames=True),
                                 nodeName, source.partialName(includeNonMandatoryIndices=True, useLongNames=True)))
         if connections:
