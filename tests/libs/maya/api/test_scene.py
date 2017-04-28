@@ -1,5 +1,5 @@
 from maya import cmds
-from maya.api import OpenMaya as om
+from maya.api import OpenMaya as om2
 
 from tests import mayatestutils
 from zoo.libs.maya.api import scene
@@ -14,7 +14,7 @@ class TestScene(mayatestutils.BaseMayaTest):
         cmds.select([self.node, cmds.createNode("transform")])
         selected = scene.getSelectedNodes()
         self.assertEquals(len(selected), 2)
-        self.assertTrue(all(isinstance(i, om.MObject) for i in selected))
+        self.assertTrue(all(isinstance(i, om2.MObject) for i in selected))
 
     def test_removeFromActiveSelection(self):
         cmds.select([self.node, cmds.createNode("transform")])
@@ -24,12 +24,12 @@ class TestScene(mayatestutils.BaseMayaTest):
         selected = scene.getSelectedNodes()
         self.assertEquals(len(selected), 1)
 
-    # def test_getNodesCreatedBy(self):
-    #
-    #     def testCreate():
-    #         cmds.createNode("transform")
-    #         nodes.createDagNode("test", "transform")
-    #     results = scene.getNodesCreatedBy(testCreate)
-    #     self.assertEquals(len(results), 2)
-
+    def test_getNodesCreatedBy(self):
+        def testCreate():
+            cmds.createNode("transform")
+            nodes.createDagNode("test", "transform")
+        results = scene.getNodesCreatedBy(testCreate)
+        self.assertEquals(len(results), 2)
+        self.assertIsinstance(results[0], basestring)
+        self.assertIsinstance(results[1], om2.MObject)
 
