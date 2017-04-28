@@ -1,6 +1,7 @@
 import re
 import os
 from zoo.libs.utils import file
+from zoo.libs.utils import general
 
 
 class NameManager(object):
@@ -11,22 +12,19 @@ class NameManager(object):
     tokens have a set of possible values that it can use if the value set this token to doesn't exist then it wont be
     resolved. you can add tokens and values in memory per instance or you can add it to the config JSON file.
     """
-    BASE_CONFIG_VAR = "ZOO_NAMING_BASE_PATH"
-    USER_CONFIG_VAR = "ZOO_NAMING_USER_PATHS"
-    # super temp
-    os.environ[BASE_CONFIG_VAR] = os.path.realpath(os.path.join(os.path.dirname(__file__), "config.json"))
-
     refilter = r"(?<={)[^}]*"
     counter = {"value": 0, "padding": 3, "default": 0}
 
-    def __init__(self, activeRule=None):
+    def __init__(self, activeRule=None, configPaths=None):
         """
         :param activeRule: the active rule to set, see setActiveRule()
         :type activeRule: str
         """
         self._activeRule = None
         self.config = None
-        self.load()
+        self.configPaths = configPaths
+        if configPaths:
+            self.load(configPaths)
         if activeRule:
             self.setActiveRule(activeRule)
         self.config["tokens"]["counter"] = self.counter
@@ -50,6 +48,16 @@ class NameManager(object):
         :rtype: list
         """
         return self.config["rules"].keys()
+
+    def getExpression(self, rule):
+        rule = self.config["rules"].get(rule)
+        if rule:
+            return rule["expression"]
+
+    def ruleFromExpression(self, expression):
+        for i, data in self.config["rules"].items():
+            if data["expression"] == expression:
+                return i
 
     def expression(self):
         return self.config["rules"][self.activeRule()]["expression"]
@@ -123,9 +131,8 @@ class NameManager(object):
             return
 
         tokens = self.config["tokens"]
-        if name in tokens:
-            tokens[name]["default"] = value
-            tokens[name].update(kwargs)
+        tokens[name]["default"] = value
+        tokens[name].update(kwargs)
 
     def resolve(self):
         expression = self.expression()
@@ -139,24 +146,22 @@ class NameManager(object):
             newStr = re.sub("{" + token + "}", val or "null", newStr)
         return newStr
 
-    def save(self):
-        configPath = os.environ[NameManager.BASE_CONFIG_VAR]
+    def save(self, configPath):
         file.saveJson(self.config, configPath)
         return configPath
 
-    def load(self):
-        configPath = os.environ[NameManager.BASE_CONFIG_VAR]
-        data = file.loadJson(configPath)
-
-        if os.environ.get(NameManager.USER_CONFIG_VAR):
-            for p in os.environ[NameManager.USER_CONFIG_VAR].split(os.pathsep):
-                if not p or not os.path.exists(p) or not p.endswith(".json"):
-                    continue
-                userData = file.loadJson(p)
-                rules = userData.get("rules")
-                tokens = userData.get("tokens")
-                if rules:
-                    data["rules"].update(rules)
-                if tokens:
-                    data["tokens"].update(tokens)
+    def load(self, configPaths):
+        data = {}
+        self.configPaths = configPaths
+        for config in configPaths:
+            if not os.path.exists(config) or not config.endswith(".json"):
+                continue
+            userData = file.loadJson(config)
+            general.merge(data, userData)
+            rules = userData.get("rules")
+            tokens = userData.get("tokens")
+            if rules:
+                data["rules"].update(rules)
+            if tokens:
+                data["tokens"].update(tokens)
         self.config = data
