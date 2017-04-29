@@ -134,6 +134,51 @@ class NameManager(object):
         tokens[name]["default"] = value
         tokens[name].update(kwargs)
 
+    def expressionFromString(self, name):
+        """Returns the expression from the name, if the name cannot be resolved then we raise ValueError,
+        If we resolve to multiple expressions then we raise ValueError. Only one expression is possible.
+        To resolve a name, all tokens must exist within the config and we must be able to resolve more
+        than 50% for an expression for it to be viable.
+        
+        :param name: the string the resolve
+        :type name: str
+        :return: the config expression eg. {side}_{type}{section}
+        :rtype: str
+        """
+        tokens = self.config["tokens"]
+        expressedname = ""
+        for tname, tokenValue in tokens.items():
+            if tokenValue in name:
+                expressedname = tokenValue.replace(tokenValue, "{" + tname + "}")
+
+        # first check if the filtered name is a match to any of the expressions
+        if any(expression == expressedname for expression in self.expressionList()):
+            return expressedname
+        # we dont have an exact match so lets find which expression is the most probable
+        possibles = []
+        tokenisedName = re.findall(NameManager.refilter, expressedname)
+        tokenisedLength = len(tokenisedName)
+        for expression in self.expressionList():
+            expressionTokens = re.findall(NameManager.refilter, expression)
+            totalcount = 0
+            for tokname in tokenisedName:
+                if tokname in expressionTokens:
+                    totalcount += 1
+            if totalcount > tokenisedLength / 2:
+                possibles.append((expression, totalcount))
+        if not possibles:
+            raise ValueError("Could not resolve name: {} to an existing expression".format(name))
+
+        maxPossible = max([i[1] for i in possibles])
+        truePossibles = []
+        # filter out the possibles down to just the best resolved
+        for possible, tc in iter(possibles):
+            if tc == maxPossible:
+                truePossibles.append(possible)
+        if len(truePossibles) > 1:
+            raise ValueError("Could not Resolve name: {}, due to to many possible expressions".format(name))
+        return truePossibles[0]
+
     def resolve(self):
         expression = self.expression()
         tokens = re.findall(NameManager.refilter, expression)

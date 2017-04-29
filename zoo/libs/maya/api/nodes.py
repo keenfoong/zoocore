@@ -649,7 +649,7 @@ def getRotation(obj, space):
 
 def addProxyAttribute(node, sourcePlug, longName, shortName, attrType=attrtypes.kMFnNumericDouble):
     attr1 = addAttribute(node, longName, shortName, attrType)
-    attr1.isProxyAttribute = False
+    attr1.isProxyAttribute = True
     plugs.connectPlugs(sourcePlug, om2.MPlug(node, attr1.object()))
     return attr1
 
