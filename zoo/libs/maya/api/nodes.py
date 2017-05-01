@@ -609,6 +609,7 @@ def setTranslation(obj, position, space=None):
     space = space or om2.MSpace.kTransform
     trans = om2.MFnTransform(path)
     trans.setTranslation(position, space)
+    return True
 
 
 def getTranslation(obj, space=None):

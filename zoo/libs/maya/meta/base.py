@@ -103,7 +103,7 @@ def isMetaNode(node):
         return True
     dep = om2.MFnDependencyNode(node)
     if dep.hasAttribute("mClass"):
-        return MetaRegistry.isInRegistry(dep.findPlug("mClass").asString())
+        return MetaRegistry.isInRegistry(dep.findPlug("mClass", False).asString())
     return False
 
 
@@ -591,14 +591,15 @@ class MetaBase(object):
                 children.append(child)
         return children
 
-    def allChildrenNodes(self):
+    def allChildrenNodes(self, recursive=False):
         n = []
         for source, destination in nodes.iterConnections(self.mobject(), True, False):
             node = destination.node()
             if node not in n:
                 n.append(destination.node())
-        for child in self.iterMetaChildren():
-            n.extend([i for i in child.allChildrenNodes() if i not in n])
+        if recursive:
+            for child in self.iterMetaChildren():
+                n.extend([i for i in child.allChildrenNodes() if i not in n])
         return nodes
 
     def removeParent(self):

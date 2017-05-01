@@ -66,7 +66,7 @@ class NameManager(object):
         self.config["rules"][self.activeRule()]["expression"] = value
 
     def expressionList(self):
-        return [i["expression"] for i in self.config["rules"]]
+        return [i["expression"] for i in self.config["rules"].values()]
 
     def description(self):
         return self.config["rules"][self.activeRule()]["description"]
@@ -125,9 +125,9 @@ class NameManager(object):
 
         if name == "counter":
             configData = self.config["tokens"][name]
-            self.config["tokens"][name].update({"value": value,
-                                                "padding": kwargs.get("padding", configData["padding"]),
-                                                "default": kwargs.get("default", configData["default"])})
+            self.config["tokens"][name]["padding"] = {"value": value,
+                                                      "padding": kwargs.get("padding", configData["padding"]),
+                                                      "default": kwargs.get("default", configData["default"])}
             return
 
         tokens = self.config["tokens"]
@@ -146,26 +146,26 @@ class NameManager(object):
         :rtype: str
         """
         tokens = self.config["tokens"]
-        expressedname = ""
-        for tname, tokenValue in tokens.items():
-            if tokenValue in name:
-                expressedname = tokenValue.replace(tokenValue, "{" + tname + "}")
+        expressedname = []
+        for tname, tokenValues in tokens.items():
+            if tname == "counter":
+                continue
+            for tokenName, tkValue in tokenValues.items():
+                if tname not in expressedname and tkValue in name:
+                    expressedname.append(tname)
+                    break
 
-        # first check if the filtered name is a match to any of the expressions
-        if any(expression == expressedname for expression in self.expressionList()):
-            return expressedname
         # we dont have an exact match so lets find which expression is the most probable
-        possibles = []
-        tokenisedName = re.findall(NameManager.refilter, expressedname)
-        tokenisedLength = len(tokenisedName)
+        possibles = set()
+        tokenisedLength = len(expressedname)
         for expression in self.expressionList():
             expressionTokens = re.findall(NameManager.refilter, expression)
             totalcount = 0
-            for tokname in tokenisedName:
+            for tokname in expressedname:
                 if tokname in expressionTokens:
                     totalcount += 1
             if totalcount > tokenisedLength / 2:
-                possibles.append((expression, totalcount))
+                possibles.add((expression, totalcount))
         if not possibles:
             raise ValueError("Could not resolve name: {} to an existing expression".format(name))
 
@@ -175,6 +175,7 @@ class NameManager(object):
         for possible, tc in iter(possibles):
             if tc == maxPossible:
                 truePossibles.append(possible)
+        print truePossibles
         if len(truePossibles) > 1:
             raise ValueError("Could not Resolve name: {}, due to to many possible expressions".format(name))
         return truePossibles[0]
@@ -194,6 +195,10 @@ class NameManager(object):
     def save(self, configPath):
         file.saveJson(self.config, configPath)
         return configPath
+
+    def refresh(self):
+        self.config = {}
+        self.load(self.configPaths)
 
     def load(self, configPaths):
         data = {}
