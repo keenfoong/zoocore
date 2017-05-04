@@ -1,10 +1,6 @@
 """This module stores our Custom undo MPxCommand. Due to shit maya api undo support we're had to implement
-our own that supports mel and API code. This MPx store's a list of zoo command which operate on the maya eg node creation.
-When undo is called by maya or the user the MpxCommand loops over the stored zoo commands and calls undo.
-However we only support what maya supports under the hood so we are limited to what maya gives us but it's more than
-what we have out of the box. What this means is certain maya cmds and api class support undo and some do not
-eg. MFnNurbsCurve.create() isn't a undoable at the core so we cannot support it.
-We do support MDGModifier, MDagModifer, maya commands layer. See unittests for examples
+our own that supports mel and API code. This MPx store's a zoo command which operate on the maya eg node creation.
+When undo is called by maya or by the user the MpxCommand will call the zooExecutor class which manages undo.
 """
 import sys
 
@@ -61,7 +57,9 @@ class UndoCmd(om2.MPxCommand):
         """
         if self._command is None:
             return
-        if self._command.isUndoable:
+        elif self._command != om2._COMMANDEXECUTOR.undoStack[-1]:
+            raise ValueError("Undo stack has become out of the sync with zoocommands {}".format(self._command.id))
+        elif self._command.isUndoable:
             self._command.undoIt()
             om2._COMMANDEXECUTOR.undoStack.pop()
 

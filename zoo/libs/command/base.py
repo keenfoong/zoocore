@@ -1,14 +1,13 @@
 import inspect
-import os, sys
-import traceback
+import os
+import sys
 import time
+import traceback
 from collections import deque
 
 from zoo.libs.command import commandregistry
 from zoo.libs.command import errors
-
 from zoo.libs.utils import env
-
 
 
 class ExecutorBase(object):
@@ -36,7 +35,7 @@ class ExecutorBase(object):
         try:
             command.stats = CommandStats(command)
             result = self._callDoIt(command)
-        except UserCancel:
+        except errors.UserCancel:
             self.undoStack.remove(command)
             command.stats.finish(None)
             return result
@@ -46,9 +45,10 @@ class ExecutorBase(object):
             raise
         finally:
             tb = None
+
             if exc_type and exc_value and exc_tb:
                 tb = traceback.format_exception(exc_type, exc_value, exc_tb)
-            elif command.isUndoable:
+            if command.isUndoable:
                 self.undoStack.append(command)
             command.stats.finish(tb)
 
@@ -75,7 +75,7 @@ class ExecutorBase(object):
                 try:
                     command.stats = CommandStats(command)
                     result = self._callDoIt(command)
-                except UserCancel:
+                except errors.UserCancel:
                     self.undoStack.remove(command)
                     command.stats.finish(None)
                     return
@@ -126,6 +126,9 @@ class ExecutorBase(object):
 
     def _callDoIt(self, command):
         return command.doIt(**command.arguments)
+
+    def cancel(self, msg):
+        raise errors.UserCancel(msg)
 
     def groups(self):
         groups = {}
