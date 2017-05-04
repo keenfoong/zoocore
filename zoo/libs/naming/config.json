@@ -60,7 +60,9 @@
       "orientConstraint": "orientConstraint",
       "pointConstraint": "pointConstraint",
       "matrixDecompose": "decomp",
-      "matrixMult": "mult",
+      "matrixMult": "matMult",
+      "matrixInverse": "invMult",
+      "multiplyDivide": "mult",
       "plusMinusAverage": "pma"
     },
     "side": {
