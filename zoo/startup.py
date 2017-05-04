@@ -44,6 +44,12 @@ def _initEnv():
                                                                                                      "icons"),
                                                                                         os.environ["ZOO_ICON_PATH"]))
         os.environ["ZOO_ICON_PATH"] += os.path.join(zootoolsPath, "icons") + os.pathsep
+    metapaths = os.environ.get("ZOO_META_PATHS")
+    basemeta = os.path.join(zootoolsPath, "zoo", "libs", "maya", "base")
+    if not metapaths:
+        os.environ["ZOO_META_PATHS"] = basemeta
+    elif basemeta not in metapaths:
+        os.environ["ZOO_META_PATHS"] += basemeta + os.pathsep
 
     site.addsitedir(os.path.realpath(os.path.join(zootoolsPath, "thirdparty")))
 

@@ -119,7 +119,11 @@ def getConnectedMetaNodes(node):
 class MetaRegistry(object):
     """Singleton class to handle global registration to metaclasses"""
     __metaclass__ = classtypes.Singleton
+    metaEnv = "ZOO_META_PATHS"
     types = {}
+
+    def __init__(self):
+        self.registryByEnv(MetaRegistry.metaEnv)
 
     @classmethod
     def isInRegistry(cls, typeName):
@@ -214,6 +218,7 @@ class MetaRegistry(object):
 class MetaFactory(type):
     """MetaClass for metabase class to create the correct metaBase subclass based on class plug name if a meta
     node(MObject) exists in the arguments"""
+
     def __call__(cls, *args, **kwargs):
         """Custom constructor to pull the cls type from the node if it exists and recreates the class instance
         from the registry. If that class doesnt exist then the normal __new__ behaviour will be used
