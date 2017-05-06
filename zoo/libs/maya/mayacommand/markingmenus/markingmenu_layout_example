@@ -1,0 +1,15 @@
+{"items":{"N": "@layoutId",
+          "NW": "id.to.command",
+          "W": "",
+          "SW": "",
+          "S": "",
+          "SE": "",
+          "E": "",
+          "NE": "",
+          "generic": ["commandId",
+                      {"type": "menu",
+                      "name": "some menuName",
+                      "children": []}
+                      ]
+          },
+"id": ""}

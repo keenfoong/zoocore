@@ -187,7 +187,8 @@ def lockNode(mobject, state=True):
         mod = om2.MDGModifier()
         mod.setNodeLockState(mobject, state)
         mod.doIt()
-
+        return True
+    return False
 
 def unlockConnectedAttributes(mobject):
     """Unlocks all connected attributes to this node
