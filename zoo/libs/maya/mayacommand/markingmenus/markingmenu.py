@@ -114,6 +114,10 @@ class MarkingMenu(object):
         cmds.menu(menu, e=True, dai=True)
         self.show(self.layout, menu, parent)
 
+    def kill(self):
+        if cmds.popupMenu(self.name, ex=True):
+            cmds.deleteUI(self.name)
+
     def _buildGeneric(self, data, menu, parent):
         for item in data:
             if isinstance(item, basestring):

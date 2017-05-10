@@ -22,8 +22,7 @@ def findSceneTextures():
         # ensure this is actually part of this scene and not referenced
         if cmds.referenceQuery(file_node, isNodeReferenced=True):
             continue
-        # get path and make it platform dependent
-        texture_path = cmds.getAttr(".".join([file_node, "fileTextureName"]).replace("/", os.path.sep))
+        texture_path = os.path.abspath(cmds.getAttr(".".join([file_node, "fileTextureName"])))
         if texture_path:
             paths.add(texture_path)
     return paths
@@ -37,7 +36,6 @@ def findSceneReferences():
     for ref_node in ref_nodes:
         # get the path:
         ref_path = cmds.referenceQuery(ref_node, filename=True)
-        ref_path = ref_path.replace("/", os.path.sep)
         if ref_path:
-            paths.add(ref_path)
+            paths.add(os.path.realpath(ref_path))
     return paths
