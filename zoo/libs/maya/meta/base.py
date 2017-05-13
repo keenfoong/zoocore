@@ -123,7 +123,10 @@ class MetaRegistry(object):
     types = {}
 
     def __init__(self):
-        self.registryByEnv(MetaRegistry.metaEnv)
+        try:
+            self.registryByEnv(MetaRegistry.metaEnv)
+        except ValueError:
+            pass
 
     @classmethod
     def isInRegistry(cls, typeName):

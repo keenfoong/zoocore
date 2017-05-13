@@ -45,12 +45,14 @@ def _initEnv():
                                                                                         os.environ["ZOO_ICON_PATH"]))
         os.environ["ZOO_ICON_PATH"] += os.path.join(zootoolsPath, "icons") + os.pathsep
     metapaths = os.environ.get("ZOO_META_PATHS")
-    basemeta = os.path.join(zootoolsPath, "zoo", "libs", "maya", "base")
+    basemeta = os.path.join(zootoolsPath, "zoo", "libs", "maya", "meta", "base")
+    metarig = os.path.join(zootoolsPath, "zoo", "libs", "maya", "rig", "metarig")
     if not metapaths:
-        os.environ["ZOO_META_PATHS"] = basemeta
+        os.environ["ZOO_META_PATHS"] = basemeta + os.pathsep + metarig + os.pathsep
     elif basemeta not in metapaths:
         os.environ["ZOO_META_PATHS"] += basemeta + os.pathsep
-
+    if metarig not in metapaths:
+        os.environ["ZOO_META_PATHS"] += metarig + os.pathsep
     site.addsitedir(os.path.realpath(os.path.join(zootoolsPath, "thirdparty")))
 
     if "ZOO_LOG_LEVEL" not in os.environ:

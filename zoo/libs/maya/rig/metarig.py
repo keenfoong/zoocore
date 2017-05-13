@@ -149,9 +149,3 @@ class MetaSupportSystem(MetaRig):
 class MetaSubSystem(MetaRig):
     def __init__(self, node=None, name="", initDefaults=True):
         super(MetaRig, self).__init__(node, name, initDefaults)
-
-
-# temp registration
-base.MetaRegistry().registerMetaClass(MetaRig)
-base.MetaRegistry().registerMetaClass(MetaSupportSystem)
-base.MetaRegistry().registerMetaClass(MetaSubSystem)
