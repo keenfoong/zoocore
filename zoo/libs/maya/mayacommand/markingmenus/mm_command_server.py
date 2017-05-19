@@ -22,10 +22,10 @@ class CommandServer(object):
 
     def markingMenuRequest(self, layouts):
         """
-        :param layouts: 
+        :param layouts: Layout 
         :type layouts: list
         :return: 
-        :rtype: 
+        :rtype: markingmenu.MarkingMenu
         """
         base = layouts[0]
         for layout in iter(layouts[1:]):
@@ -35,12 +35,10 @@ class CommandServer(object):
         return menu
 
     def runtimeMarkingMenuCallback(self):
-        """Marking menus for hive are always based on having a node selected.
+        """Marking menus for zootools are always based on having a node having a certain attribute.
         Marking menus discovery is based on what selection you have for example by selecting
-        a rig control, this method will find the connected meta node for the component and see
-        if it has specified tools, it will also travel up to the rig meta node and do the same check.
-        based on this those tools aka layouts will be configured and a new marking menu will be 
-        created in the scene
+        a rig control, this method will find the connected meta attribute and see
+        if it has specified a layout id
         """
         selection = scene.getSelectedNodes()
         if not selection:

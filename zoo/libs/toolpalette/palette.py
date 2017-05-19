@@ -54,8 +54,11 @@ class ToolPalette(pluginmanager.PluginManager):
                 self.menu.addSeparator()
                 continue
             self._menuCreator(self.menu, i)
-        # build developer menu
-        devMenu = self.menu.addMenu("Developer")
+        devMenu = self.subMenus.get("Developer")
+        if not devMenu:
+            # build developer menu
+            devMenu = self.menu.addMenu("Developer")
+
         devMenu.setTearOffEnabled(True)
         logMenu = utils.loggingMenu()
         devMenu.addMenu(logMenu)

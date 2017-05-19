@@ -14,7 +14,7 @@ class MayaExecutor(base.ExecutorBase):
         super(MayaExecutor, self).__init__()
         om2._COMMANDEXECUTOR = self
 
-    def execute(self, commandName, **kwargs):
+    def execute(self, commandName=None, *args, **kwargs):
         command = self.findCommand(commandName)
         if command is None:
             raise ValueError("No command by the name -> {} exists within the registry!".format(commandName))
@@ -33,8 +33,8 @@ class MayaExecutor(base.ExecutorBase):
         exc_type = None
         exc_value = None
         result = None
+        command.stats = base.CommandStats(command)
         try:
-            command.stats = base.CommandStats(command)
             if command.isUndoable:
                 cmds.undoInfo(openChunk=True)
             result = self._callDoIt(command)

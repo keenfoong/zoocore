@@ -5,21 +5,11 @@ class TreeViewPlus(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(TreeViewPlus, self).__init__(parent)
         self._setupLayouts()
-        self.rowDataModel = None
-        self.columnDataModels = []
         self.model = None
 
     def setModel(self, model):
-        if not self.rowDataModel and self.columnDataModels:
-            return
-        self.model = model(self.rowDataModel, self.columnDataModels)
+        self.model = model(self.rowDataModel)
         self.treeView.setModel(self.model)
-
-    def registryRowModel(self, rowModel):
-        self.rowDataModel = rowModel
-
-    def registryColumnModels(self, models):
-        self.columnDataModels = models
 
     def _setupLayouts(self):
         self.mainLayout = QtWidgets.QVBoxLayout(self)

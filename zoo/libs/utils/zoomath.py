@@ -13,3 +13,14 @@ def remap(value, oldMin, oldMax, newMin, newMax):
 def almostEqual(x, y, tailCount):
     return math.fabs(x - y) < sys.float_info.epsilon * math.fabs(x + y) * tailCount or math.fabs(
         x - y) < sys.float_info.min
+
+
+def threePointParabola(a, b, c, iterations):
+    positions = []
+    for t in xrange(1, int(iterations)):
+        x = t / iterations
+        q = b + (b - a) * x
+        r = c + (c - b) * x
+        p = r + (r - q) * x
+        positions.append(p)
+    return positions

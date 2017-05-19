@@ -37,8 +37,8 @@ class CommandInterface(object):
     def isUndoable(self):
         return False
 
-    @staticmethod
-    def uiData():
+    @property
+    def uiData(self):
         return {"icon": "",
                 "tooltip": "",
                 "label": "",
@@ -87,6 +87,8 @@ class ZooCommand(CommandInterface):
         from zoo.libs.command import commandui
         if uiType == 0:
             commandui.CommandAction(self)
+        elif uiType == 1:
+            commandui.MenuItem(self)
 
 
 def generateCommandTemplate(className, id, doItContent, undoItContent, filePath,

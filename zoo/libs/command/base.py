@@ -16,7 +16,7 @@ class ExecutorBase(object):
         self.undoStack = deque()
         self.redoStack = deque()
 
-    def execute(self, name, **kwargs):
+    def execute(self, name, *args, **kwargs):
         command = self.findCommand(name)
         if command is None:
             raise ValueError("No command by the name -> {} exists within the registry!".format(name))
@@ -155,10 +155,15 @@ class CommandStats(object):
         """Initializes some basic info about the plugin and the use environment
         Internal use only:
         """
+        try:
+            path = inspect.getfile(self.command.__class__)
+        except:
+            path = ""
+
         self.info.update({"id": self.command.id,
                           "creator": self.command.creator,
                           "module": self.command.__class__.__module__,
-                          "filepath": inspect.getfile(self.command.__class__),
+                          "filepath": path,
                           "application": env.application()
                           })
         self.info.update(env.machineInfo())

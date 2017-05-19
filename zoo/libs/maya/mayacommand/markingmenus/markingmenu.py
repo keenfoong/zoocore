@@ -1,5 +1,6 @@
 import os
 import pprint
+
 from zoo.libs.pyqt.embed import mayaui
 from zoo.libs.utils import file
 from zoo.libs.utils import classtypes
@@ -31,6 +32,7 @@ class Layout(object):
 
     def __init__(self, data):
         self.data = data
+        self.id = data["id"]
 
     def __repr__(self):
         return "Layout: {}".format(pprint.pformat(self.data))
@@ -41,6 +43,9 @@ class Layout(object):
     def __iter__(self):
         for name, data in iter(self.data.items()):
             yield name, data
+
+    def items(self):
+        return self.data["items"].items()
 
     def validate(self, layout=None):
         layout = layout or self.data
@@ -68,18 +73,21 @@ class Layout(object):
         return failed
 
     def merge(self, layout):
-        self.data = general.merge(self.data, layout.data)
+        self.data = general.merge(self.data, layout.data["items"])
         self.solve()
 
     def solve(self):
         registry = LayoutRegistry()
+        solved = False
         for item, data in self.data.items():
             if isinstance(data, basestring):
                 if data.startswith("@"):
                     subLayout = registry.layouts.get(data)
                     subLayout.solve()
                     self.data[item] = subLayout
+                    solved = True
                     continue
+        return solved
 
 
 class MarkingMenu(object):
@@ -102,9 +110,9 @@ class MarkingMenu(object):
 
     def create(self):
         if cmds.popupMenu(self.name, exists=True):
-            cmds.deleteUi(self.name)
+            cmds.deleteUI(self.name)
         panel = cmds.getPanel(up=True)
-        self.popMenu = cmds.popupMenu(self.name, parent=panel,
+        self.popMenu = cmds.popupMenu(self.name, parent="modelPanel4",
                                       markingMenu=True, pmc=self._show, **self.options)
         return self
 
@@ -123,14 +131,17 @@ class MarkingMenu(object):
             if isinstance(item, basestring):
                 command = self.commandExecutor.findCommand(item)
                 uiData = command.uiData
-                cmds.menuItem(label=uiData["label"], parent=menu, command=self.commandExecutor.execute(command.id))
+                uiData.create(parent=menu)
+                uiData.triggered.connect(self.commandExecutor.execute)
                 continue
             elif item["type"] == "menu":
-                subMenu = cmds.menuItem(label=item["name"], subMenu=True)
+                subMenu = cmds.menuItem(label=item["label"], subMenu=True)
                 self._buildGeneric(item["children"], subMenu, parent)
 
     def show(self, layout, menu, parent):
-        for item, data in layout:
+        for item, data in layout.items():
+            if not data:
+                continue
             # menu generic menu
             if item == "generic":
                 self._buildGeneric(data, menu, parent)
@@ -143,8 +154,9 @@ class MarkingMenu(object):
             # single item
             command = self.commandExecutor.findCommand(data)
             uiData = command.uiData
-            cmds.menuItem(label=uiData["label"], parent=menu, command=self.commandExecutor.execute(command.id),
-                          radialPosition=item.upper())
+            uiData.create(parent=menu)
+            cmds.menuItem(uiData.item, e=True, radialPosition=item.upper())
+            uiData.triggered.connect(self.commandExecutor.execute)
 
     def allowOptionBoxes(self):
         return cmds.popupMenu(self.name, q=True, allowOptionBoxes=True)

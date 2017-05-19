@@ -1,4 +1,5 @@
 import contextlib
+import imghdr
 import os
 import json
 import zipfile
@@ -9,6 +10,18 @@ from zoo.libs.utils import commandline
 
 logger = zlogging.zooLogger
 
+QTSUPPORTEDIMAGES = ('bmp', 'gif', 'jpg', 'jpeg', 'mng', 'png', 'pbm', 'pgm', 'ppm', 'tiff', 'xbm', 'xpm', 'svg', 'tga')
+
+
+def isImage(path):
+    return imghdr.what(path) is not None
+
+
+def imageSupportByQt(path):
+    imageType = imghdr.what(path)
+    if imageType is not None:
+        return imageType.lower() in QTSUPPORTEDIMAGES
+    return False
 
 def loadJson(filePath):
     """

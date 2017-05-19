@@ -44,7 +44,7 @@ def _initEnv():
                                                                                                      "icons"),
                                                                                         os.environ["ZOO_ICON_PATH"]))
         os.environ["ZOO_ICON_PATH"] += os.path.join(zootoolsPath, "icons") + os.pathsep
-    metapaths = os.environ.get("ZOO_META_PATHS")
+    metapaths = os.environ.get("ZOO_META_PATHS", "")
     basemeta = os.path.join(zootoolsPath, "zoo", "libs", "maya", "meta", "base")
     metarig = os.path.join(zootoolsPath, "zoo", "libs", "maya", "rig", "metarig")
     if not metapaths:

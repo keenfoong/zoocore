@@ -18,10 +18,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.docks = []
         self.toolBars = {}
 
-        self.addCustomStatusBar()
-
-        self.setupMenuBar()
-
         self.centralWidget = QtWidgets.QWidget()
         self.setCentralWidget(self.centralWidget)
         self.reapplySettings()
@@ -34,7 +30,15 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.setWindowIcon(iconlib.icon(icon))
 
         if showOnInitialize:
+            self.center()
             self.show()
+
+    def center(self):
+        frameGm = self.frameGeometry()
+        screen = QtWidgets.QApplication.desktop().screenNumber(QtWidgets.QApplication.desktop().cursor().pos())
+        centerPoint = QtWidgets.QApplication.desktop().screenGeometry(screen).center()
+        frameGm.moveCenter(centerPoint)
+        self.move(frameGm.topLeft())
 
     def addCustomStatusBar(self):
         self.setStatusBar(self.statusBar())
@@ -141,16 +145,3 @@ class MainWindow(QtWidgets.QMainWindow):
                                                                                      QtCore.QT_VERSION_STR,
                                                                                      QtCore.PYQT_VERSION_STR,
                                                                                      platform.system()))
-
-
-if __name__ == "__main__":
-    import sys
-
-    app = QtWidgets.QApplication(sys.argv)
-    win = MainWindow("test", showOnInitialize=False)
-    dock = dockWidget.DockWidget(win)
-    dock.setWindowTitle("testdock")
-    dock.setObjectName("testDock")
-    win.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock)
-    win.show()
-    sys.exit(app.exec_())

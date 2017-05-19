@@ -233,7 +233,7 @@ def childPaths(path):
     :param path: MDagPath
     :return: list(MDagPaths), child MDagPaths which have path as parent
     """
-    outPaths = [childPathAtIndex(path, i) for i in range(path.childCount())]
+    outPaths = [childPathAtIndex(path, i) for i in xrange(path.childCount())]
     return outPaths
 
 
@@ -254,7 +254,7 @@ def shapes(path):
     :return: list(MDagPath)
     """
     paths = []
-    for i in range(path.numberOfShapesDirectlyBelow()):
+    for i in xrange(path.numberOfShapesDirectlyBelow()):
         dagPath = om2.MDagPath(path)
         dagPath.extendToShape(i)
         paths.append(dagPath)

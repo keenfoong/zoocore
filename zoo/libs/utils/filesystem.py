@@ -26,6 +26,7 @@ def clearUnMasked(func):
     umask is cleared prior to execution, otherwise the default
     umask may alter the resulting permissions
     """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         # set umask to zero, store old umask
@@ -36,6 +37,7 @@ def clearUnMasked(func):
         finally:
             # set mask back to previous value
             os.umask(oldMask)
+
     return wrapper
 
 
@@ -85,20 +87,30 @@ def findParentDirectory(childPath, folder):
 
 
 def openLocation(path):
-    """Open the file explorer at the given path location.
-
-    :type path: str
     """
-    if env.isLinux():
-        os.system('konqueror "{}"&'.format(path))
-    elif env.isWindows():
-        os.startfile('{}'.format(path))
-    elif env.isMac():
-        subprocess.call(['open', '-R', path])
+        Opens the parent directory of a file, selecting the file if possible.
+    """
+    platform = sys.platform
+    if platform == 'win32':
+        # Normally we can just run `explorer /select, filename`, but Python 2
+        # always calls CreateProcessA, which doesn't support Unicode. We could
+        # call CreateProcessW with ctypes, but the following is more robust.
+        import ctypes
+        ctypes.windll.ole32.CoInitialize(None)
+        # Not sure why this is always UTF-8.
+        upath = path.decode('utf-8')
+        pidl = ctypes.windll.shell32.ILCreateFromPathW(upath)
+        ctypes.windll.shell32.SHOpenFolderAndSelectItems(pidl, 0, None, 0)
+        ctypes.windll.shell32.ILFree(pidl)
+        ctypes.windll.ole32.CoUninitialize()
+    elif platform == 'darwin':
+        subprocess.Popen(["open", os.path.dirname(path)])
+    else:
+        subprocess.Popen(["xdg-open", os.path.dirname(path)])
 
 
 @clearUnMasked
-def copy_file(src, dst, permissions=0666):
+def copyFile(src, dst, permissions=0666):
     """Copy file and sets its permissions.
 
     :param src: Source file
@@ -254,4 +266,6 @@ if os.name == "nt" and sys.version_info[0] < 3:
                 raise ctypes.WinError()
         except WindowsError:
             raise WindowsError("Failed to create symbolicLink due to user permissions")
+
+
     os.symlink = symlink_ms
