@@ -98,3 +98,11 @@ def chainLength(start, end):
         total += jointLength(j)
 
     return total
+
+
+def jointRoot(node, depthLimit=256):
+    parent = node
+    while parent is not None or parent.apiType() == om2.MFn.kJoint or depthLimit > 1:
+        parent = nodes.getParent(parent)
+        depthLimit -= 1
+    return parent

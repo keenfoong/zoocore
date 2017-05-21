@@ -12,7 +12,6 @@ class MetaRig(base.MetaBase):
 
     def _initMeta(self):
         super(MetaRig, self)._initMeta()
-        self.addAttribute("version", "1.0.0", attrtypes.kMFnDataString)
         self.addAttribute(name="name", value="", Type=attrtypes.kMFnDataString)
 
     def addControl(self, node, name):

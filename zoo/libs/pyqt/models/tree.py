@@ -1,13 +1,14 @@
 """This module is for a standard Qt tree model 
 """
-from pw.libs.pyqt.qt import QtCore
+from zoo.libs.pyqt.qt import QtCore
 
 
 class Node(QtCore.QObject):
     """The Node class acts as a single item within a tree or DAG structure.
     All trees should have a root and at least one child node.
     """
-    def __init__(self, metadata, parent=None):
+
+    def __init__(self, metadata=None, parent=None):
         """We initialize the children to an empty list.
         :param parent: The parent of this node
         :type parent: Node instance 

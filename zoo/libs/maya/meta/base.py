@@ -47,7 +47,7 @@ def findSceneRoots():
         try:
             isRoot = dep.findPlug("root", False).asBool()
             if isRoot:
-                roots.append(meta)
+                roots.append(MetaBase(node=meta))
         except RuntimeError:
             continue
     return roots
@@ -239,7 +239,7 @@ class MetaFactory(type):
         registeredType = MetaRegistry().getType(classType)
         if registeredType is None:
             return type.__call__(cls, *args, **kwargs)
-        return registeredType(*args, **kwargs)
+        return type.__call__(registeredType, *args, **kwargs)
 
 
 class MetaBase(object):
@@ -262,7 +262,7 @@ class MetaBase(object):
         except RuntimeError:
             return ""
 
-    def __init__(self, node=None, name="", initDefaults=True):
+    def __init__(self, node=None, name=None, initDefaults=True):
         if node is None:
             name = "_".join([name or self.__class__.__name__, "meta"])
             node = nodes.createDGNode(name, "network")
@@ -273,16 +273,16 @@ class MetaBase(object):
             self._mfn = om2.MFnDagNode(node)
         else:
             self._mfn = om2.MFnDependencyNode(node)
-
-        # self.lock(True)
-        if initDefaults:
+        if initDefaults and not self._mfn.hasAttribute("mClass"):
             self._initMeta()
-        self.lock(True)
+        if not self._mfn.isLocked:
+            self.lock(True)
 
     def _initMeta(self):
         """Initializes the standard attributes for the meta nodes
         """
         self.addAttribute("mClass", self.__class__.__name__, attrtypes.kMFnDataString)
+        self.addAttribute("version", "1.0.0", attrtypes.kMFnDataString)
         self.addAttribute("root", False, attrtypes.kMFnNumericBoolean)
         self.addAttribute("uuid", str(uuid.uuid4()), attrtypes.kMFnDataString)
         self.addAttribute("metaParent", None, attrtypes.kMFnMessageAttribute)
@@ -405,9 +405,10 @@ class MetaBase(object):
 
     @lockMetaManager
     def addAttribute(self, name, value, Type):
-        if self._mfn.hasAttribute(name):
+        try:
+            attr = nodes.addAttribute(self._handle.object(), name, name, Type)
+        except RuntimeError:
             return
-        attr = nodes.addAttribute(self._handle.object(), name, name, Type)
         newPlug = None
         if attr is not None:
             newPlug = om2.MPlug(self._handle.object(), attr.object())
@@ -573,15 +574,46 @@ class MetaBase(object):
         return [i for i in self.iterMetaChildren(depthLimit=depthLimit)]
 
     def iterMetaChildren(self, depthLimit=256):
+        """This function iterate the meta children by the metaChildren Plug and return the metaBase instances
+        
+        :param depthLimit: The travsal depth limit
+        :type depthLimit: int
+        :return: A list of Metabase instances
+        :rtype: list(MetaBase)
+        """
         childPlug = self._mfn.findPlug("metaChildren", False)
         for child in plugs.iterDependencyGraph(childPlug, depthLimit=depthLimit):
             yield MetaBase(child.node())
+
+    def iterMetaTree(self, depthLimit=256):
+        """This function traverses the meta tree pulling out any meta node this is done by checking each node 
+        has the mclass Attribute. This function can be slow depending on the size of the tree 
+        
+        :param depthLimit: 
+        :type depthLimit: int
+        :rtype: generator(MetaBase)
+        """
+        if depthLimit < 1:
+            return
+        for source, destination in nodes.iterConnections(self.mobject(), False, True):
+            node = destination.node()
+            if isMetaNode(node):
+                m = MetaBase(node)
+                yield m
+                for i in m.iterMetaTree(depthLimit=depthLimit - 1):
+                    yield i
 
     def addChild(self, child):
         child.removeParent()
         child.addParent(self)
 
     def addParent(self, parent):
+        """Sets the parent meta node for this node, removes the previous parent if its attached
+        
+        :param parent: The meta node to add as the parent of this meta node 
+        :type parent: MetaBase
+        :todo: change the method name to setParent since we should only allow one parent
+        """
         if isinstance(parent, om2.MObject):
             parent = MetaBase(parent)
         metaParent = self.metaParent()
@@ -591,10 +623,17 @@ class MetaBase(object):
         with plugs.setLockedContext(parentPlug):
             plugs.connectPlugs(parent.findPlug("metaChildren", False), parentPlug)
 
-    def findChildrenByFilter(self, filter):
+    def findChildrenByFilter(self, filter, plugName=None):
         children = []
         for child in self.iterMetaChildren():
-            grp = re.search(filter, nodes.nameFromMObject(child))
+            if not plugName:
+                grp = re.search(filter, nodes.nameFromMObject(child))
+            else:
+                try:
+                    plug = child._mfn.findPlug(plugName, False)
+                    grp = re.search(filter, plugs.getPlugValue(plug))
+                except RuntimeError:
+                    continue
             if grp:
                 children.append(child)
         return children
@@ -607,15 +646,15 @@ class MetaBase(object):
         return children
 
     def allChildrenNodes(self, recursive=False):
-        n = []
-        for source, destination in nodes.iterConnections(self.mobject(), True, False):
+        children = []
+        for source, destination in nodes.iterConnections(self.mobject(), False, True):
             node = destination.node()
-            if node not in n:
-                n.append(destination.node())
+            if node not in children:
+                children.append(destination.node())
         if recursive:
             for child in self.iterMetaChildren():
-                n.extend([i for i in child.allChildrenNodes() if i not in n])
-        return nodes
+                children.extend([i for i in child.allChildrenNodes() if i not in children])
+        return children
 
     def removeParent(self):
         parent = self.metaParent()

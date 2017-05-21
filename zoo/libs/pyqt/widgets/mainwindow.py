@@ -1,12 +1,15 @@
 import platform
 from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
 from zoo.libs import iconlib
+import qdarkstyle
 
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, title="", width=600, height=800, icon="",
                  parent=None, showOnInitialize=True):
         super(MainWindow, self).__init__(parent=parent)
+
+        self.setStyleSheet(qdarkstyle.load_stylesheet(pyside=True))
         self.setContentsMargins(2, 2, 2, 2)
         self.setDockNestingEnabled(True)
         self.setDocumentMode(True)
