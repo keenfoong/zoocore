@@ -2,12 +2,10 @@ import os
 
 from maya import cmds
 from maya.api import OpenMaya as om2
-from zoo.libs.maya.api import nodes
 
 
 def findAdditionalSceneDependencies(references=True, textures=True):
-    """
-    Find additional dependencies from the scene by looking at the file references and texture paths
+    """Find additional dependencies from the scene by looking at the file references and texture paths
     """
     refPaths = set()
     if references:
@@ -20,48 +18,22 @@ def findAdditionalSceneDependencies(references=True, textures=True):
 def findSceneTextures():
     paths = set()
     # now look at file texture nodes
-    for file_node in cmds.ls(l=True, type="file"):
+    for file_node in cmds.ls(long=True, type="file"):
+        dep = om2.MFnDependencyNode(file_node)
         # ensure this is actually part of this scene and not referenced
-        if cmds.referenceQuery(file_node, isNodeReferenced=True):
+        if dep.isFromReferencedFile:
             continue
-        texture_path = os.path.abspath(cmds.getAttr(".".join([file_node, "fileTextureName"])))
+        texture_path = os.path.abspath(dep.findPlug("fileTextureName").asString())
         if texture_path:
             paths.add(texture_path)
     return paths
 
 
-def findTextureNodePairs():
-    paths = set()
-    # now look at file texture nodes
-    for file_node in cmds.ls(l=True, type="file"):
-        # ensure this is actually part of this scene and not referenced
-        if cmds.referenceQuery(file_node, isNodeReferenced=True):
-            continue
-        # get path and make it platform dependent
-        texture_path = cmds.getAttr(os.path.normpath(".".join([file_node, "fileTextureName"])))
-        if texture_path:
-            paths.add(tuple(file_node, texture_path))
-    return paths
-
-
-def iterTextureNodePairs(includeReferences=False):
-    for file_node in cmds.ls(l=True, type="file"):
-        # ensure this is actually part of this scene and not referenced
-        if includeReferences and cmds.referenceQuery(file_node, isNodeReferenced=True):
-            continue
-        # get path and make it platform dependent
-        texture_path = cmds.getAttr(os.path.normpath(".".join([file_node, "fileTextureName"])))
-        if texture_path:
-            yield tuple([file_node, texture_path])
-
-
 def findSceneReferences():
     paths = set()
-
-    ref_nodes = cmds.ls(references=True)
-    for ref_node in ref_nodes:
-        fn = om2.MFnReference(nodes.asMObject(ref_node))
-        path = os.path.abspath(fn.filename(True, True, False))
-        if path:
-            paths.add(path)
+    # first let's look at maya references
+    for ref_node in cmds.ls(references=True):
+        ref_path = os.path.abspath(cmds.referenceQuery(ref_node, filename=True))
+        if ref_path:
+            paths.add(ref_path)
     return paths
