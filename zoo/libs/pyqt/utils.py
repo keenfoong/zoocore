@@ -4,7 +4,6 @@ from functools import partial
 
 
 def loggingMenu():
-
     logManager = zlogging.CentralLogManager()
 
     logMenu = QtWidgets.QMenu("logging")
@@ -66,3 +65,27 @@ def colorStr(c):
     """Generate a hex string code from a QColor"""
     return ('%02x' * 4) % (c.red(), c.green(), c.blue(), c.alpha())
 
+
+def hlineEdit(labelName, parent, enabled=True):
+    layout = QtWidgets.QHBoxLayout()
+    label = QtWidgets.QLabel(labelName, parent=parent)
+    edit = QtWidgets.QLineEdit(parent=parent)
+    edit.setEnabled(enabled)
+
+    layout.addWidget(label)
+    layout.addWidget(edit)
+    layout.setContentsMargins(2, 2, 2, 2)
+    layout.setSpacing(1)
+    return label, edit, layout
+
+
+def vlineEdit(labelName, parent, enabled=True):
+    layout = QtWidgets.QVBoxLayout()
+    label = QtWidgets.QLabel(labelName, parent=parent)
+    edit = QtWidgets.QLineEdit(parent=parent)
+    edit.setEnabled(enabled)
+    layout.addWidget(label)
+    layout.addWidget(edit)
+    layout.setContentsMargins(2, 2, 2, 2)
+    layout.setSpacing(1)
+    return label, edit, layout

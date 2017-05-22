@@ -263,8 +263,9 @@ def shapes(path):
 
 def shapeAtIndex(path, index):
     """Finds and returns the shape DagPath under the specified path for the index
+    
     :param path: the MDagPath to the parent node that you wish to search under
-    :type path: MDagPath
+    :type path: om2.MDagPath
     :param index: the shape index
     :type index: int
     :rtype: om2.MDagPath or None
@@ -276,7 +277,7 @@ def shapeAtIndex(path, index):
 def childTransforms(path):
     """Returns all the child transform from the given DagPath
 
-    :type path: MDagPath
+    :type path: om2.MDagPath
     :return: list(MDagPath) to all transforms below path
     """
     return childPathsByFn(path, om2.MFn.kTransform)
@@ -286,9 +287,9 @@ def setParent(child, newParent, maintainOffset=False):
     """Sets the parent for the given child
 
     :param child: the child node which will have its parent changed
-    :type child: MObject
+    :type child: om2.MObject
     :param newParent: The new parent for the child
-    :type newParent: MObject
+    :type newParent: om2.MObject
     :param maintainOffset: if True then the current transformation is maintained relative to the new parent
     :type maintainOffset: bool
     :rtype bool

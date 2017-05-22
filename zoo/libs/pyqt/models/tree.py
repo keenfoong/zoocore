@@ -1,4 +1,4 @@
-"""This module is for a standard Qt tree model 
+"""This module is for a standard Qt tree model
 """
 from zoo.libs.pyqt.qt import QtCore
 
@@ -11,7 +11,7 @@ class Node(QtCore.QObject):
     def __init__(self, metadata=None, parent=None):
         """We initialize the children to an empty list.
         :param parent: The parent of this node
-        :type parent: Node instance 
+        :type parent: Node instance
         """
         super(Node, self).__init__(parent)
         self.metadata = metadata
@@ -21,9 +21,20 @@ class Node(QtCore.QObject):
     def __repr__(self):
         return "{}: {}".format(self.__class__.__name__, self.tooltip())
 
+    def setText(self, index):
+        """Sets the text value of this node at the specified column
+        
+        :param index:
+        :type index: int
+        :return: the new text value for this nodes column index
+        :rtype: str
+        """
+        pass
+
     def text(self, index):
-        """The text for this node or column. index parameter with a value of 0 is 
+        """The text for this node or column. index parameter with a value of 0 is
         the first column
+        
         :param index: The column index for the text
         :type index: int
         :return: the column text
@@ -33,24 +44,28 @@ class Node(QtCore.QObject):
 
     def tooltip(self):
         """The tooltip for this node
+        
         :rtype: str
         """
         return ""
 
     def icon(self):
-        """The icon for this node 
-        :rtype: QtGui.QIcon 
+        """The icon for this node
+        
+        :rtype: QtGui.QIcon
         """
         pass
 
     def columnCount(self):
         """The column count, this is only required to be set on the root node
-        :rtype: int 
+        
+        :rtype: int
         """
         return 0
 
     def headerText(self, index):
         """The header text, index parameter of 0 is the first column
+        
         :param index: the column index
         :type index: int
         :return: the header value
@@ -60,13 +75,15 @@ class Node(QtCore.QObject):
 
     def flags(self, index):
         """Sets the node q flag states
+        
         :param index: the column index
-        :type index: int 
+        :type index: int
         """
         return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
     def isEditable(self, index):
         """Determines if this node can be editable e.g set text. Defaults to False
+        
         :param index: the column index
         :type index: int
         :return: whether or not this node is editable, defaults to False
@@ -79,10 +96,10 @@ class Node(QtCore.QObject):
 
     def append(self, item):
         """Given another Node instance add it as a child.
-        :param item: The child item to add, the child must already have this node as a
-        parent.
+        
+        :param item: The child item to add, the child must already have this node as a parent.
         :type item: Node instance
-        :rtype: None 
+        :rtype: None
         """
         if item not in self.children:
             self.children.append(item)
@@ -91,6 +108,13 @@ class Node(QtCore.QObject):
         pass
 
     def remove(self, item):
+        """Remove the child node
+        
+        :param item: the item to remove
+        :type item: Node
+        :return: True if child was removed
+        :rtype: bool
+        """
         try:
             self.children.remove(item)
             return True
@@ -98,14 +122,29 @@ class Node(QtCore.QObject):
             return False
 
     def removeChildren(self, position, count):
+        """Removes a number of children from this node starting at a position index.
+        
+        :param position: the starting position(child index) to remove
+        :type position: int
+        :param count: the number of children to remove
+        :type count: int
+        :rtype: bool
+        """
         if position < 0 or position + count > self.childCount():
             return False
 
         for row in xrange(count):
-            self.childItems.pop(position)
+            self.children.pop(position)
         return True
 
     def child(self, index):
+        """Return the child of this node by index
+        
+        :param index: the child index
+        :type index: int
+        :return: Returns the node instance for the child
+        :rtype: Node
+        """
         if index in range(len(self.children)):
             return self.children[index]
 
@@ -116,9 +155,18 @@ class Node(QtCore.QObject):
                 yield i
 
     def childCount(self):
+        """The number of children for this node
+        
+        :return: child count
+        :rtype: int
+        """
         return len(self.children)
 
     def parent(self):
+        """Returns the parent of this node
+        
+        :rtype: Node
+        """
         return self._parent
 
     def index(self):
@@ -129,9 +177,22 @@ class Node(QtCore.QObject):
 
 
 class TreeModel(QtCore.QAbstractItemModel):
+    sortRole = QtCore.Qt.UserRole
+    filterRole = QtCore.Qt.UserRole + 1
+    userObject = QtCore.Qt.UserRole + 2
+
     def __init__(self, root, parent=None):
         super(TreeModel, self).__init__(parent)
         self.root = root
+
+    def itemFromIndex(self, index):
+        return index.data(self.userObject) if index.isValid() else self.root
+
+    def rowCount(self, parent):
+        if parent.column() > 0:
+            return 0
+        parentItem = self.getItem(parent)
+        return parentItem.childCount()
 
     def columnCount(self, parent):
         return self.root.columnCount()
@@ -140,24 +201,29 @@ class TreeModel(QtCore.QAbstractItemModel):
         if not index.isValid():
             return None
         item = index.internalPointer()
-
-        if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             return item.text(index.column())
-        if role == QtCore.Qt.ToolTipRole:
+        elif role == QtCore.Qt.ToolTipRole:
             return item.tooltip()
-        if role == QtCore.Qt.DecorationRole:
+        elif role == QtCore.Qt.DecorationRole:
             return item.icon()
-        return None
+        elif role == TreeModel.sortRole:
+            return item.text(index.column())
+        elif role == TreeModel.filterRole:
+            return item.text(index.column())
+        elif role == TreeModel.userObject:
+            return item
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         if not index.isValid():
             return False
         pointer = index.internalPointer()
-        if role == QtCore.Qt.EditRole and pointer.isEditable():
+        if role == QtCore.Qt.EditRole:
             column = index.column()
             pointer.setText(value, column)
-            self.dataChanged.emit(index.row(), column)
+            self.dataChanged.emit(index, index)
             return True
+        return False
 
     def flags(self, index):
         if not index.isValid():
@@ -191,12 +257,6 @@ class TreeModel(QtCore.QAbstractItemModel):
             return QtCore.QModelIndex()
 
         return self.createIndex(parentItem.index(), 0, parentItem)
-
-    def rowCount(self, parent):
-        if parent.column() > 0:
-            return 0
-        parentItem = self.getItem(parent)
-        return parentItem.childCount()
 
     def insertRows(self, position, rows, parent=QtCore.QModelIndex()):
         parentItem = self.getItem(parent)
