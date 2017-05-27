@@ -5,13 +5,11 @@ import errno
 import zipfile
 import cStringIO
 import re
-
 import functools
-
 import sys
 
-from zoo.libs.utils import env
 from zoo.libs.utils import zlogging
+
 
 logger = zlogging.getLogger(__name__)
 
@@ -122,16 +120,19 @@ def copyFile(src, dst, permissions=0666):
     os.chmod(dst, permissions)
 
 
-def copyDirectoy(src, dst):
+def copyDirectoy(src, dst, ignorePattern=None):
     try:
+        if ignorePattern:
+            shutil.copytree(src, dst, ignore=shutil.ignore_patterns(*ignorePattern))
+            return
         shutil.copytree(src, dst)
+
     except OSError as exc:
         if exc.errno == errno.ENOTDIR:
             shutil.copy(src, dst)
         else:
             logger.error("Failed to copy directory {} to destination: {}".format(src, dst), exc_info=True)
             raise
-
 
 def folderSize(path):
     """Retrieves the total folder size in bytes

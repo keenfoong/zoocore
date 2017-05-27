@@ -22,8 +22,7 @@ class Node(QtCore.QObject):
         return "{}: {}".format(self.__class__.__name__, self.tooltip())
 
     def setText(self, index):
-        """Sets the text value of this node at the specified column
-        
+        """Sets the text value of this node at the specified column, intended to be overridden
         :param index:
         :type index: int
         :return: the new text value for this nodes column index
@@ -33,8 +32,7 @@ class Node(QtCore.QObject):
 
     def text(self, index):
         """The text for this node or column. index parameter with a value of 0 is
-        the first column
-        
+        the first column, intended to be overridden
         :param index: The column index for the text
         :type index: int
         :return: the column text
@@ -43,29 +41,25 @@ class Node(QtCore.QObject):
         return ""
 
     def tooltip(self):
-        """The tooltip for this node
-        
+        """The tooltip for this node, intended to be overridden
         :rtype: str
         """
         return ""
 
     def icon(self):
-        """The icon for this node
-        
+        """The icon for this node. intended to be overridden
         :rtype: QtGui.QIcon
         """
         pass
 
     def columnCount(self):
-        """The column count, this is only required to be set on the root node
-        
+        """The column count, this is only required to be set on the root node. intended to be overridden
         :rtype: int
         """
         return 0
 
     def headerText(self, index):
-        """The header text, index parameter of 0 is the first column
-        
+        """The header text, index parameter of 0 is the first column. intended to be overridden
         :param index: the column index
         :type index: int
         :return: the header value
@@ -74,16 +68,14 @@ class Node(QtCore.QObject):
         return ""
 
     def flags(self, index):
-        """Sets the node q flag states
-        
+        """Sets the node q flag states. intended to be overridden
         :param index: the column index
         :type index: int
         """
         return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
     def isEditable(self, index):
-        """Determines if this node can be editable e.g set text. Defaults to False
-        
+        """Determines if this node can be editable e.g set text. Defaults to False. intended to be overridden
         :param index: the column index
         :type index: int
         :return: whether or not this node is editable, defaults to False
@@ -92,11 +84,16 @@ class Node(QtCore.QObject):
         return False
 
     def alignment(self, index):
+        """ intended to be overridden
+        :param index: 
+        :type index: int
+        :return: 
+        :rtype: 
+        """
         return QtCore.QVariant(int(QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft))
 
     def append(self, item):
         """Given another Node instance add it as a child.
-        
         :param item: The child item to add, the child must already have this node as a parent.
         :type item: Node instance
         :rtype: None
@@ -104,12 +101,23 @@ class Node(QtCore.QObject):
         if item not in self.children:
             self.children.append(item)
 
-    def insertChild(self, index):
-        pass
+    def insertChild(self, index, item=None):
+        """To support arbitrary child class types we allow the parameter "item" however if its None then a empty child
+        of the current class type is created
+        :param index: the index to insert the child
+        :type index: int
+        :param item: The child node if any, if None is provided then the current class Type is used
+        :type item: Node
+        :return: The new child is returned
+        :rtype: Node
+        """
+        if item is None:
+            item = self.__class__(parent=self)
 
+        self.children.insert(index, item)
+        return item
     def remove(self, item):
         """Remove the child node
-        
         :param item: the item to remove
         :type item: Node
         :return: True if child was removed
@@ -123,7 +131,6 @@ class Node(QtCore.QObject):
 
     def removeChildren(self, position, count):
         """Removes a number of children from this node starting at a position index.
-        
         :param position: the starting position(child index) to remove
         :type position: int
         :param count: the number of children to remove
@@ -139,7 +146,6 @@ class Node(QtCore.QObject):
 
     def child(self, index):
         """Return the child of this node by index
-        
         :param index: the child index
         :type index: int
         :return: Returns the node instance for the child
@@ -156,7 +162,6 @@ class Node(QtCore.QObject):
 
     def childCount(self):
         """The number of children for this node
-        
         :return: child count
         :rtype: int
         """
@@ -164,7 +169,6 @@ class Node(QtCore.QObject):
 
     def parent(self):
         """Returns the parent of this node
-        
         :rtype: Node
         """
         return self._parent
@@ -184,6 +188,13 @@ class TreeModel(QtCore.QAbstractItemModel):
     def __init__(self, root, parent=None):
         super(TreeModel, self).__init__(parent)
         self.root = root
+
+    def reload(self):
+        """Hard reloads the model, we do this by the modelReset slot, the reason why we do this instead of insertRows()
+        is because we expect that the tree structure has already been rebuilt with its children so by calling insertRows
+         we would in turn create duplicates.
+        """
+        self.modelReset.emit()
 
     def itemFromIndex(self, index):
         return index.data(self.userObject) if index.isValid() else self.root
@@ -236,7 +247,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             return self.root.headerText(section)
         return None
 
-    def index(self, row, column, parent):
+    def index(self, row, column, parent=QtCore.QModelIndex()):
         if not self.hasIndex(row, column, parent):
             return QtCore.QModelIndex()
 
@@ -258,17 +269,28 @@ class TreeModel(QtCore.QAbstractItemModel):
 
         return self.createIndex(parentItem.index(), 0, parentItem)
 
-    def insertRows(self, position, rows, parent=QtCore.QModelIndex()):
+    def insertRows(self, position, rows, parent=QtCore.QModelIndex(), item=None):
         parentItem = self.getItem(parent)
         self.beginInsertRows(parent, position, position + rows - 1)
         if position < 0 or position > parentItem.childCount():
             return False
 
-        for row in range(rows):
-            parentItem.insertChild(position)
+        for row in xrange(rows):
+            parentItem.insertChild(position, item)
         self.endInsertRows()
 
         return True
+
+    def removeRows(self, position, rows, parent=QtCore.QModelIndex()):
+        parentNode = self.getItem(parent)
+        self.beginRemoveRows(parent, position, position + rows - 1)
+        success = False
+        for row in xrange(rows):
+            success = parentNode.remove(position)
+
+        self.endRemoveRows()
+
+        return success
 
     def getItem(self, index):
         if index.isValid():
