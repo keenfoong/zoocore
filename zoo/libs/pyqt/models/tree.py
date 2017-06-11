@@ -1,6 +1,6 @@
 """This module is for a standard Qt tree model
 """
-from zoo.libs.pyqt.qt import QtCore
+from zoo.libs.pyqt.qt import QtCore, QtGui
 
 
 class Node(QtCore.QObject):
@@ -18,8 +18,8 @@ class Node(QtCore.QObject):
         self._parent = parent
         self.children = []
 
-    def __repr__(self):
-        return "{}: {}".format(self.__class__.__name__, self.tooltip())
+    # def __repr__(self):
+    #     return "{}".format(self.__class__.__name__)
 
     def setText(self, index):
         """Sets the text value of this node at the specified column, intended to be overridden
@@ -28,7 +28,7 @@ class Node(QtCore.QObject):
         :return: the new text value for this nodes column index
         :rtype: str
         """
-        pass
+        return ""
 
     def text(self, index):
         """The text for this node or column. index parameter with a value of 0 is
@@ -50,7 +50,7 @@ class Node(QtCore.QObject):
         """The icon for this node. intended to be overridden
         :rtype: QtGui.QIcon
         """
-        pass
+        return QtGui.QIcon()
 
     def columnCount(self):
         """The column count, this is only required to be set on the root node. intended to be overridden
@@ -116,6 +116,7 @@ class Node(QtCore.QObject):
 
         self.children.insert(index, item)
         return item
+
     def remove(self, item):
         """Remove the child node
         :param item: the item to remove

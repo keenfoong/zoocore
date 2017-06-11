@@ -30,7 +30,6 @@ class Control(object):
             self._name = self.dagPath.partialPathName()
         else:
             self.dagPath = None
-            self._name = name
         self.srt = None
 
     def __repr__(self):
@@ -65,7 +64,7 @@ class Control(object):
         else:
             nodes.setParent(self.mobject(), parent)
 
-    def addSrt(self, suffix="", parent=None):
+    def addSrtBuffer(self, suffix="", parent=None):
         """Adds a parent transform to the curve transform
 
         :param suffix: the suffix that this transform will get, eg name: self.name_suffix
@@ -89,7 +88,7 @@ class Control(object):
     def parent(self):
         return self.dagPath.pop().node()
 
-    def create(self, shape=None, position=None, rotation=None, scale=(1, 1, 1), rotationOrder=None):
+    def create(self, shape=None, position=None, rotation=None, scale=(1, 1, 1), rotationOrder=0):
         """This method creates a new set of curve shapes for the control based on the shape type specified.
          if the self.node already initialized then this node will become the parent. this method has basic functionality
          for transformation if you need more control use the other helper method on this class.
@@ -124,8 +123,8 @@ class Control(object):
             self.setRotation(rotation, space=om2.MSpace.kWorld)
         if scale != (1, 1, 1) and scale:
             self.setScale(scale, space=om2.MSpace.kWorld)
-        if rotationOrder is not None:
-            self.setRotationOrder(rotationOrder)
+
+        self.setRotationOrder(rotationOrder)
         return self.dagPath
 
     def setPosition(self, position, cvs=False, space=None, useParent=True):

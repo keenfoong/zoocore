@@ -69,7 +69,7 @@ class TestControl(mayatestutils.BaseMayaTest):
     def test_addSrt(self):
         con = control.Control(name="testControl")
         con.create(shape="arrow")
-        con.addSrt("testNode")
+        con.addSrtBuffer("testNode")
         self.assertTrue(nodes.hasParent(con.dagPath.node()))
         parent = con.dagPath.pop()
         self.assertTrue(parent.partialPathName().endswith("_testNode"))

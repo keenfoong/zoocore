@@ -404,9 +404,10 @@ class MetaBase(object):
             return self._mfn.findPlug(name, networked)
 
     @lockMetaManager
-    def addAttribute(self, name, value, Type):
+    def addAttribute(self, name, value, Type, isArray=False):
         try:
             attr = nodes.addAttribute(self._handle.object(), name, name, Type)
+            attr.array = isArray
         except RuntimeError:
             return
         newPlug = None
@@ -527,6 +528,16 @@ class MetaBase(object):
         return data
 
     def connectTo(self, attributeName, node, nodeAttributeName=None):
+        """Connects one plug to another by attribute name
+        :param attributeName: the meta attribute name to connect from, if it doesn't exist it will be created
+        :type attributeName: str
+        :param node: the destination node
+        :type node: MObject
+        :param nodeAttributeName: the destination node attribute name, if one doesn't exist one will be created
+        :type nodeAttributeName: str
+        :return: the destination plug
+        :rtype: om2.MPlug
+        """
         nodeAttributeName = nodeAttributeName or "metaNode"
         dep = om2.MFnDependencyNode(node)
         if not dep.hasAttribute(nodeAttributeName):
@@ -550,6 +561,32 @@ class MetaBase(object):
                 destinationPlug.isLocked = False
             plugs.connectPlugs(sourcePlug, destinationPlug)
             destinationPlug.isLocked = True
+        return destinationPlug
+
+    def connectToByPlug(self, sourcePlug, node, nodeAttributeName=None):
+        nodeAttributeName = nodeAttributeName or "metaNode"
+        dep = om2.MFnDependencyNode(node)
+        if not dep.hasAttribute(nodeAttributeName):
+            destinationPlug = dep.findPlug(nodes.addAttribute(node, nodeAttributeName, nodeAttributeName,
+                                                              attrtypes.kMFnMessageAttribute).object(), False)
+        else:
+            destinationPlug = dep.findPlug(nodeAttributeName, False)
+            plugs.disconnectPlug(destinationPlug)
+
+        with plugs.setLockedContext(sourcePlug):
+            destIsLock = False
+            sourceIsLock = False
+            if destinationPlug.isLocked:
+                destinationPlug.isLocked = False
+                destIsLock = True
+            if sourcePlug.isLocked:
+                sourcePlug.isLocked = False
+                sourceIsLock = True
+            plugs.connectPlugs(sourcePlug, destinationPlug)
+            if sourceIsLock:
+                sourcePlug.isLocked = True
+            if destIsLock:
+                destinationPlug.isLocked = True
         return destinationPlug
 
     def metaRoot(self):

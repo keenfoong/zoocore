@@ -3,6 +3,7 @@ from zoo.libs.pyqt.qt import QtWidgets, QtCore
 
 class TreeViewPlus(QtWidgets.QFrame):
     selectionChanged = QtCore.Signal()
+    contextMenuRequestedSignal = QtCore.Signal(object)
 
     def __init__(self, searchable=False, parent=None):
         super(TreeViewPlus, self).__init__(parent)
@@ -40,6 +41,8 @@ class TreeViewPlus(QtWidgets.QFrame):
         self.mainLayout.setContentsMargins(2, 2, 2, 2)
         self.treeView = QtWidgets.QTreeView(parent=self)
         self.treeView.setSelectionMode(self.treeView.ExtendedSelection)
+        self.treeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.treeView.customContextMenuRequested.connect(self.onContextMenuRequested)
         self._setupFilter()
 
         self.mainLayout.addWidget(self.treeView)
@@ -53,7 +56,6 @@ class TreeViewPlus(QtWidgets.QFrame):
     def selectedItems(self):
         indices = self.selectionModel.selectedRows()
         model = self.model
-
         return [model.itemFromIndex(i) for i in indices]
 
     def connections(self):
@@ -77,6 +79,7 @@ class TreeViewPlus(QtWidgets.QFrame):
         self.proxySearch.setFilterKeyColumn(index)
 
     def refresh(self):
+        currentIndex = self.searchHeaderBox.currentIndex()
         self.searchHeaderBox.clear()
         for index in xrange(self.model.columnCount(QtCore.QModelIndex())):
             self.treeView.resizeColumnToContents(index)
@@ -84,6 +87,12 @@ class TreeViewPlus(QtWidgets.QFrame):
             self.treeView.setColumnWidth(index, newWidth)
             header = self.model.root.headerText(index)
             self.searchHeaderBox.addItem(header)
+        self.searchHeaderBox.setCurrentIndex(currentIndex)
+
+    def onContextMenuRequested(self, position):
+        menu = QtWidgets.QMenu(parent=self)
+        self.contextMenuRequestedSignal.emit(menu)
+        menu.exec_(self.treeView.viewport().mapToGlobal(position))
 
 
 if __name__ == "__main__":
