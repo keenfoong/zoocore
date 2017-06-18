@@ -21,8 +21,10 @@ class Icon(object):
                 for f in files:
                     fname = f.split(os.extsep)[0]
                     nameSplit = fname.split("_")
+                    if len(nameSplit) < 1:
+                        continue
                     name = "_".join(nameSplit[:-1])
-                    size = nameSplit[-1]
+                    size = int(nameSplit[-1])
                     if name in iconCollection:
                         sizes = iconCollection[name]["sizes"]
                         if size in sizes:
@@ -53,23 +55,21 @@ class Icon(object):
             if splitter[-1].isdigit():
                 iconName = "_".join(splitter[:-1])
                 # user requested the size in the name
-                size = splitter[-1]
+                size = int(splitter[-1])
         else:
-            size = str(size)
-        if iconName not in cls.iconCollection:
-            return QtGui.QIcon()
-
-        for name, data in iter(cls.iconCollection.items()):
-            if name != iconName:
-                continue
-            if size not in data["sizes"]:
-                return QtGui.QIcon()
-            iconData = data["sizes"][size]
-            icon = iconData["icon"]
-            if icon and isinstance(iconData["icon"], QtGui.QIcon) and not icon.isNull():
+            size = int(size)
+        iconData = cls.iconCollection.get(iconName)
+        if iconData:
+            if size not in iconData["sizes"]:
+                size = min(iconData["sizes"].keys())
+                data = iconData["sizes"][min(iconData["sizes"].keys())]
+            else:
+                data = iconData["sizes"][size]
+            icon = data["icon"]
+            if icon and isinstance(data["icon"], QtGui.QIcon) and not icon.isNull():
                 return icon
-            newIcon = QtGui.QIcon(iconData["path"])
-            data["sizes"][size]["icon"] = newIcon
+            newIcon = QtGui.QIcon(data["path"])
+            iconData["sizes"][size]["icon"] = newIcon
             return newIcon
 
         return QtGui.QIcon()

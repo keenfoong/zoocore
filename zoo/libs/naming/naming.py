@@ -117,7 +117,7 @@ class NameManager(object):
     def setTokenDefault(self, name, value):
         tokens = self.config["tokens"]
         if name in tokens:
-            tokens[name]["default"] = value
+            tokens[name]["default"] = tokens[name].get(value, value)
 
     def overrideToken(self, name, value, **kwargs):
         if not self.hasToken(name):

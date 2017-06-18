@@ -93,7 +93,6 @@ def floatMath(floatA, floatB, operation, name):
 
 
 def blendTwoAttr(input1, input2, blender, name):
-    #@todo evaluate array for query.
     fn = om2.MFnDependencyNode(nodes.createDGNode(name, "blendTwoAttr"))
     inputArray = fn.findPlug("input", False)
     plugs.connectPlugs(input1, inputArray.elementByLogicalIndex(-1))
@@ -104,7 +103,7 @@ def blendTwoAttr(input1, input2, blender, name):
 
 def pairBlend(name, inRotateA=None, inRotateB=None, inTranslateA=None, inTranslateB=None, weight=None,
               rotInterpolation=None):
-    blendPairNode = om2.MFnDependencyNode(nodes.createDGNode("_".join([name, "pairBlend"]), "pairBlend"))
+    blendPairNode = om2.MFnDependencyNode(nodes.createDGNode(name, "pairBlend"))
     if inRotateA is not None:
         plugs.connectPlugs(inRotateA, blendPairNode.findPlug("inRotate1", False))
     if inRotateB is not None:
@@ -124,6 +123,60 @@ def pairBlend(name, inRotateA=None, inRotateB=None, inTranslateA=None, inTransla
         else:
             plugs.setPlugValue(blendPairNode.findPlug("rotInterpolation", False), rotInterpolation)
     return blendPairNode.object()
+
+
+def conditionVector(firstTerm, secondTerm, colorIfTrue, colorIfFalse, operation, name):
+    """
+    :param firstTerm: 
+    :type firstTerm: om2.MPlug or float
+    :param secondTerm: 
+    :type secondTerm: om2.MPlug or float 
+    :param colorIfTrue: seq of MPlugs or a single MPlug(compound) 
+    :type colorIfTrue: om2.MPlug or list(om2.Plug) or om2.MVector
+    :param colorIfFalse: seq of MPlugs or a single MPlug(compound)
+    :type colorIfFalse: om2.MPlug or list(om2.Plug) or om2.MVector 
+    :param operation: the comparsion operator
+    :type operation: int
+    :param name: the new name for the node
+    :type name: str
+    :return: 
+    :rtype: om2.MObject
+    """
+    condNode = om2.MFnDependencyNode(nodes.createDGNode(name, "condition"))
+    if isinstance(firstTerm, float):
+        plugs.setPlugValue(condNode.findPlug("firstTerm", False), firstTerm)
+    else:
+        plugs.connectPlugs(firstTerm, condNode.findPlug("firstTerm", False))
+    if isinstance(operation, int):
+        plugs.setPlugValue(condNode.findPlug("operation", False), operation)
+    else:
+        plugs.connectPlugs(operation, condNode.findPlug("operation", False))
+
+    if isinstance(secondTerm, float):
+        plugs.setPlugValue(condNode.findPlug("secondTerm", False), firstTerm)
+    else:
+        plugs.connectPlugs(secondTerm, condNode.findPlug("secondTerm", False))
+    if isinstance(colorIfTrue, om2.MPlug):
+        plugs.connectPlugs(colorIfTrue, condNode.findPlug("colorIfTrue", False))
+    elif isinstance(colorIfTrue, om2.MVector):
+        plugs.setPlugValue(condNode.findPlug("colorIfTrue", False), colorIfTrue)
+    else:
+        color = condNode.findPlug("colorIfTrue", False)
+        # expecting seq of plugs
+        for i, p in enumerate(colorIfTrue):
+            child = color.child(i)
+            plugs.connectPlugs(p, child)
+    if isinstance(colorIfFalse, om2.MPlug):
+        plugs.connectPlugs(colorIfFalse, condNode.findPlug("colorIfFalse", False))
+    elif isinstance(colorIfTrue, om2.MVector):
+        plugs.setPlugValue(condNode.findPlug("colorIfFalse", False), colorIfFalse)
+    else:
+        color = condNode.findPlug("colorIfFalse", False)
+        # expecting seq of plugs
+        for i, p in enumerate(colorIfTrue):
+            child = color.child(i)
+            plugs.connectPlugs(p, child)
+    return condNode.object()
 
 
 def graphSerialize(graphNodes):
