@@ -25,6 +25,7 @@ class ComboBox(QtWidgets.QWidget):
     itemChanged = QtCore.Signal(int, str)
 
     def __init__(self, label, items, parent=None):
+        super(ComboBox, self).__init__(parent=parent)
         layout = QtWidgets.QHBoxLayout(self)
 
         self.box = combobox.ExtendedComboBox(items, parent)
@@ -140,16 +141,16 @@ class Matrix(QtWidgets.QWidget):
 class Transformation(QtWidgets.QWidget):
     # @todo setup signals
     rotOrders = ("XYZ", "YZX", "ZXY", "XZY", "XYZ", "ZXY")
-
+    axis = ("X", "Y", "Z")
     def __init__(self, parent=None):
         super(Transformation, self).__init__(parent=parent)
         self.group = QtWidgets.QGroupBox(parent=self)
         self.layout = QtWidgets.QVBoxLayout(self)
         self.group.setLayout(self.layout)
-        translationVec = Vector("Translation", [0.0, 0.0, 0.0], -99999, 99999, parent=self)
-        rotationVec = Vector("Rotation", [0.0, 0.0, 0.0], -99999, 99999, parent=self)
-        scaleVec = Vector("Scale", [0.0, 0.0, 0.0], -99999, 99999, parent=self)
-        rotationOrderBox = ComboBox("RotationOrder", 0, Transformation.rotOrders, parent=self)
+        translationVec = Vector("Translation", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
+        rotationVec = Vector("Rotation", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
+        scaleVec = Vector("Scale", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
+        rotationOrderBox = ComboBox("RotationOrder", Transformation.rotOrders, parent=self)
         self.layout.addWidget(translationVec)
         self.layout.addWidget(rotationVec)
         self.layout.addWidget(rotationVec)
