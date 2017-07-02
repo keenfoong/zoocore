@@ -1,7 +1,9 @@
 import os
+from contextlib import contextmanager
 
 from maya import cmds
 from maya.OpenMaya import MGlobal
+from maya.api import OpenMaya as om2
 from zoo.libs.utils import zlogging
 from zoo.libs.maya.utils import env
 
@@ -82,3 +84,19 @@ def unLoadMayaPlugins():
     for plugin in getMayaPlugins():
         unloadPlugin(plugin)
     logger.debug("unloaded all plugins")
+
+@contextmanager
+def namespaceContext(namespace):
+    currentNamespace = om2.MNamespace.currentNamespace()
+    existingNamespaces = om2.MNamespace.getNamespaces(currentNamespace, True)
+    if currentNamespace != namespace and namespace not in existingNamespaces:
+        try:
+            om2.MNamespace.addNamespace(namespace)
+        except RuntimeError:
+            logger.error("Failed to create namespace: {}, existing namespaces: {}".format(namespace,
+                                                                                          existingNamespaces),
+                         exc_info=True)
+            raise
+    om2.MNamespace.setCurrentNamespace(namespace)
+    yield
+    om2.MNamespace.setCurrentNamespace(currentNamespace)
