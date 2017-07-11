@@ -1,11 +1,14 @@
+from collections import OrderedDict
+
 from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
 from zoo.libs.pyqt.extended import combobox
 
 
 class StringEdit(QtWidgets.QWidget):
     textChanged = QtCore.Signal(str)
+    buttonClicked = QtCore.Signal()
 
-    def __init__(self, label, placeholder, parent=None):
+    def __init__(self, label, placeholder, buttonText=None, parent=None):
         super(StringEdit, self).__init__(parent=parent)
         self.edit = QtWidgets.QLineEdit(parent=self)
 
@@ -14,11 +17,20 @@ class StringEdit(QtWidgets.QWidget):
         self.edit.setPlaceholderText(placeholder)
 
         self.layout.addWidget(self.edit)
+        if buttonText:
+            self.btn = QtWidgets.QPushButton(buttonText, parent=self)
+            self.layout.addWidget(self.btn)
         self.setLayout(self.layout)
+        self.connections()
+
+    def connections(self):
         self.edit.textChanged.connect(self._onTextChanged)
 
     def _onTextChanged(self):
         self.textChanged.emit(str(self.edit.text()))
+
+    def setText(self, value):
+        self.edit.setText(value)
 
 
 class ComboBox(QtWidgets.QWidget):
@@ -70,7 +82,7 @@ class Vector(QtWidgets.QWidget):
         if label:
             self.label = QtWidgets.QLabel(label, parent=self)
             self.mainLayout.addWidget(self.label)
-        self._widgets = {}
+        self._widgets = OrderedDict()
         for i, v in enumerate(axis):
             box = QtWidgets.QDoubleSpinBox(self)
             box.setObjectName("".join([label, v]))
@@ -93,6 +105,15 @@ class Vector(QtWidgets.QWidget):
 
     def widget(self, axis):
         return self._widgets.get(axis)
+
+    def value(self):
+        return tuple([float(i.value()) for i in self._widgets.values()])
+
+    def setValue(self, value):
+        # get the widgets in order
+        keys = self._widgets.keys()
+        for i, v in enumerate(value):
+            self._widgets[keys[i]].setValue(v)
 
 
 class Matrix(QtWidgets.QWidget):
@@ -119,7 +140,7 @@ class Matrix(QtWidgets.QWidget):
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.mainLayout.addWidget(self.label, 0, 0)
         self.mainLayout.addItem(spacerItem, 1, 0)
-        self._widgets = {}
+        self._widgets = OrderedDict()
         axislabels = ("X", "Y", "Z")
         for i, c in enumerate(matrix):
             vec = Vector(label="", value=c, min=min[i], max=max[i], axis=axislabels, parent=self)
