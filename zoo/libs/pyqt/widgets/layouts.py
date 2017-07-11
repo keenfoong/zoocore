@@ -142,6 +142,7 @@ class Transformation(QtWidgets.QWidget):
     # @todo setup signals
     rotOrders = ("XYZ", "YZX", "ZXY", "XZY", "XYZ", "ZXY")
     axis = ("X", "Y", "Z")
+
     def __init__(self, parent=None):
         super(Transformation, self).__init__(parent=parent)
         self.group = QtWidgets.QGroupBox(parent=self)

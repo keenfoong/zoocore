@@ -102,7 +102,10 @@ def openLocation(path):
         ctypes.windll.shell32.ILFree(pidl)
         ctypes.windll.ole32.CoUninitialize()
     elif platform == 'darwin':
-        subprocess.Popen(["open", os.path.dirname(path)])
+        if os.path.isdir(path):
+            subprocess.Popen(["explorer", os.path.dirname(path)])
+            return
+        subprocess.Popen(["explorer", "/select", path])
     else:
         subprocess.Popen(["xdg-open", os.path.dirname(path)])
 

@@ -3,7 +3,7 @@ from zoo.libs.pyqt.qt import QtWidgets
 
 class DockWidget(QtWidgets.QDockWidget):
     def __init__(self, parent=None, floating=False):
-        super(self.__class__, self).__init__(parent)
+        super(DockWidget, self).__init__(parent)
         self.setFloating(floating)
         self.setFeatures(
             QtWidgets.QDockWidget.DockWidgetMovable |

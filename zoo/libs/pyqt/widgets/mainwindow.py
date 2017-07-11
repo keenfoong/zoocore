@@ -20,7 +20,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.docks = []
         self.toolBars = {}
-
+        self.hasMainMenu = False
         self.centralWidget = QtWidgets.QWidget()
         self.setCentralWidget(self.centralWidget)
         self.reapplySettings()
@@ -48,6 +48,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.statusBar().showMessage("Status info/tips displayed here..")
 
     def setupMenuBar(self):
+        self.hasMainMenu = True
         self.fileMenu = self.menuBar().addMenu("File")
         self.viewMenu = self.menuBar().addMenu("View")
         self.exitAction = QtWidgets.QAction(self)
@@ -57,6 +58,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.exitAction.setToolTip("Close's application")
         self.fileMenu.addAction(self.exitAction)
         self.exitAction.triggered.connect(self.close)
+
+        for i in self.docks:
+            self.viewMenu.addAction(i.togglerViewAction())
 
     def setCustomCentralWidget(self, widget):
         self.setCentralWidget(widget)
@@ -68,14 +72,16 @@ class MainWindow(QtWidgets.QMainWindow):
         :param orientation: QtCore.Qt.Orientation
         """
         self.docks.append(dockWidget)
-        # add a show/hide action to the view menu
-        self.viewMenu.addAction(dockWidget.toggleViewAction())
+        if self.hasMainMenu:
+            # add a show/hide action to the view menu
+            self.viewMenu.addAction(dockWidget.toggleViewAction())
+
         # tabify the dock if obne already exists at the area specified
         for currentDock in self.docks:
             if self.dockWidgetArea(currentDock) == area:
                 self.tabifyDockWidget(currentDock, dockWidget)
                 return
-        super(MainWindow, self).addDockWidget(area, self.dock, orientation)
+        super(MainWindow, self).addDockWidget(area, dockWidget, orientation)
 
     def findDock(self, dockName):
         """Returns the dock widget based on the object name passed in as the argument
