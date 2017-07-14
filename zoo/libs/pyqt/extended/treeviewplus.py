@@ -58,6 +58,9 @@ class TreeViewPlus(QtWidgets.QFrame):
         model = self.model
         return [model.itemFromIndex(i) for i in indices]
 
+    def selectedQIndices(self):
+        return self.selectionModel.selectedRows()
+
     def connections(self):
         self.treeView.expanded.connect(self.refresh)
         self.treeView.collapsed.connect(self.refresh)
@@ -70,6 +73,7 @@ class TreeViewPlus(QtWidgets.QFrame):
         self.proxySearch.setSortRole(QtCore.Qt.DisplayRole)
         self.proxySearch.setFilterRole(QtCore.Qt.DisplayRole)
         self.proxySearch.setFilterKeyColumn(0)
+        self.treeView.sortByColumn(0, QtCore.Qt.AscendingOrder)
         self.model = model
         self.treeView.setModel(self.proxySearch)
         self.searchEdit.textChanged.connect(self.proxySearch.setFilterRegExp)

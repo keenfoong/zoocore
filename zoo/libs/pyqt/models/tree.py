@@ -18,10 +18,13 @@ class Node(QtCore.QObject):
         self._parent = parent
         self.children = []
 
-    # def __repr__(self):
-    #     return "{}".format(self.__class__.__name__)
+    def __repr__(self):
+        return "{}: {}".format(self.__class__.__name__, self.tooltip())
+    
+    def isRoot(self):
+        return False
 
-    def setText(self, index):
+    def setText(self, index, value):
         """Sets the text value of this node at the specified column, intended to be overridden
         :param index:
         :type index: int
@@ -100,6 +103,9 @@ class Node(QtCore.QObject):
         """
         if item not in self.children:
             self.children.append(item)
+
+    def extend(self, items):
+        self.children.extend([i for i in items if i not in self.children])
 
     def insertChild(self, index, item=None):
         """To support arbitrary child class types we allow the parameter "item" however if its None then a empty child
@@ -232,7 +238,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         pointer = index.internalPointer()
         if role == QtCore.Qt.EditRole:
             column = index.column()
-            pointer.setText(value, column)
+            pointer.setText(column, value)
             self.dataChanged.emit(index, index)
             return True
         return False
