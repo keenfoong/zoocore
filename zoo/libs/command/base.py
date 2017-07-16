@@ -48,7 +48,8 @@ class ExecutorBase(object):
 
             if exc_type and exc_value and exc_tb:
                 tb = traceback.format_exception(exc_type, exc_value, exc_tb)
-            if command.isUndoable:
+            # do not add to our internal stack if we failed
+            elif command.isUndoable:
                 self.undoStack.append(command)
             command.stats.finish(tb)
 

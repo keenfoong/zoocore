@@ -23,9 +23,6 @@ class UndoCmd(om2.MPxCommand):
     """
 
     kCmdName = "zooAPIUndo"
-    kId = "-id"
-    kCallInfo = "-callInfo"
-
     def __init__(self):
         """We initialize a storage variable for a list of commands
         """
@@ -67,7 +64,8 @@ class UndoCmd(om2.MPxCommand):
         """True if we have stored commands
         :return: bool
         """
-        return self.command.isUndoable
+
+        return self._command.isUndoable
 
     @classmethod
     def cmdCreator(cls):
@@ -75,10 +73,7 @@ class UndoCmd(om2.MPxCommand):
 
     @classmethod
     def syntaxCreator(cls):
-        syntax = om2.MSyntax()
-        # id - just for information and debugging
-        syntax.addFlag(UndoCmd.kId, UndoCmd.kCallInfo, om2.MSyntax.kString)
-        return syntax
+        return om2.MSyntax()
 
 
 def initializePlugin(mobject):

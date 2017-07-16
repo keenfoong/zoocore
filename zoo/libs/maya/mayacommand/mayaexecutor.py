@@ -37,13 +37,11 @@ class MayaExecutor(base.ExecutorBase):
         try:
             if command.isUndoable:
                 cmds.undoInfo(openChunk=True)
-            result = self._callDoIt(command)
             om2._ZOOCOMMAND = command
             cmds.zooAPIUndo(id=command.id)
+
         except errors.UserCancel:
-            self.undoStack.remove(command)
             command.stats.finish(None)
-            return result
         except Exception:
             exc_type, exc_value, exc_tb = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_tb)
