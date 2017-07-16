@@ -1,4 +1,3 @@
-import abc
 from functools import partial
 
 from zoo.libs import iconlib
@@ -8,17 +7,16 @@ from zoo.libs.pyqt.qt import QtWidgets, QtGui, QtCore
 logger = zlogging.getLogger(__name__)
 
 
-class CommandUi(QtWidgets.QWidget):
+class CommandUi(QtCore.QObject):
     """CommandUi class deals with encapsulating a command as a widget
     """
     triggered = QtCore.Signal(str)
-    __metaclass__ = abc.ABCMeta
 
     def __init__(self, command):
+        super(CommandUi, self).__init__()
         self.command = command
         self.item = None
 
-    @abc.abstractmethod
     def create(self, parent=None):
         pass
 
@@ -26,23 +24,24 @@ class CommandUi(QtWidgets.QWidget):
 class MenuItem(CommandUi):
     def create(self, parent=None):
         from maya import cmds
-        uiData = self.command.uiData
+        uiData = self.command.uiData()
         self.item = cmds.menuItem(l=uiData["uiData"], bld=uiData.get("bold", False), parent=parent,
                                   itl=uiData.get("italicized", False), c=partial(self.triggered.emit, self.command.id))
 
 
 class CommandAction(CommandUi):
     def create(self, parent=None):
-        uiData = self.command.uiData
-        self.item = QtWidgets.QWidgetAction(parent=parent)
+        uiData = self.command.uiData()
+        self.item = QtWidgets.QWidgetAction(parent)
         text = uiData.get("label", "NOLABEL")
         actionLabel = QtWidgets.QLabel(text)
         self.item.setDefaultWidget(actionLabel)
-
-        if self.color:
+        color = uiData.get("color", "")
+        backColor = uiData.get("backgroundColor", "")
+        if color or backColor:
             actionLabel.setStyleSheet(
-                "QLabel {" + " background-color: {}; color: {};".format(uiData.get("backgroundColor", ""),
-                                                                        uiData.get("color", "")) + "}")
+                "QLabel {background-color: %s; color: %s;}" % (backColor,
+                                                               color))
         icon = uiData.get("icon")
         if icon:
             if isinstance(icon, QtGui.QIcon):
@@ -55,3 +54,7 @@ class CommandAction(CommandUi):
         self.item.triggered.connect(partial(self.triggered.emit, self.command.id))
         logger.debug("Added commandUi, {}".format(text))
         return self.item
+
+    def show(self):
+        if self.item is not None:
+            self.item.show()

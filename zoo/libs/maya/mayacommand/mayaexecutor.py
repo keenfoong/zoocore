@@ -32,14 +32,12 @@ class MayaExecutor(base.ExecutorBase):
         exc_tb = None
         exc_type = None
         exc_value = None
-        result = None
         command.stats = base.CommandStats(command)
         try:
             if command.isUndoable:
                 cmds.undoInfo(openChunk=True)
             om2._ZOOCOMMAND = command
             cmds.zooAPIUndo(id=command.id)
-
         except errors.UserCancel:
             command.stats.finish(None)
         except Exception:
@@ -54,8 +52,7 @@ class MayaExecutor(base.ExecutorBase):
                 self.undoStack.append(command)
                 cmds.undoInfo(closeChunk=True)
             command.stats.finish(tb)
-
-        return result
+            return command._returnResult
 
     def undoLast(self):
         if self.undoStack:
@@ -70,31 +67,30 @@ class MayaExecutor(base.ExecutorBase):
 
     def redoLast(self):
         result = None
-        if self.redoStack:
-            command = self.redoStack.pop()
-            if command is not None:
-                exc_tb = None
-                exc_type = None
-                exc_value = None
-                try:
-                    command.stats = base.CommandStats(command)
-                    cmds.redo()
-                except errors.UserCancel:
-                    self.undoStack.remove(command)
-                    command.stats.finish(None)
-                    return
-                except Exception:
-                    exc_type, exc_value, exc_tb = sys.exc_info()
-                    traceback.print_exception(exc_type, exc_value, exc_tb)
-                    raise
-                finally:
-                    tb = None
-                    if exc_type and exc_value and exc_tb:
-                        tb = traceback.format_exception(exc_type, exc_value, exc_tb)
-                    elif command.isUndoable:
-                        self.undoStack.append(command)
+        command = self.redoStack.pop()
+        if command is not None:
+            exc_tb = None
+            exc_type = None
+            exc_value = None
+            try:
+                command.stats = base.CommandStats(command)
+                cmds.redo()
+            except errors.UserCancel:
+                self.undoStack.remove(command)
+                command.stats.finish(None)
+                return
+            except Exception:
+                exc_type, exc_value, exc_tb = sys.exc_info()
+                traceback.print_exception(exc_type, exc_value, exc_tb)
+                raise
+            finally:
+                tb = None
+                if exc_type and exc_value and exc_tb:
+                    tb = traceback.format_exception(exc_type, exc_value, exc_tb)
+                elif command.isUndoable:
+                    self.undoStack.append(command)
 
-                    command.stats.finish(tb)
+                command.stats.finish(tb)
 
         return result
 

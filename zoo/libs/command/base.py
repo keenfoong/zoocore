@@ -45,15 +45,13 @@ class ExecutorBase(object):
             raise
         finally:
             tb = None
-
             if exc_type and exc_value and exc_tb:
                 tb = traceback.format_exception(exc_type, exc_value, exc_tb)
             # do not add to our internal stack if we failed
             elif command.isUndoable:
                 self.undoStack.append(command)
             command.stats.finish(tb)
-
-        return result
+            return result
 
     def undoLast(self):
         if self.undoStack:
@@ -126,7 +124,9 @@ class ExecutorBase(object):
         self.redoStack.clear()
 
     def _callDoIt(self, command):
-        return command.doIt(**command.arguments)
+        result = command.doIt(**command.arguments)
+        command._returnResult = result
+        return result
 
     def cancel(self, msg):
         raise errors.UserCancel(msg)

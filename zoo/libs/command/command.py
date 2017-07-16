@@ -11,6 +11,7 @@ class CommandInterface(object):
         self.stats = stats
         self.arguments = {}
         self.initialize()
+        self._returnResult = None
 
     def initialize(self):
         pass
@@ -37,8 +38,8 @@ class CommandInterface(object):
     def isUndoable(self):
         return False
 
-    @property
-    def uiData(self):
+    @staticmethod
+    def uiData():
         return {"icon": "",
                 "tooltip": "",
                 "label": "",
@@ -82,13 +83,17 @@ class ZooCommand(CommandInterface):
             return arguments
         return dict()
 
-    def commandUi(self, uiType):
+    @classmethod
+    def commandUi(cls, uiType, parent=None):
         # import locally due to avoid qt dependencies by default
         from zoo.libs.command import commandui
+
         if uiType == 0:
-            commandui.CommandAction(self)
-        elif uiType == 1:
-            commandui.MenuItem(self)
+            widget = commandui.CommandAction(cls)
+        else:
+            widget = commandui.MenuItem(cls)
+        widget.create(parent=parent)
+        return widget
 
 
 def generateCommandTemplate(className, id, doItContent, undoItContent, filePath,

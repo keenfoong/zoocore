@@ -23,6 +23,7 @@ class UndoCmd(om2.MPxCommand):
     """
 
     kCmdName = "zooAPIUndo"
+
     def __init__(self):
         """We initialize a storage variable for a list of commands
         """
@@ -55,10 +56,13 @@ class UndoCmd(om2.MPxCommand):
         if self._command is None:
             return
         elif self._command != om2._COMMANDEXECUTOR.undoStack[-1]:
+
             raise ValueError("Undo stack has become out of the sync with zoocommands {}".format(self._command.id))
         elif self._command.isUndoable:
-            self._command.undoIt()
-            om2._COMMANDEXECUTOR.undoStack.pop()
+            try:
+                self._command.undoIt()
+            finally:
+                om2._COMMANDEXECUTOR.undoStack.pop()
 
     def isUndoable(self):
         """True if we have stored commands
