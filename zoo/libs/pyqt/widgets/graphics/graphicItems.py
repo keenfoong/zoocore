@@ -90,3 +90,41 @@ class CubicPath(QtGui.QGraphicsPathItem):
         self.contextMenuRequested.emit(menu)
         menu.exec_(event.scenePos())
         event.setAccepted(True)
+
+
+class SelectionRect(QtWidgets.QGraphicsWidget):
+    def __init__(self, pen, color, mouseDownPos):
+        super(SelectionRect, self).__init__()
+        self.setZValue(-1)
+        self._color = color or QtGui.QColor(80, 80, 80, 50)
+        self._pen = pen or QtGui.QPen(QtGui.QColor(20, 20, 20), 1.0, QtCore.Qt.DashLine)
+        self._mouseDownPos = mouseDownPos
+        self.setPos(self._mouseDownPos)
+
+    def setColor(self, color):
+        self._color = color
+        self.update()
+
+    def setPen(self, pen):
+        self._pen = pen
+        self.update()
+
+    def setDragPoint(self, dragPoint):
+        topLeft = QtCore.QPointF(self._mouseDownPos)
+        bottomRight = QtCore.QPointF(dragPoint)
+        xdown = self._mouseDownPos.x()
+        ydown = self._mouseDownPos.y()
+        if dragPoint.x() < xdown:
+            topLeft.setX(dragPoint.x())
+            bottomRight.setX(xdown)
+        if dragPoint.y() < ydown:
+            topLeft.setY(dragPoint.y())
+            bottomRight.setY(ydown)
+        self.setPos(topLeft)
+        self.resize(bottomRight.x() - topLeft.x(), bottomRight.y() - topLeft.y())
+
+    def paint(self, painter, option, widget):
+        rect = self.windowFrameRect()
+        painter.setBrush(self._color)
+        painter.setPen(self._pen)
+        painter.drawRect(rect)

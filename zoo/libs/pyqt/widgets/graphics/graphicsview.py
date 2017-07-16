@@ -27,8 +27,8 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
         self.pan_active = True
         self.sceneOrigin = QtCore.QPointF()
-
-        self.overlayAxisPen = QtGui.QPen(QtGui.QColor(160, 160, 160, 120), 1, QtCore.Qt.DashLine)
+        self.gridSize = 30
+        self.overlayAxisPen = QtGui.QPen(QtGui.QColor(255, 50, 50, 150), 1, QtCore.Qt.DashLine)
 
     def wheelEvent(self, event):
         self.scaleView(math.pow(2.0, -event.delta() / 240.0))
@@ -89,7 +89,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
         else:
             super(GraphicsView, self).keyPressEvent(event)
 
-    def drawOverlayAxis(self, painter, rect):
+    def drawMainAxis(self, painter, rect):
 
         painter.setPen(self.overlayAxisPen)
         xLine, yLine = QtCore.QLineF(), QtCore.QLineF()
@@ -102,9 +102,41 @@ class GraphicsView(QtWidgets.QGraphicsView):
         painter.drawLines([xLine, yLine])
 
     def drawForeground(self, painter, rect):
-
-        self.drawOverlayAxis(painter, rect)
+        self.drawMainAxis(painter, rect)
         return super(GraphicsView, self).drawForeground(painter, rect)
+
+    def frameSelectedItems(self, items):
+        # itemsArea = self._getSelectedBoundingbox()
+        # self.fitInView(itemsArea, QtCore.Qt.KeepAspectRatio)
+        pass
+
+    def frameSceneItems(self):
+        itemsArea = self.scene().itemsBoundingRect()
+        self.fitInView(itemsArea, QtCore.Qt.KeepAspectRatio)
+
+    def drawBackground(self, painter, rect):
+        """
+        Draw a grid in the background.
+        """
+        leftLine = rect.left() - rect.left() % self.gridSize
+        topLine = rect.top() - rect.top() % self.gridSize
+        lines = list()
+
+        i = int(leftLine)
+        while i < int(rect.right()):
+            lines.append(QtCore.QLineF(i, rect.top(), i, rect.bottom()))
+            i += self.gridSize
+
+        u = int(topLine)
+        while u < int(rect.bottom()):
+            lines.append(QtCore.QLineF(rect.left(), u, rect.right(), u))
+            u += self.gridSize
+
+        self.pen = QtGui.QPen()
+        self.pen.setColor(QtGui.QColor(100, 100, 100))
+        self.pen.setWidth(0)
+        painter.setPen(self.pen)
+        painter.drawLines(lines)
 
     def getViewRect(self):
         """Return the boundaries of the view in scene coordinates"""
