@@ -77,14 +77,37 @@ class Node(QtCore.QObject):
         """
         return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
-    def isEditable(self, index):
-        """Determines if this node can be editable e.g set text. Defaults to False. intended to be overridden
-        :param index: the column index
-        :type index: int
+
+    def isEditable(self, row, column):
+        """Determines if this node can be editable e.g set text. Defaults to False
+        :param row: the Row index
+        :type row: int
+        :param column: the column index
+        :type column: int
         :return: whether or not this node is editable, defaults to False
         :rtype: bool
         """
         return False
+
+    def isEnabled(self, row, column):
+        """Determines if this node is enabled
+        :param row: the Row index
+        :type row: int
+        :param column: the column index
+        :type column: int
+        :return: whether or not this node is enabled, defaults to True
+        :rtype: bool
+        """
+        return True
+
+    def isSelectable(self, row, column):
+        return True
+
+    def foregroundColor(self, row, column):
+        return None
+
+    def backgroundColor(self, row, column):
+        return None
 
     def alignment(self, index):
         """ intended to be overridden
@@ -219,16 +242,26 @@ class TreeModel(QtCore.QAbstractItemModel):
         if not index.isValid():
             return None
         item = index.internalPointer()
+        row = index.row()
+        column = index.column()
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            return item.text(index.column())
+            return item.text(column)
         elif role == QtCore.Qt.ToolTipRole:
             return item.tooltip()
         elif role == QtCore.Qt.DecorationRole:
             return item.icon()
+        elif role == QtCore.Qt.BackgroundRole:
+            color = item.backgroundColor(row, column)
+            if color:
+                return QtGui.QColor(*color)
+        elif role == QtCore.Qt.ForegroundRole:
+            color = item.foregroundColor(row, column)
+            if color:
+                return QtGui.QColor(*color)
         elif role == TreeModel.sortRole:
-            return item.text(index.column())
+            return item.text(column)
         elif role == TreeModel.filterRole:
-            return item.text(index.column())
+            return item.text(column)
         elif role == TreeModel.userObject:
             return item
 
@@ -246,8 +279,17 @@ class TreeModel(QtCore.QAbstractItemModel):
     def flags(self, index):
         if not index.isValid():
             return QtCore.Qt.NoItemFlags
+        row = index.row()
+        column = index.column()
         pointer = index.internalPointer()
-        return pointer.flags(index)
+        flags = QtCore.Qt.ItemIsEnabled
+        if pointer.isEditable(row, column):
+            flags |= QtCore.Qt.ItemIsEditable
+        if pointer.isSelectable(row, column):
+            flags |= QtCore.Qt.ItemIsSelectable
+        if pointer.isEnabled(row, column):
+            flags |= QtCore.Qt.ItemIsEnabled
+        return flags
 
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
