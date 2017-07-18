@@ -1,7 +1,47 @@
 from zoo.libs.pyqt.qt import QtWidgets, QtGui, QtCore
 
 
-class CubicPath(QtGui.QGraphicsPathItem):
+class ItemContainer(QtWidgets.QGraphicsWidget):
+    def __init__(self, orientation=QtCore.Qt.Vertical, parent=None):
+        super(ItemContainer, self).__init__(parent=parent)
+        layout = QtGui.QGraphicsLinearLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setOrientation(orientation)
+        self.setLayout(layout)
+
+    def setItem(self, item, alignment=None):
+        """Adds a QWidget to the container layout
+        :param item:
+        """
+        self.layout().addItem(item)
+        if alignment:
+            self.layout().setAlignment(item, alignment)
+
+
+class TextContainer(QtWidgets.QGraphicsWidget):
+    def __init__(self, text, *args, **kwargs):
+        super(TextContainer, self).__init__(*args, **kwargs)
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
+        layout = QtGui.QGraphicsLinearLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.setOrientation(QtCore.Qt.Horizontal)
+        self.setLayout(layout)
+
+        self.title = GraphicsText(text, parent=self)
+        layout.addItem(self.title)
+        layout.setAlignment(self.title, QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
+
+    @property
+    def text(self):
+        return self._title
+
+    @text.setter
+    def text(self, title):
+        self.title.text = title
+
+
+class CubicPath(QtWidgets.QGraphicsPathItem):
     contextMenuRequested = QtCore.Signal(object)
     defaultColor = QtGui.QColor(138, 200, 0)
     selectedColor = QtGui.QColor(255, 255, 255)
@@ -128,3 +168,57 @@ class SelectionRect(QtWidgets.QGraphicsWidget):
         painter.setBrush(self._color)
         painter.setPen(self._pen)
         painter.drawRect(rect)
+
+
+class GraphicsText(QtWidgets.QGraphicsWidget):
+    _font = QtGui.QFont('Helvetica', 8)
+    _font.setLetterSpacing(QtGui.QFont.PercentageSpacing, 120)
+    _fontMetrics = QtGui.QFontMetrics(_font)
+
+    _color = QtGui.QColor(200, 200, 200)
+
+    def __init__(self, text, parent=None):
+        super(GraphicsText, self).__init__(parent=parent)
+
+        self._item = QtWidgets.QGraphicsTextItem(text, parent=self)
+        self._item.setDefaultTextColor(self._color)
+        self._item.setFont(self._font)
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed))
+        self.setPreferredSize(QtCore.QSizeF(self._item.textWidth(), self._font.pointSizeF()))
+
+        self._item.setFlags(QtWidgets.QGraphicsItem.ItemIsSelectable | QtWidgets.QGraphicsItem.ItemIsFocusable |
+                            QtWidgets.QGraphicsItem.ItemIsMovable)
+        self._item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+
+        option = self._item.document().defaultTextOption()
+        self._item.document().setDefaultTextOption(option)
+        self.adjustSize()
+        self.setPreferredSize(self.size)
+
+    @property
+    def text(self):
+        return self._item
+
+    @text.setter
+    def text(self, text):
+        self._item.setPlainText(text)
+        self._item.update()
+        self.setPreferredSize(QtCore.QSizeF(self._item.textWidth(),
+                                            self._font.pointSizeF() + 10))
+
+    def onResize(self, width):
+        fmWidth = self._fontMetrics.width(self.item.toPlainText())
+        newWidth = min(fmWidth, width)
+        if width > fmWidth:
+            newWidth = width
+
+        self._item.setTextWidth(newWidth)
+        self.setPreferredSize(newWidth, self.textHeight())
+
+    @property
+    def size(self):
+        return QtCore.QSizeF(self._item.textWidth(), self.height)
+
+    @property
+    def height(self):
+        return self._item.document().documentLayout().documentSize().height() + 2

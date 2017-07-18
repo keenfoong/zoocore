@@ -1,80 +1,12 @@
 """Mostly placeholder code until i get to doing the customisation
 """
 from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
-
-
-class BackDropTitle(QtWidgets.QGraphicsWidget):
-    """Text Graphics item for the graphics back drop
-    """
-    titleChanged = QtCore.Signal(str)
-
-    def __init__(self, title, color, font, fontMetrics, parent=None):
-        super(BackDropTitle, self).__init__(parent=parent)
-        self.title = title
-        self._fontMetrics = fontMetrics
-        self.item = QtWidgets.QGraphicsTextItem(title, parent=parent)
-        self.item.setDefaultTextColor(color)
-        self.item.setFont(font)
-        self.item.setPos(0, 1)
-        self.item.setFlags(QtWidgets.QGraphicsItem.ItemIsSelectable | QtWidgets.QGraphicsItem.ItemIsFocusable |
-                           QtWidgets.QGraphicsItem.ItemIsMovable)
-        self.item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
-        option = self.item.document().defaultTextOption()
-        self.item.document().setDefaultTextOption(option)
-        self.item.setTextWidth(140)
-        self.adjustSize()
-        self.setPreferredSize(self.size)
-
-    def setText(self, text):
-        self.item.setPlainText(text)
-        self.titleChanged.emit(text)
-
-    def onResize(self, width):
-        fmWidth = self._fontMetrics.width(self.item.toPlainText())
-        newWidth = min(fmWidth, width)
-        if width > fmWidth:
-            newWidth = width
-
-        self.item.setTextWidth(newWidth)
-        self.setPreferredSize(newWidth, self.textHeight())
-
-    @property
-    def size(self):
-        return QtCore.QSizeF(self.item.textWidth(), self.height)
-
-    @property
-    def height(self):
-        return self.item.document().documentLayout().documentSize().height() + 2
-
-
-class BackdropHeaderItem(QtWidgets.QGraphicsWidget):
-    _color = QtGui.QColor(255, 255, 255)
-    _font = QtGui.QFont('Helvetica', 8)
-    _font.setLetterSpacing(QtGui.QFont.PercentageSpacing, 120)
-    _fontMetrics = QtGui.QFontMetrics(_font)
-
-    def __init__(self, text, parent=None):
-        super(BackdropHeaderItem, self).__init__(parent)
-
-        layout = QtWidgets.QGraphicsLinearLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(2)
-        layout.setOrientation(QtCore.Qt.Horizontal)
-        self.setLayout(layout)
-
-        self.titleWidget = BackDropTitle(text, self._color, self._font, self._fontMetrics, parent=self)
-        layout.addItem(self.titleWidget)
-        layout.setAlignment(self.titleWidget, QtCore.Qt.AlignCenter | QtCore.Qt.AlignTop)
-
-    def setText(self, text):
-        self.titleWidget.setText(text)
-
-    def text(self):
-        return str(self.titleWidget.item.toPlainText())
+from zoo.libs.pyqt.widgets.graphics import graphicitems
 
 
 class BackDrop(QtWidgets.QGraphicsWidget):
     contextRequested = QtCore.Signal(object)
+    selectionChanged = QtCore.Signal(object, bool)
 
     def __init__(self, title, width=120, height=80):
         super(BackDrop, self).__init__()
@@ -82,12 +14,13 @@ class BackDrop(QtWidgets.QGraphicsWidget):
         self._title = title
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, True)
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsFocusable, True)
+        # self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
+
         # backdrops always appear behind all scene items
         self.setZValue(-10)
         self.setMinimumWidth(width)
         self.setMinimumHeight(height)
-
+        self._selected = False
         self._color = QtGui.QColor(65, 120, 122, 255)
         self.brush = QtGui.QColor(65, 120, 122, 255)
         self.pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0), 0)
@@ -104,7 +37,7 @@ class BackDrop(QtWidgets.QGraphicsWidget):
         return str(self.header.text())
 
     def setTitle(self, title):
-        self.header.setText(title)
+        self.header.text = title
 
     def position(self):
         transform = self.transform()
@@ -118,6 +51,16 @@ class BackDrop(QtWidgets.QGraphicsWidget):
         self._color = color
         self.update()
 
+    @property
+    def selected(self):
+        return self._selected
+
+    @selected.setter
+    def selected(self, selected=True):
+        self._selected = selected
+        self.update()
+        self.selectionChanged.emit(self, selected)
+
     def initLayout(self):
         layout = QtWidgets.QGraphicsLinearLayout()
         layout.setContentsMargins(2, 2, 2, 2)
@@ -126,10 +69,18 @@ class BackDrop(QtWidgets.QGraphicsWidget):
         self.setLayout(layout)
 
         # add the header title
-        self.header = BackdropHeaderItem(self._title, parent=self)
+        self.header = graphicitems.GraphicsText(self._title, parent=self)
         layout.addItem(self.header)
         layout.setAlignment(self.header, QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
         layout.addStretch(1)
+
+    def mouseMoveEvent(self, event):
+        self.setPos(self.position() + self.mapToParent(event.pos()) - self.mapToParent(event.lastPos()))
+        event.accept()
+
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton:
+            self.selected = True
 
     def serialize(self):
         return {
@@ -155,7 +106,7 @@ class BackDrop(QtWidgets.QGraphicsWidget):
 
         painter.drawRoundRect(rect, roundingX, roundingY, mode=QtCore.Qt.AbsoluteSize)
 
-        tHeight = self.header.size().height() - 3
+        tHeight = self.header.size.height() + 5
 
         darkerColor = self._color.darker(125)
         darkerColor.setAlpha(255)

@@ -1,8 +1,9 @@
 from zoo.libs.pyqt.qt import QtWidgets
-from zoo.libs.pyqt.widgets import graphbackdrop
-from zoo.libs.pyqt.widgets import graphicsview
 from zoo.libs.pyqt.widgets import mainwindow
-from zoo.libs.pyqt.widgets.graphics import graphicsScene
+
+from zoo.libs.pyqt.widgets.graphics import graphbackdrop
+from zoo.libs.pyqt.widgets.graphics import graphicsview
+from zoo.libs.pyqt.widgets.graphics import graphicsscene
 
 
 class Window(mainwindow.MainWindow):
@@ -11,7 +12,7 @@ class Window(mainwindow.MainWindow):
         layout = QtWidgets.QVBoxLayout(self)
         self.centralWidget.setLayout(layout)
         self.view = graphicsview.GraphicsView(parent=self)
-        self.scene = graphicsScene.GraphicsScene(parent=self)
+        self.scene = graphicsscene.GraphicsScene(parent=self)
         self.view.setScene(self.scene)
         layout.addWidget(self.view)
 
