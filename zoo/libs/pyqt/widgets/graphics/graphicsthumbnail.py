@@ -27,8 +27,6 @@ class GraphicsThumbnailWidget(QtWidgets.QGraphicsWidget):
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
                            QtWidgets.QSizePolicy.MinimumExpanding)
 
-        self.setFlag(QtCore.Qt.ItemIsSelectable, True)
-
     def setPixmap(self, pixmap):
         self.pixmapWidget.setPixmap(pixmap)
         self._updatePixmapSize()

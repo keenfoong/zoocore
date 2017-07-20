@@ -4,7 +4,7 @@ from zoo.libs.pyqt.qt import QtWidgets, QtGui, QtCore
 class ItemContainer(QtWidgets.QGraphicsWidget):
     def __init__(self, orientation=QtCore.Qt.Vertical, parent=None):
         super(ItemContainer, self).__init__(parent=parent)
-        layout = QtGui.QGraphicsLinearLayout()
+        layout = QtWidgets.QGraphicsLinearLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setOrientation(orientation)
         self.setLayout(layout)
@@ -22,7 +22,7 @@ class TextContainer(QtWidgets.QGraphicsWidget):
     def __init__(self, text, *args, **kwargs):
         super(TextContainer, self).__init__(*args, **kwargs)
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
-        layout = QtGui.QGraphicsLinearLayout()
+        layout = QtWidgets.QGraphicsLinearLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.setOrientation(QtCore.Qt.Horizontal)

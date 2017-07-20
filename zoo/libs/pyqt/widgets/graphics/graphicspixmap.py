@@ -2,10 +2,10 @@ from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
 
 
 class GraphicsPixmapWidget(QtWidgets.QGraphicsWidget):
-    def __init__(self, pixmap, parent=None):
+    def __init__(self, pixmapPath, parent=None):
         super(GraphicsPixmapWidget, self).__init__(parent)
         self.setCacheMode(self.ItemCoordinateCache)
-        self._pixmap = pixmap
+        self._pixmap = QtWidgets.QGraphicsPixmapItem(QtGui.QPixmap(pixmapPath))
         self._pixmapSize = QtCore.QSizeF()
         self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
@@ -25,7 +25,7 @@ class GraphicsPixmapWidget(QtWidgets.QGraphicsWidget):
     def pixmapSize(self):
         if self._pixmapSize.isValid():
             return QtCore.QSizeF(self._pixmapSize)
-        return QtCore.QSizeF(self._pixmap.size())
+        return QtCore.QSizeF(self._pixmap.pixmap().size())
 
     def sizeHint(self, which, constraint=QtCore.QSizeF()):
         if which == QtCore.Qt.PreferredSize:
@@ -33,7 +33,7 @@ class GraphicsPixmapWidget(QtWidgets.QGraphicsWidget):
         return super(GraphicsPixmapWidget, self).sizeHint(which, constraint)
 
     def paint(self, painter, option, widget=0):
-        if self._pixmap.isNull():
+        if self._pixmap.pixmap().isNull():
             return
 
         rect = self.contentsRect()
@@ -46,6 +46,6 @@ class GraphicsPixmapWidget(QtWidgets.QGraphicsWidget):
         painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0, 50), 3))
         painter.drawRoundedRect(pixrect, 2, 2)
         painter.setRenderHint(QtGui.QPainter.SmoothPixmapTransform)
-        source = QtCore.QRectF(QtCore.QPointF(0, 0), QtCore.QSizeF(self._pixmap.size()))
-        painter.drawPixmap(pixrect, self._pixmap, source)
+        source = QtCore.QRectF(QtCore.QPointF(0, 0), QtCore.QSizeF(self._pixmap.pixmap().size()))
+        painter.drawPixmap(pixrect, self._pixmap.pixmap(), source)
         painter.restore()

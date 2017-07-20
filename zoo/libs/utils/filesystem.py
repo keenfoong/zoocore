@@ -10,7 +10,6 @@ import sys
 
 from zoo.libs.utils import zlogging
 
-
 logger = zlogging.getLogger(__name__)
 
 FILENAMEEXP = re.compile(u'[^\w\.-1]', re.UNICODE)
@@ -136,6 +135,7 @@ def copyDirectoy(src, dst, ignorePattern=None):
         else:
             logger.error("Failed to copy directory {} to destination: {}".format(src, dst), exc_info=True)
             raise
+
 
 def folderSize(path):
     """Retrieves the total folder size in bytes

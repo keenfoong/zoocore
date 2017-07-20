@@ -54,7 +54,7 @@ def load_stylesheet(pyside=True):
         import qdarkstyle.pyqt_style_rc
 
     # Load the stylesheet content from resources
-    from zoo.libs.pyqt.qt.QtCore import QFile, QTextStream
+    from pw.libs.pyqt.qt.QtCore import QFile, QTextStream
 
     f = QFile(":qdarkstyle/style.qss")
     if not f.exists():
@@ -78,6 +78,7 @@ def load_stylesheet(pyside=True):
         return stylesheet
 
 
+
 def load_stylesheet_pyqt5():
     """
     Loads the stylesheet for use in a pyqt5 application.
@@ -90,7 +91,7 @@ def load_stylesheet_pyqt5():
     import qdarkstyle.pyqt5_style_rc
 
     # Load the stylesheet content from resources
-    from zoo.libs.pyqt.qt.QtCore import QFile, QTextStream
+    from PyQt5.QtCore import QFile, QTextStream
 
     f = QFile(":qdarkstyle/style.qss")
     if not f.exists():

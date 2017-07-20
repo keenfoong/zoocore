@@ -38,6 +38,10 @@ class CommandInterface(object):
     def isUndoable(self):
         return False
 
+    @abstractproperty
+    def description(self):
+        return ""
+
     @staticmethod
     def uiData():
         return {"icon": "",

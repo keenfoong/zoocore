@@ -20,19 +20,20 @@ def removeFromActiveSelection(node):
     om2.MGlobal.setActiveSelectionList(newList, om2.MGlobal.kReplaceList)
 
 
-def getSelectedNodes():
+def getSelectedNodes(filter=None):
     """Returns the selected nodes
 
     :return: list(MObject)
     """
+    return [i for i in iterSelection(filter)]
+
+
+def iterSelection(filter):
     sel = om2.MGlobal.getActiveSelectionList()
-    nodes = [None] * sel.length()
-    for i in range(sel.length()):
-        try:
-            nodes[i] = sel.getDagPath(i).node()
-        except TypeError:
-            nodes[i] = sel.getDependNode(i)
-    return nodes
+    for i in xrange(sel.length()):
+        no = sel.getDependNode(i)
+        if no.apiType() == filter or filter is None:
+            yield no
 
 
 @contextmanager
