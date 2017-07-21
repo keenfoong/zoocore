@@ -6,7 +6,7 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from pw.libs.pyqt.qt import QtCore
+from zoo.libs.pyqt.qt import QtCore
 
 qt_resource_data = b"\
 \x00\x00\x03\x4e\

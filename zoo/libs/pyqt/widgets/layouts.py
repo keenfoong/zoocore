@@ -13,6 +13,8 @@ class StringEdit(QtWidgets.QWidget):
         self.edit = QtWidgets.QLineEdit(parent=self)
 
         self.layout = QtWidgets.QHBoxLayout(self)
+        self.layout.setContentsMargins(2, 2, 2, 2)
+        self.layout.setSpacing(2)
         self.layout.addWidget(QtWidgets.QLabel(label, parent=self))
         self.edit.setPlaceholderText(placeholder)
 
@@ -32,6 +34,9 @@ class StringEdit(QtWidgets.QWidget):
     def setText(self, value):
         self.edit.setText(value)
 
+    def text(self):
+        return self.edit.text()
+
 
 class ComboBox(QtWidgets.QWidget):
     itemChanged = QtCore.Signal(int, str)
@@ -39,7 +44,8 @@ class ComboBox(QtWidgets.QWidget):
     def __init__(self, label, items, parent=None):
         super(ComboBox, self).__init__(parent=parent)
         layout = QtWidgets.QHBoxLayout(self)
-
+        layout.setContentsMargins(2, 2, 2, 2)
+        layout.setSpacing(2)
         self.box = combobox.ExtendedComboBox(items, parent)
         self.label = QtWidgets.QLabel(label, parent=self)
 
@@ -47,7 +53,12 @@ class ComboBox(QtWidgets.QWidget):
         layout.addWidget(self.box)
         self.setLayout(layout)
 
-        self.box.currentIndexChanged.emit(self.onItemChanged)
+        self.box.currentIndexChanged.connect(self.onItemChanged)
+
+    def __getattr__(self, item):
+        if hasattr(self.box, item):
+            return getattr(self.box, item)
+        super(ComboBox, self).__getAttribute__(item)
 
     def onItemChanged(self):
         self.itemChanged.emit(int(self.box.currentIndex()), str(self.box.currentText()))
@@ -166,16 +177,30 @@ class Transformation(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super(Transformation, self).__init__(parent=parent)
-        self.group = QtWidgets.QGroupBox(parent=self)
+        # self.group = QtWidgets.QGroupBox(parent=self)
         self.layout = QtWidgets.QVBoxLayout(self)
-        self.group.setLayout(self.layout)
-        translationVec = Vector("Translation", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
-        rotationVec = Vector("Rotation", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
-        scaleVec = Vector("Scale", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
-        rotationOrderBox = ComboBox("RotationOrder", Transformation.rotOrders, parent=self)
-        self.layout.addWidget(translationVec)
-        self.layout.addWidget(rotationVec)
-        self.layout.addWidget(rotationVec)
-        self.layout.addWidget(scaleVec)
-        self.layout.addWidget(rotationOrderBox)
+        self.layout.setContentsMargins(2, 2, 2, 2)
+        self.layout.setSpacing(2)
+        # self.group.setLayout(self.layout)
+        self.translationVec = Vector("Translation:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
+        self.rotationVec = Vector("Rotation:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
+        self.scaleVec = Vector("Scale:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
+        self.rotationOrderBox = ComboBox("RotationOrder:", Transformation.rotOrders, parent=self)
+        self.layout.addWidget(self.translationVec)
+        self.layout.addWidget(self.rotationVec)
+        self.layout.addWidget(self.rotationVec)
+        self.layout.addWidget(self.scaleVec)
+        self.layout.addWidget(self.rotationOrderBox)
         self.setLayout(self.layout)
+
+    def translation(self):
+        return self.translationVec.value()
+
+    def rotation(self):
+        return self.rotationVec.value()
+
+    def scale(self):
+        return self.scaleVec.value()
+
+    def rotationOrder(self):
+        return int(self.rotationOrderBox.currentIndex())
