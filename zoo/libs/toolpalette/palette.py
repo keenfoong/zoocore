@@ -98,7 +98,7 @@ class ToolPalette(pluginmanager.PluginManager):
 
     def _addAction(self, pluginId, parent):
         plugin = self.pluginFromId(pluginId)
-        uiData = plugin.uiData()
+        uiData = plugin.uiData
         label = uiData.get("label", "No_label")
         newAction = action.ColorAction(uiData, self.parent)
         newAction.triggered.connect(partial(self.executePlugin, plugin))
@@ -168,6 +168,12 @@ class ToolPalette(pluginmanager.PluginManager):
 
 class ToolDefinition(plugin.Plugin):
     __metaclass__ = abc.ABCMeta
+    uiData = {"icon": "",
+              "tooltip": "",
+              "label": "",
+              "color": "",
+              "backgroundColor": ""
+              }
 
     def __init__(self):
         super(ToolDefinition, self).__init__()
@@ -176,15 +182,6 @@ class ToolDefinition(plugin.Plugin):
     @abc.abstractproperty
     def id(self):
         pass
-
-    @staticmethod
-    def uiData():
-        return {"icon": "",
-                "tooltip": "",
-                "label": "",
-                "color": "",
-                "backgroundColor": ""
-                }
 
     @abc.abstractproperty
     def creator(self):
