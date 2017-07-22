@@ -57,6 +57,10 @@ def _initEnv():
 
     if "ZOO_LOG_LEVEL" not in os.environ:
         os.environ['ZOO_LOG_LEVEL'] = 'DEBUG'
+    # register commands
+    from zoo.libs.command import executor
+    os.environ["ZOO_COMMAND_LIB"] = os.path.join(zootoolsPath, "zoo", "libs", "command", "library")
+    executor.Executor().registerEnv("ZOO_COMMAND_LIB")
 
 
 def _setupMaya():
@@ -69,4 +73,3 @@ def startUp():
     _initEnv()
     if env.isInMaya():
         _setupMaya()
-
