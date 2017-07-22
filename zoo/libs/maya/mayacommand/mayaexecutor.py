@@ -25,8 +25,7 @@ class MayaExecutor(base.ExecutorBase):
         try:
             command._resolveArguments(kwargs)
         except errors.UserCancel:
-            # @todo should probably raise here?
-            return
+            raise
         except Exception:
             raise
         exc_tb = None
@@ -35,6 +34,7 @@ class MayaExecutor(base.ExecutorBase):
         command.stats = base.CommandStats(command)
         try:
             if command.isUndoable:
+                print "set to undo open"
                 cmds.undoInfo(openChunk=True)
             om2._ZOOCOMMAND = command
             cmds.zooAPIUndo(id=command.id)
@@ -45,6 +45,7 @@ class MayaExecutor(base.ExecutorBase):
             traceback.print_exception(exc_type, exc_value, exc_tb)
             raise
         finally:
+            print "after command"
             tb = None
             if exc_type and exc_value and exc_tb:
                 tb = traceback.format_exception(exc_type, exc_value, exc_tb)

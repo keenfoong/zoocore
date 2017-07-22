@@ -48,7 +48,7 @@ class UndoCmd(om2.MPxCommand):
         """
         if self._command is None:
             return
-        om2._COMMANDEXECUTOR._callDoIt(self._command)
+        self._commandExecutor._callDoIt(self._command)
 
     def undoIt(self):
         """Calls undoIt on each stored command in reverse order

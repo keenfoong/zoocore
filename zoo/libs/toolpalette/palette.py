@@ -5,6 +5,8 @@ from functools import partial
 
 import time
 
+import sys
+
 from zoo.libs import iconlib
 from zoo.libs.pyqt import utils
 from zoo.libs.pyqt.widgets import action
@@ -198,11 +200,15 @@ class ToolDefinition(plugin.Plugin):
 
     def _execute(self):
         self.stats.startTime = time.time()
+        exc_type, exc_value, exc_tb = None, None, None
         try:
             self.execute()
-            self.stats.finish()
-        except:
-            tb = traceback.format_exc()
-            self.stats.finish(tb)
+        except Exception:
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_tb)
             raise
-
+        finally:
+            tb = None
+            if exc_type and exc_value and exc_tb:
+                tb = traceback.format_exception(exc_type, exc_value, exc_tb)
+            self.stats.finish(tb)

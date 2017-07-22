@@ -25,10 +25,10 @@ def getSelectedNodes(filter=None):
 
     :return: list(MObject)
     """
-    return [i for i in iterSelection(filter)]
+    return [i for i in iterSelectedNodes(filter)]
 
 
-def iterSelection(filter):
+def iterSelectedNodes(filter=None):
     sel = om2.MGlobal.getActiveSelectionList()
     for i in xrange(sel.length()):
         no = sel.getDependNode(i)

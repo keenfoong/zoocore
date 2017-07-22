@@ -5,6 +5,8 @@ from zoo.libs.command import errors
 
 
 class CommandInterface(object):
+    """The standard ZooCommand meta class interface. Each command must implement doIt, id, creator, isUndoable, description
+    """
     __metaclass__ = ABCMeta
 
     def __init__(self, stats=None):
@@ -14,36 +16,96 @@ class CommandInterface(object):
         self._returnResult = None
 
     def initialize(self):
+        """Intended for overriding by the subclasses, intention here is if the subclass needs __init__ functionality
+        then this function should be used instead to avoid any mishaps in any uncalled data.
+        """
         pass
-
-    def undoIt(self):
-        pass
-
-    def resolveArguments(self, arguments):
-        return {}
 
     @abstractmethod
     def doIt(self, **kwargs):
+        """Main method to implemented the command operation. all subclasses must a doIt method
+        The DoIt method only support Kwargs meaning that every argument must have a default, this is by design to maintain
+        clarity in people implementation.
+
+        :param kwargs: key value pairs, values can be any type , we are not restricted by types including custom
+        objects or DCC dependent objects eg.MObjects
+        :param kwargs: dict
+        :return This method should if desire by the developer return a value, this value can be anything including
+        maya api MObject etc.
+
+        ::Example
+            # correct
+            doIt(source=None, target=None, translate=True)
+            # incorrect
+            doIt(source, target=None, translate=True)
+        """
         pass
+
+    def undoIt(self):
+        """If this command instance is set to undoable then this method needs to be implemented, by design you do the
+        inverse operation of the doIt method
+
+        :return:
+        :rtype:
+        """
+        pass
+
+    def resolveArguments(self, arguments):
+        """Method which allows the developer to pre doIt validate the incoming arguments. This method get executed before
+        any operation on the command.
+
+        :param arguments: key, value pairs that correspond to the DoIt method
+        :type arguments: dict
+        :return: Should always return a dict with the same key value pairs as the arguments param
+        :rtype: dict
+        """
+        return {}
 
     @abstractproperty
     def id(self):
+        """Returns the command id which is used to call the command and should be unique
+        :return: the Command id
+        :rtype: str
+        """
         pass
 
     @abstractproperty
     def creator(self):
+        """Returns the developer name of this command
+
+        :rtype: str
+        """
         pass
 
     @abstractproperty
     def isUndoable(self):
+        """Returns whether this command is undoable or not
+
+        :return: Defaults to False
+        :rtype: bool
+        """
         return False
 
     @abstractproperty
     def description(self):
+        """The documentation for the command
+
+        :rtype: str
+        """
         return ""
 
     @staticmethod
     def uiData():
+        """A dict for persistent GUI styling which is used by any and all GUIs(menus etc).
+        :rtype: dict
+        ::Example
+            {"icon": "greenCircle",
+            "tooltip": "some command tooltip for hover event",
+            "label": "the label of the menu action etc",
+            "color": "tuple of 3 values must be compatible with QColor",
+            "backgroundColor": "tuple of 3 values must be compatible with QColor"
+            }
+        """
         return {"icon": "",
                 "tooltip": "",
                 "label": "",
@@ -102,6 +164,25 @@ class ZooCommand(CommandInterface):
 
 def generateCommandTemplate(className, id, doItContent, undoItContent, filePath,
                             creator, doitArgs):
+    """Function to Generate a ZooCommand template.
+
+    :param className: the command class Name
+    :type className: str
+    :param id: the command Id
+    :type id: str
+    :param doItContent: The python code for the doIt method
+    :type doItContent: str
+    :param undoItContent: The python code for the undoIt method
+    :type undoItContent: str
+    :param filePath: The file location to create this command
+    :type filePath: str
+    :param creator: the command developers name
+    :type creator: str
+    :param doitArgs: The doIt arguments
+    :type doitArgs: dict
+    :return:
+    :rtype:
+    """
     code = """
 from zoo.libs.command import command
 
