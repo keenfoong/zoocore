@@ -9,6 +9,18 @@ class StringEdit(QtWidgets.QWidget):
     buttonClicked = QtCore.Signal()
 
     def __init__(self, label, placeholder, buttonText=None, parent=None):
+        """Creates a label, textbox (QLineEdit) and an optional button
+        if the button is None then no button will be created
+
+        :param label: the label name
+        :type label: str
+        :param placeholder: default text (greyed) inside the textbox (QLineEdit)
+        :type placeholder: str
+        :param buttonText: optional button name, if None no button will be created
+        :type buttonText: str
+        :param parent: the qt parent
+        :type parent: class
+        """
         super(StringEdit, self).__init__(parent=parent)
         self.edit = QtWidgets.QLineEdit(parent=self)
 
@@ -19,7 +31,8 @@ class StringEdit(QtWidgets.QWidget):
         self.edit.setPlaceholderText(placeholder)
 
         self.layout.addWidget(self.edit)
-        if buttonText:
+        self.buttonText = buttonText
+        if self.buttonText:
             self.btn = QtWidgets.QPushButton(buttonText, parent=self)
             self.layout.addWidget(self.btn)
         self.setLayout(self.layout)
@@ -27,6 +40,8 @@ class StringEdit(QtWidgets.QWidget):
 
     def connections(self):
         self.edit.textChanged.connect(self._onTextChanged)
+        if self.buttonText:
+            self.btn.clicked.connect(self.buttonClicked.emit)
 
     def _onTextChanged(self):
         self.textChanged.emit(str(self.edit.text()))
@@ -42,6 +57,15 @@ class ComboBox(QtWidgets.QWidget):
     itemChanged = QtCore.Signal(int, str)
 
     def __init__(self, label, items, parent=None):
+        """Creates a combo box (drop down menu) with a label
+
+        :param label: the label of the combobox
+        :type label: str
+        :param items: the item list of the combobox
+        :type items: list
+        :param parent: the qt parent
+        :type parent: class
+        """
         super(ComboBox, self).__init__(parent=parent)
         layout = QtWidgets.QHBoxLayout(self)
         layout.setContentsMargins(2, 2, 2, 2)
@@ -61,7 +85,28 @@ class ComboBox(QtWidgets.QWidget):
         super(ComboBox, self).__getAttribute__(item)
 
     def onItemChanged(self):
+        """when the items changed return the tuple of values
+
+        :return valueTuple: the combobox value as an int and the literal string (text)
+        :rtype valueTuple: tuple
+        """
         self.itemChanged.emit(int(self.box.currentIndex()), str(self.box.currentText()))
+
+    def value(self):
+        """returns the literal value of the combo box
+
+        :return value: the literal value of the combo box
+        :rtype value: str
+        """
+        return str(self.box.currentText())
+
+    def currentIndex(self):
+        """returns the int value of the combo box
+
+        :return currentIndex: the int value of the combo box
+        :rtype currentIndex: int
+        """
+        return int(self.box.currentIndex())
 
 
 class Vector(QtWidgets.QWidget):
@@ -203,4 +248,41 @@ class Transformation(QtWidgets.QWidget):
         return self.scaleVec.value()
 
     def rotationOrder(self):
+        """:return: int of the rotation order combo box, not the str
+        :rtype: int
+        """
         return int(self.rotationOrderBox.currentIndex())
+
+    def rotationOrderValue(self):
+        """:return: str of the rotation order combo box, the literal value
+        :rtype: str
+        """
+        return self.rotationOrderBox.value()
+
+
+class OkCancelButtons(QtWidgets.QWidget):
+    OkBtnPressed = QtCore.Signal()
+    CancelBtnPressed = QtCore.Signal()
+
+    def __init__(self,  okText="OK", cancelTxt="Cancel", parent=None):
+        """Creates OK Cancel Buttons bottom of window, can change the names
+
+        :param okText: the text on the ok (first) button
+        :type okText: str
+        :param cancelTxt: the text on the cancel (second) button
+        :type cancelTxt: str
+        :param parent: the widget parent
+        :type parent: class
+        """
+        super(OkCancelButtons, self).__init__(parent=parent)
+        self.layout = QtWidgets.QHBoxLayout()
+        self.okBtn = QtWidgets.QPushButton(okText, parent=self)
+        self.cancelBtn = QtWidgets.QPushButton(cancelTxt, parent=self)
+        self.layout.addWidget(self.okBtn)
+        self.layout.addWidget(self.cancelBtn)
+        self.setLayout(self.layout)
+        self.connections()
+
+    def connections(self):
+        self.okBtn.clicked.connect(self.OkBtnPressed.emit)
+        self.cancelBtn.clicked.connect(self.CancelBtnPressed.emit)
