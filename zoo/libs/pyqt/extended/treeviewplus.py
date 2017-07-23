@@ -13,6 +13,9 @@ class TreeViewPlus(QtWidgets.QFrame):
         self.connections()
         self.setSearchable(searchable)
 
+    def expandAll(self):
+        self.treeView.expandAll()
+
     def setSearchable(self, value):
         self.searchFrame.setVisible(value)
 

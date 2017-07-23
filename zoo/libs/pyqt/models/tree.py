@@ -230,13 +230,16 @@ class TreeModel(QtCore.QAbstractItemModel):
         return index.data(self.userObject) if index.isValid() else self.root
 
     def rowCount(self, parent):
-        if parent.column() > 0:
+        if parent.column() > 0 or self.root is None:
             return 0
         parentItem = self.getItem(parent)
         return parentItem.childCount()
 
     def columnCount(self, parent):
+        if self.root is None:
+            return 0
         return self.root.columnCount()
+
 
     def data(self, index, role):
         if not index.isValid():

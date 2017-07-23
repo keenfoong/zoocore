@@ -1,8 +1,5 @@
-# @todo icon colours
-# @todo icon resizing
-
 import os
-from zoo.libs.pyqt.qt import QtGui
+from zoo.libs.pyqt.qt import QtGui, QtCore
 from zoo.libs.maya.utils import env
 
 
@@ -46,7 +43,6 @@ class Icon(object):
         :param size: int, the size of the icon, the size will be used for both the width and height
         :return: QtGui.Qicon
         """
-        # if we're in standalone then qt fails, so lets return nothing
         if env.isMayapy():
             return
 
@@ -55,21 +51,53 @@ class Icon(object):
             if splitter[-1].isdigit():
                 iconName = "_".join(splitter[:-1])
                 # user requested the size in the name
-                size = int(splitter[-1])
+                size = splitter[-1]
         else:
-            size = int(size)
-        iconData = cls.iconCollection.get(iconName)
-        if iconData:
-            if size not in iconData["sizes"]:
-                size = min(iconData["sizes"].keys())
-                data = iconData["sizes"][min(iconData["sizes"].keys())]
+            size = str(size)
+        if iconName not in cls.iconCollection:
+            return QtGui.QIcon()
+
+        for name, data in iter(cls.iconCollection.items()):
+            if name != iconName:
+                continue
+            sizes = data["sizes"]
+            if size not in sizes:
+                size = sizes.keys()[0]
+                iconData = sizes[size]
             else:
-                data = iconData["sizes"][size]
-            icon = data["icon"]
-            if icon and isinstance(data["icon"], QtGui.QIcon) and not icon.isNull():
+                iconData = data["sizes"][size]
+            icon = iconData["icon"]
+            if icon and isinstance(iconData["icon"], QtGui.QIcon) and not icon.isNull():
                 return icon
-            newIcon = QtGui.QIcon(data["path"])
-            iconData["sizes"][size]["icon"] = newIcon
+            newIcon = QtGui.QIcon(iconData["path"])
+            data["sizes"][size]["icon"] = newIcon
             return newIcon
 
         return QtGui.QIcon()
+
+    @classmethod
+    def iconColorized(cls, iconName, size=16, color=(255, 255, 255)):
+        """Colorizers the icon from the library expects the default icon
+        to be white for tinting.
+        :param iconName: the icon name from the library
+        :type iconName: str
+        :param size: the uniform icon size
+        :type size: int
+        :param color: 3 tuple for the icon color
+        :type color: tuple(int)
+        :return: the colorized icon
+        :rtype: QtGui.QIcon
+        """
+        icon = cls.icon(iconName, size)
+        if not icon:
+            return icon  # will return an empty QIcon
+        color = QtGui.QColor(*color)
+        pixmap = icon.pixmap(QtCore.QSize(size, size))
+        mask = pixmap.createMaskFromColor(QtGui.QColor('white'), QtCore.Qt.MaskOutColor)
+
+        pixmap.fill(color)
+        pixmap.setMask(mask)
+
+        return QtGui.QIcon(pixmap)
+
+
