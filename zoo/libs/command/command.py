@@ -118,6 +118,7 @@ class ZooCommand(CommandInterface):
     isEnabled = True
 
     def cancel(self, msg=None):
+        # type: (object) -> object
         raise errors.UserCancel(msg)
 
     def hasArgument(self, name):

@@ -18,6 +18,8 @@ class MayaExecutor(base.ExecutorBase):
         command = self.findCommand(commandName)
         if command is None:
             raise ValueError("No command by the name -> {} exists within the registry!".format(commandName))
+        if om2._COMMANDEXECUTOR is None:
+            om2._COMMANDEXECUTOR = self
         command = command()
         command._prepareCommand()
         if not command.isEnabled:
@@ -34,9 +36,9 @@ class MayaExecutor(base.ExecutorBase):
         command.stats = base.CommandStats(command)
         try:
             if command.isUndoable:
-                print "set to undo open"
                 cmds.undoInfo(openChunk=True)
             om2._ZOOCOMMAND = command
+            print om2._ZOOCOMMAND
             cmds.zooAPIUndo(id=command.id)
         except errors.UserCancel:
             command.stats.finish(None)
@@ -45,7 +47,6 @@ class MayaExecutor(base.ExecutorBase):
             traceback.print_exception(exc_type, exc_value, exc_tb)
             raise
         finally:
-            print "after command"
             tb = None
             if exc_type and exc_value and exc_tb:
                 tb = traceback.format_exception(exc_type, exc_value, exc_tb)

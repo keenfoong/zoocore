@@ -37,7 +37,7 @@ class UndoCmd(om2.MPxCommand):
         :param argumentList: MArgList
         """
         # add the current queue into the mpxCommand instance then clean the queue since we dont need it anymore
-        if om2._ZOOCOMMAND:
+        if om2._ZOOCOMMAND is not None:
             self._command = om2._ZOOCOMMAND
             om2._ZOOCOMMAND = None
             self._commandExecutor = om2._COMMANDEXECUTOR

@@ -217,7 +217,7 @@ class Matrix(QtWidgets.QWidget):
 
 class Transformation(QtWidgets.QWidget):
     # @todo setup signals
-    rotOrders = ("XYZ", "YZX", "ZXY", "XZY", "XYZ", "ZXY")
+    rotOrders = ("XYZ", "YZX", "ZXY", "XZY", "XYZ", "ZYX")
     axis = ("X", "Y", "Z")
 
     def __init__(self, parent=None):
