@@ -2,7 +2,7 @@ import random
 
 from zoo.libs.pyqt.widgets import dialog
 from zoo.libs.pyqt.widgets import flowlayout
-from zoo.libs.iconlib import iconlib
+import iconlib
 
 from zoo.libs.pyqt.qt import QtWidgets, QtCore
 
