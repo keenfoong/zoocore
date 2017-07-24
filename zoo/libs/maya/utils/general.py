@@ -10,7 +10,7 @@ from zoo.libs.maya.utils import env
 logger = zlogging.zooLogger
 
 
-def mayaUpVector():
+def upAxis():
     """Gets the current world up vector
 
     :rtype: zoo.libs.utils.vectors.Vector

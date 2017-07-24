@@ -6,10 +6,10 @@ import qdarkstyle
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, title="", width=600, height=800, icon="",
-                 parent=None, showOnInitialize=True):
+                 parent=None, showOnInitialize=True, useStyleSheet=True):
         super(MainWindow, self).__init__(parent=parent)
-
-        self.setStyleSheet(qdarkstyle.load_stylesheet(pyside=True))
+        if useStyleSheet:
+            self.setStyleSheet(qdarkstyle.load_stylesheet(pyside=True))
         self.setContentsMargins(2, 2, 2, 2)
         self.setDockNestingEnabled(True)
         self.setDocumentMode(True)
@@ -26,6 +26,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.reapplySettings()
         self.setDockOptions(QtWidgets.QMainWindow.AllowNestedDocks |
                             QtWidgets.QMainWindow.AnimatedDocks)
+        self.setTabPosition(QtCore.Qt.AllDockWidgetAreas,QtWidgets.QTabWidget.North)
         if icon:
             if isinstance(icon, QtGui.QIcon):
                 self.setWindowIcon(icon)

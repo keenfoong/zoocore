@@ -12,14 +12,14 @@ class TabWidget(QtWidgets.QTabWidget):
         self.customContextMenuRequested.connect(self._contextMenu)
         self.setDocumentMode(True)
 
-    def addTabWidget(self, childWidget=None, dialog=False):
+    def addTabWidget(self, childWidget=None, dialog=False, name=None):
         """Will open dialog to get tab name and create a new tab with the childWidget set as the child of the
         new tab.
 
         :param childWidget: QtWidget
 
         """
-        name = "Temp"
+        name = name or "TEMP"
         if dialog:
             # Open input window
             name, ok = QtWidgets.QInputDialog.getText(self,

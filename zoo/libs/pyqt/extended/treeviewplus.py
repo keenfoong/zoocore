@@ -1,9 +1,11 @@
+from zoo.libs import iconlib
 from zoo.libs.pyqt.qt import QtWidgets, QtCore
 
 
 class TreeViewPlus(QtWidgets.QFrame):
     selectionChanged = QtCore.Signal()
     contextMenuRequestedSignal = QtCore.Signal(object)
+    refreshRequested = QtCore.Signal()
 
     def __init__(self, searchable=False, parent=None):
         super(TreeViewPlus, self).__init__(parent)
@@ -22,7 +24,8 @@ class TreeViewPlus(QtWidgets.QFrame):
     def _setupFilter(self):
         self.searchBoxLabel = QtWidgets.QLabel("Search By: ", parent=self)
         self.searchHeaderBox = QtWidgets.QComboBox(parent=self)
-
+        self.refreshBtn = QtWidgets.QToolButton(parent=self)
+        self.refreshBtn.setIcon(iconlib.icon("reload"))
         self.searchFrame = QtWidgets.QFrame(parent=self)
         self.searchFrame.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.searchFrame.setFrameShadow(QtWidgets.QFrame.Plain)
@@ -32,6 +35,7 @@ class TreeViewPlus(QtWidgets.QFrame):
         self.searchLabel = QtWidgets.QLabel("Search", parent=self)
         self.searchEdit = QtWidgets.QLineEdit(self)
         self.searchFrame.setLayout(self.searchLayout)
+        self.searchLayout.addWidget(self.refreshBtn)
         self.searchLayout.addWidget(self.searchBoxLabel)
         self.searchLayout.addWidget(self.searchHeaderBox)
         self.searchLayout.addWidget(self.searchLabel)
@@ -42,6 +46,7 @@ class TreeViewPlus(QtWidgets.QFrame):
     def _setupLayouts(self):
         self.mainLayout = QtWidgets.QVBoxLayout(self)
         self.mainLayout.setContentsMargins(2, 2, 2, 2)
+        self.mainLayout.setSpacing(1)
         self.treeView = QtWidgets.QTreeView(parent=self)
         self.treeView.setSelectionMode(self.treeView.ExtendedSelection)
         self.treeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -69,6 +74,7 @@ class TreeViewPlus(QtWidgets.QFrame):
         self.treeView.collapsed.connect(self.refresh)
         self.searchClearBtn.clicked.connect(self.searchEdit.clear)
         self.searchHeaderBox.currentIndexChanged.connect(self.onSearchBoxChanged)
+        self.refreshBtn.clicked.connect(self.refresh)
 
     def setModel(self, model):
         self.proxySearch.setSourceModel(model)
@@ -86,6 +92,7 @@ class TreeViewPlus(QtWidgets.QFrame):
         self.proxySearch.setFilterKeyColumn(index)
 
     def refresh(self):
+        self.refreshRequested.emit()
         currentIndex = self.searchHeaderBox.currentIndex()
         self.searchHeaderBox.clear()
         for index in xrange(self.model.columnCount(QtCore.QModelIndex())):
