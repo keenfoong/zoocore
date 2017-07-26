@@ -3,7 +3,6 @@ from collections import OrderedDict
 from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
 from zoo.libs.pyqt.extended import combobox
 
-
 class StringEdit(QtWidgets.QWidget):
     textChanged = QtCore.Signal(str)
     buttonClicked = QtCore.Signal()
@@ -286,3 +285,57 @@ class OkCancelButtons(QtWidgets.QWidget):
     def connections(self):
         self.okBtn.clicked.connect(self.OkBtnPressed.emit)
         self.cancelBtn.clicked.connect(self.CancelBtnPressed.emit)
+        
+
+class labelColorBtn(QtWidgets.QWidget):
+    def __init__(self,  label="Color:", initialRgbColor=(255,0,0), initialRgbColorF=None, parent=None):
+        """Creates a label and a color button (with no text) which opens a QT color picker,
+        returns both rgb (0-255) and rgbF (0-1.0) values
+
+        :param label: The name of the label, usually "Color:"
+        :type label: str
+        :param initialRgbColor: The initial rgb color in 0-255 ranges, overridden if there's a initialRgbColorF value
+        :type initialRgbColor: tuple
+        :param initialRgbColorF: The initial rgb color in 0-1.0 ranges, if None defaults to initialRgbColor values
+        :type initialRgbColorF: tuple
+        :param parent: the widget parent
+        :type parent: class
+        """
+        super(labelColorBtn, self).__init__(parent=parent)
+        self.layout = QtWidgets.QHBoxLayout()
+        self.layout.addWidget(QtWidgets.QLabel(label, parent=self))
+        self.colorPickerBtn = QtWidgets.QPushButton("", parent=self)
+        if not initialRgbColorF:  # if initialRgbColorF is None then input values are in 0-255 range
+            self.storedRgbColor = initialRgbColor
+        else:  # if initialRgbColorF exists then input values are in 0.0-1.0 range
+            self.storedRgbColor = tuple([i*255 for i in initialRgbColorF])
+        self.colorPickerBtn.setStyleSheet("background-color: rgb{}".format(str(self.storedRgbColor)))
+        self.layout.addWidget(self.colorPickerBtn)
+        self.setLayout(self.layout)
+        self.connections()
+
+    def pickColor(self):
+        """Opens the color picker window
+        If ok is pressed then the new color is returned in 0-255 ranges Eg (128, 255, 12)
+        If Cancel is pressed the color is invalid and nothing happens
+        """
+        initialPickColor = QtGui.QColor(self.storedRgbColor[0], self.storedRgbColor[1], self.storedRgbColor[2], 255)
+        color = QtWidgets.QColorDialog.getColor(initialPickColor)
+        if QtGui.QColor.isValid(color):  # if the user hits cancel the returned color is invalid, so don't update
+            self.storedRgbColor = (color.getRgb())[0:3]
+            self.colorPickerBtn.setStyleSheet("background-color: {}".format(color.name()))
+
+    def rgbColor(self):
+        """returns rgb tuple with 0-255 ranges Eg (128, 255, 12)
+        """
+        return self.storedRgbColor
+
+    def rgbColorF(self):
+        """returns rgb tuple with 0-1.0 float ranges Eg (1.0, .5, .6666)
+        """
+        return tuple(float(i)/255 for i in self.storedRgbColor)
+
+    def connections(self):
+        """Open the color picker when the button is pressed
+        """
+        self.colorPickerBtn.clicked.connect(self.pickColor)
