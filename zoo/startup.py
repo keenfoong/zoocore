@@ -59,7 +59,8 @@ def _initEnv():
         os.environ['ZOO_LOG_LEVEL'] = 'DEBUG'
     # register commands
     from zoo.libs.command import executor
-    os.environ["ZOO_COMMAND_LIB"] = os.path.join(zootoolsPath, "zoo", "libs", "command", "library")
+    mayalib = os.path.join(zootoolsPath, "zoo", "libs", "maya", "mayacommand", "library")
+    os.environ["ZOO_COMMAND_LIB"] = os.pathsep.join([os.path.join(zootoolsPath, "zoo", "libs", "command", "library"), mayalib])
     executor.Executor().registerEnv("ZOO_COMMAND_LIB")
 
 

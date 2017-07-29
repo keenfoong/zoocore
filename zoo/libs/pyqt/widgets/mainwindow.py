@@ -23,7 +23,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.hasMainMenu = False
         self.centralWidget = QtWidgets.QWidget()
         self.setCentralWidget(self.centralWidget)
-        self.reapplySettings()
+
         self.setDockOptions(QtWidgets.QMainWindow.AllowNestedDocks |
                             QtWidgets.QMainWindow.AnimatedDocks)
         self.setTabPosition(QtCore.Qt.AllDockWidgetAreas,QtWidgets.QTabWidget.North)
@@ -36,6 +36,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if showOnInitialize:
             self.center()
             self.show()
+
+        self.reapplySettings()
 
     def center(self):
         frameGm = self.frameGeometry()

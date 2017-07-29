@@ -61,6 +61,9 @@ class Node(QtCore.QObject):
         """
         return 0
 
+    def headerColumnText(self):
+        return ""
+        
     def headerText(self, index):
         """The header text, index parameter of 0 is the first column. intended to be overridden
         :param index: the column index
