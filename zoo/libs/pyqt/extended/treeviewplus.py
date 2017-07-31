@@ -68,10 +68,15 @@ class TreeViewPlus(QtWidgets.QFrame):
 
     def selectedQIndices(self):
         return self.selectionModel.selectedRows()
+        
+    def onExpanded(self, index):
+        column = index.column()
+        self.treeView.resizeColumnToContents(column)
+        newWidth = self.treeView.columnWidth(column) + 10
+        self.treeView.setColumnWidth(column, newWidth)
 
     def connections(self):
-        self.treeView.expanded.connect(self.refresh)
-        self.treeView.collapsed.connect(self.refresh)
+        self.treeView.expanded.connect(self.onExpanded)
         self.searchClearBtn.clicked.connect(self.searchEdit.clear)
         self.searchHeaderBox.currentIndexChanged.connect(self.onSearchBoxChanged)
         self.searchEdit.textChanged.connect(self.onSearchBoxChanged)
@@ -96,6 +101,7 @@ class TreeViewPlus(QtWidgets.QFrame):
 
     def refresh(self):
         self.refreshRequested.emit()
+        
         currentIndex = self.searchHeaderBox.currentIndex()
         self.searchHeaderBox.clear()
         for index in xrange(self.model.columnCount(QtCore.QModelIndex())):

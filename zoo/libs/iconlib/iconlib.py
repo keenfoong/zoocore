@@ -1,6 +1,6 @@
 import os
 from zoo.libs.pyqt.qt import QtGui, QtCore
-from zoo.libs.pyqt.widgets import icon
+from zoo.libs.pyqt.widgets import icon as zooicon
 from zoo.libs.maya.utils import env
 
 
@@ -72,7 +72,7 @@ class Icon(object):
             icondata = iconData["icon"]
             if icondata and isinstance(icondata, QtGui.QIcon) and not icondata.isNull():
                 return icondata
-            newIcon = icon.Icon(iconData["path"])
+            newIcon = zooicon.Icon(iconData["path"])
             data["sizes"][size]["icon"] = newIcon
             return newIcon
 
@@ -95,7 +95,12 @@ class Icon(object):
         if not icon:
             return icon  # will return an empty QIcon
         color = QtGui.QColor(*color)
-        icon.setColor(color)
-        return icon
+        # icon.setColor(color)
+        # return icon
 
+        pixmap = icon.pixmap(QtCore.QSize(size, size))
+        mask = pixmap.createMaskFromColor(QtGui.QColor('white'), QtCore.Qt.MaskOutColor)
+        pixmap.fill(color)
+        pixmap.setMask(mask)
+        return QtGui.QIcon(pixmap)
 

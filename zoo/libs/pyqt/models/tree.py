@@ -49,11 +49,14 @@ class Node(QtCore.QObject):
         """
         return ""
 
-    def icon(self):
+    def icon(self, index):
         """The icon for this node. intended to be overridden
         :rtype: QtGui.QIcon
         """
         return QtGui.QIcon()
+
+    def font(self, index):
+        return QtGui.QFont()
 
     def columnCount(self):
         """The column count, this is only required to be set on the root node. intended to be overridden
@@ -228,7 +231,6 @@ class TreeModel(QtCore.QAbstractItemModel):
          we would in turn create duplicates.
         """
         self.modelReset.emit()
-        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex, 0)
 
     def itemFromIndex(self, index):
         return index.data(self.userObject) if index.isValid() else self.root
@@ -256,7 +258,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         elif role == QtCore.Qt.ToolTipRole:
             return item.tooltip()
         elif role == QtCore.Qt.DecorationRole:
-            return item.icon()
+            return item.icon(column)
         elif role == QtCore.Qt.BackgroundRole:
             color = item.backgroundColor(row, column)
             if color:
@@ -265,6 +267,8 @@ class TreeModel(QtCore.QAbstractItemModel):
             color = item.foregroundColor(row, column)
             if color:
                 return QtGui.QColor(*color)
+        elif role == QtCore.Qt.FontRole:
+            return item.font(column)
         elif role == TreeModel.sortRole:
             return item.text(column)
         elif role == TreeModel.filterRole:
