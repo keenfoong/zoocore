@@ -1,6 +1,8 @@
 import platform
 from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
 from zoo.libs import iconlib
+from zoo.libs.pyqt.widgets import dockwidget
+
 import qdarkstyle
 
 
@@ -63,12 +65,23 @@ class MainWindow(QtWidgets.QMainWindow):
         self.exitAction.triggered.connect(self.close)
 
         for i in self.docks:
-            self.viewMenu.addAction(i.togglerViewAction())
+            self.viewMenu.addAction(i.toggleViewAction())
 
     def setCustomCentralWidget(self, widget):
         self.setCentralWidget(widget)
 
-    def addDockWidget(self, area, dockWidget, orientation=QtCore.Qt.Horizontal):
+    def createDock(self, mainWidget, area=defaultDockArea, tabify=True):
+        dockName = "".join([mainWidget.objectName(), "Dock"])
+        existing = self.findDock(dockName)
+        if existing:
+            existing.raise_()
+        dock = dockwidget.DockWidget(dockName, parent=self, floating=False)
+
+        dock.setObjectName(dockName)
+        dock.setWidget(mainWidget)
+        self.addDockWidget(area, dock, tabify=tabify)
+
+    def addDockWidget(self, area, dockWidget, orientation=QtCore.Qt.Horizontal, tabify=True):
         """Adds a dock widget to the current window at the specified location, if the location already has a
         :param area:QtCore.Qt.DockWidgetArea
         :param dockWidget: QtWidgets.QDockWidget
@@ -79,11 +92,12 @@ class MainWindow(QtWidgets.QMainWindow):
             # add a show/hide action to the view menu
             self.viewMenu.addAction(dockWidget.toggleViewAction())
 
-        # tabify the dock if obne already exists at the area specified
-        for currentDock in self.docks:
-            if self.dockWidgetArea(currentDock) == area:
-                self.tabifyDockWidget(currentDock, dockWidget)
-                return
+        if tabify:
+            # tabify the dock if one already exists at the area specified
+            for currentDock in self.docks:
+                if self.dockWidgetArea(currentDock) == area:
+                    self.tabifyDockWidget(currentDock, dockWidget)
+                    return
         super(MainWindow, self).addDockWidget(area, dockWidget, orientation)
 
     def findDock(self, dockName):

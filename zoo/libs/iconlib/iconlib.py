@@ -1,5 +1,6 @@
 import os
 from zoo.libs.pyqt.qt import QtGui, QtCore
+from zoo.libs.pyqt.widgets import icon
 from zoo.libs.maya.utils import env
 
 
@@ -12,10 +13,12 @@ class Icon(object):
         # find and store all the found icons with the base zoo paths
         iconPaths = os.environ["ZOO_ICON_PATH"].split(os.pathsep)
         for iconPath in iconPaths:
-            if not iconPath:
+            if not iconPath or not os.path.exists(iconPath):
                 continue
             for root, dirs, files in os.walk(iconPath):
                 for f in files:
+                    if not f.endswith(".png"):
+                        continue
                     fname = f.split(os.extsep)[0]
                     nameSplit = fname.split("_")
                     if len(nameSplit) < 1:
@@ -66,10 +69,10 @@ class Icon(object):
                 iconData = sizes[size]
             else:
                 iconData = data["sizes"][size]
-            icon = iconData["icon"]
-            if icon and isinstance(iconData["icon"], QtGui.QIcon) and not icon.isNull():
-                return icon
-            newIcon = QtGui.QIcon(iconData["path"])
+            icondata = iconData["icon"]
+            if icondata and isinstance(icondata, QtGui.QIcon) and not icondata.isNull():
+                return icondata
+            newIcon = icon.Icon(iconData["path"])
             data["sizes"][size]["icon"] = newIcon
             return newIcon
 
@@ -92,12 +95,7 @@ class Icon(object):
         if not icon:
             return icon  # will return an empty QIcon
         color = QtGui.QColor(*color)
-        pixmap = icon.pixmap(QtCore.QSize(size, size))
-        mask = pixmap.createMaskFromColor(QtGui.QColor('white'), QtCore.Qt.MaskOutColor)
-
-        pixmap.fill(color)
-        pixmap.setMask(mask)
-
-        return QtGui.QIcon(pixmap)
+        icon.setColor(color)
+        return icon
 
 

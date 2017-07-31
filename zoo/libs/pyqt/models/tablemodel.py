@@ -8,11 +8,11 @@ class TableModel(QtCore.QAbstractTableModel):
 
     def __init__(self, root, parent=None):
         super(TableModel, self).__init__(parent)
-        self.root = root
+        self.root = root # 
 
     def reload(self):
         """Hard reloads the model, we do this by the modelReset slot, the reason why we do this instead of insertRows()
-        is because we expect that the tree structure has already been rebuilt with its children so by calling insertRows
+        is because we expect that the table structure has already been rebuilt with its children so by calling insertRows
          we would in turn create duplicates.
         """
         self.modelReset.emit()
