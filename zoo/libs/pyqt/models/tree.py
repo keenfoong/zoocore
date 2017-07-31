@@ -228,6 +228,7 @@ class TreeModel(QtCore.QAbstractItemModel):
          we would in turn create duplicates.
         """
         self.modelReset.emit()
+        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex, 0)
 
     def itemFromIndex(self, index):
         return index.data(self.userObject) if index.isValid() else self.root

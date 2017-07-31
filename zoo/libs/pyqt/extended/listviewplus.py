@@ -58,7 +58,7 @@ class ListViewPlus(QtWidgets.QFrame):
         self.proxySearch = QtCore.QSortFilterProxyModel(parent=self)
         self.proxySearch.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.listview.setModel(self.proxySearch)
-        self.listview.setSortingEnabled(True)
+        # self.listview.setSortingEnabled(True)
         self.selectionModel = self.listview.selectionModel()
 
     def selectedItems(self):
@@ -70,8 +70,6 @@ class ListViewPlus(QtWidgets.QFrame):
         return self.selectionModel.selectedRows()
 
     def connections(self):
-        self.listview.expanded.connect(self.refresh)
-        self.listview.collapsed.connect(self.refresh)
         self.searchClearBtn.clicked.connect(self.searchEdit.clear)
         self.searchHeaderBox.currentIndexChanged.connect(self.onSearchBoxChanged)
         self.searchEdit.textChanged.connect(self.onSearchBoxChanged)
@@ -79,12 +77,6 @@ class ListViewPlus(QtWidgets.QFrame):
 
     def setModel(self, model):
         self.proxySearch.setSourceModel(model)
-        self.proxySearch.setDynamicSortFilter(True)
-        self.proxySearch.setSortRole(QtCore.Qt.DisplayRole)
-        self.proxySearch.setFilterRole(QtCore.Qt.DisplayRole)
-        self.proxySearch.setFilterKeyColumn(0)
-        self.proxySearch.setFilterRegExp(self.searchEdit.text())
-        self.listview.sortByColumn(0, QtCore.Qt.AscendingOrder)
         self.model = model
         self.listview.setModel(self.proxySearch)
         self.searchEdit.textChanged.connect(self.proxySearch.setFilterRegExp)

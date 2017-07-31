@@ -70,7 +70,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def setCustomCentralWidget(self, widget):
         self.setCentralWidget(widget)
 
-    def createDock(self, mainWidget, area=defaultDockArea, tabify=True):
+    def createDock(self, mainWidget, area=QtCore.Qt.LeftDockWidgetArea,
+                   tabify=True):
         dockName = "".join([mainWidget.objectName(), "Dock"])
         existing = self.findDock(dockName)
         if existing:
@@ -114,8 +115,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         if self.windowState() and QtCore.Qt.WindowMaximized:
             self.showNormal()
-        else:
-            self.showMaximized()
+            return
+        self.showMaximized()
 
     def closeEvent(self, ev):
         """
