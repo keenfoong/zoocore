@@ -69,8 +69,9 @@ class CommandRegistry(object):
             visited.add(filename)
             subModuleObj = modules.importModule(subModule)
             for member in modules.iterMembers(subModuleObj, predicate=inspect.isclass):
-
-                commands.append(cls.registerCommand(member[1]))
+                newCom = cls.registerCommand(member[1])
+                if newCom:
+                    commands.append(newCom)
         return commands
 
     @classmethod
