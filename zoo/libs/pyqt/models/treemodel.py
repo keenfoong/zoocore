@@ -1,7 +1,9 @@
+"""This module is for a standard Qt tree model
+"""
 from zoo.libs.pyqt.qt import QtCore, QtGui
 
 
-class TableModel(QtCore.QAbstractTableModel):
+class TreeModel(QtCore.QAbstractItemModel):
     sortRole = QtCore.Qt.UserRole
     filterRole = QtCore.Qt.UserRole + 1
     userObject = QtCore.Qt.UserRole + 2
@@ -11,7 +13,7 @@ class TableModel(QtCore.QAbstractTableModel):
         :param parent:
         :type parent:
         """
-        super(TableModel, self).__init__(parent=parent)
+        super(TreeModel, self).__init__(parent=parent)
         self._rowDataSource = None
         self.columnDataSources = []
 
@@ -41,10 +43,11 @@ class TableModel(QtCore.QAbstractTableModel):
         """
         self.modelReset.emit()
 
-    def rowCount(self, parent):
-        if parent.column() > 0 or not self._rowDataSource or not self.columnDataSources:
+    def rowCount(self, parent=QtCore.QModelIndex()):
+
+        if parent.column() > 0 or self._rowDataSource is None:
             return 0
-        return self._rowDataSource.rowCount()
+        return self.rowDataSource.childCount()
 
     def columnCount(self, parent):
         if not self._rowDataSource or not self.columnDataSources:
@@ -77,8 +80,6 @@ class TableModel(QtCore.QAbstractTableModel):
             return QtCore.Qt.Unchecked
         elif role == QtCore.Qt.TextAlignmentRole:
             return dataSource.alignment(**kwargs)
-        elif role == QtCore.Qt.FontRole:
-            return dataSource.font(**kwargs)
         elif role == QtCore.Qt.BackgroundRole:
             color = dataSource.backgroundColor(**kwargs)
             if color:
@@ -87,11 +88,11 @@ class TableModel(QtCore.QAbstractTableModel):
             color = dataSource.foregroundColor(**kwargs)
             if color:
                 return QtGui.QColor(*color)
-        elif role == TableModel.sortRole:
+        elif role == TreeModel.sortRole:
             return dataSource.data(**kwargs)
-        elif role == TableModel.filterRole:
+        elif role == TreeModel.filterRole:
             return dataSource.data(**kwargs)
-        elif role == TableModel.userObject:
+        elif role == TreeModel.userObject:
             return dataSource.userObject(row)
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
@@ -99,6 +100,7 @@ class TableModel(QtCore.QAbstractTableModel):
             return False
         if role == QtCore.Qt.EditRole:
             column = index.column()
+
             if column == 0:
                 self._rowDataSource.setData(index.row(), value)
             else:
@@ -107,18 +109,25 @@ class TableModel(QtCore.QAbstractTableModel):
             return True
         return False
 
+    def supportedDropActions(self):
+        return QtCore.Qt.CopyAction | QtCore.Qt.MoveAction
+
     def flags(self, index):
         if not index.isValid() or not self._rowDataSource:
             return QtCore.Qt.NoItemFlags
         row = index.row()
         column = index.column()
         dataSource = self.dataSource(column)
+        flags = QtCore.Qt.ItemIsEnabled
         if column == 0:
             kwargs = {"index": row}
+            if dataSource.supportsDrag(**kwargs):
+                flags |= QtCore.Qt.ItemIsDragEnabled
+            if dataSource.supportsDrop(*kwargs):
+                flags |= QtCore.Qt.ItemIsDropEnabled
         else:
             kwargs = {"rowDataSource": self._rowDataSource,
                       "index": row}
-        flags = QtCore.Qt.ItemIsEnabled
         if dataSource.isCheckable(**kwargs):
             flags |= QtCore.Qt.ItemIsUserCheckable
         if dataSource.isEditable(**kwargs):
@@ -127,6 +136,7 @@ class TableModel(QtCore.QAbstractTableModel):
             flags |= QtCore.Qt.ItemIsSelectable
         if dataSource.isEnabled(**kwargs):
             flags |= QtCore.Qt.ItemIsEnabled
+
         return flags
 
     def headerData(self, section, orientation, role):
@@ -139,53 +149,51 @@ class TableModel(QtCore.QAbstractTableModel):
                 if icon.isNull:
                     return
                 return icon.pixmap(icon.availableSizes()[-1])
-
-        elif orientation == QtCore.Qt.Vertical:
-            if role == QtCore.Qt.DisplayRole:
-                return self._rowDataSource.headerVerticalText(section)
-            elif role == QtCore.Qt.DecorationRole:
-                icon = self._rowDataSource.headerVerticalIcon(section)
-                if icon.isNull():
-                    return
-                return icon.pixmap(icon.availableSizes()[-1])
         return None
 
-    def insertRow(self, position, parent=QtCore.QModelIndex(), **kwargs):
-        self.beginInsertRows(parent, position, position)
-        result = self._rowDataSource.insertRowDataSource(int(position), **kwargs)
-        self.endInsertRows()
+    def index(self, row, column, parent=QtCore.QModelIndex()):
+        if not self.hasIndex(row, column, parent):
+            return QtCore.QModelIndex()
 
-        return result
+        parent = self._rowDataSource.parent
+        if not parent:
+            return QtCore.QModelIndex()
+        child = parent().child(row)
+        if child:
+            return self.createIndex(row, column, child)
+        return QtCore.QModelIndex()
+
+    def parent(self, index):
+        if not index.isValid():
+            return QtCore.QModelIndex()
+
+        childDataSource = index.internalPointer()
+        if not childDataSource:
+            return QtCore.QModelIndex()
+        parentDataSource = childDataSource.parent()
+        if parentDataSource == self._rowDataSource or parentDataSource is None:
+            return QtCore.QModelIndex()
+
+        return self.createIndex(parentDataSource.index(), 0, parentDataSource)
 
     def insertRows(self, position, rows, parent=QtCore.QModelIndex(), **kwargs):
+        if not parent.isValid():
+            return False
+        parentDataSource = parent.internalPointer()
         self.beginInsertRows(parent, position, position + rows - 1)
-        result = self._rowDataSource.insertRowDataSources(int(rows), **kwargs)
+        if position < 0 or position > parentDataSource.childCount():
+            return False
+        result = parentDataSource.inserRowDataSources(position, **kwargs)
         self.endInsertRows()
+
         return result
 
-    def insertColumns(self, position, columns, parent=QtCore.QModelIndex()):
-        self.beginInsertColumns(parent, position, position + columns - 1)
-        result = self._rowDataSource.insertColumnDataSources(int(position), int(columns))
-        self.endInsertColumns()
-        return result
-
-    def removeRow(self, position, parent=QtCore.QModelIndex()):
-        self.beginRemoveRows(parent, position, position)
-        result = self._rowDataSource.removeRowDataSource(int(position))
-        self.endRemoveRows()
-        return result
-
-    def removeRows(self, position, rows, parent=QtCore.QModelIndex()):
+    def removeRows(self, position, rows, parent=QtCore.QModelIndex(), **kwargs):
+        if not parent.isValid():
+            return False
+        parentDataSource = parent.internalPointer()
         self.beginRemoveRows(parent, position, position + rows - 1)
-        result = self._rowDataSource.insertColumnDataSources(int(position), int(rows))
+        result = parentDataSource.removeRowDataSources(int(position), **kwargs)
         self.endRemoveRows()
-        return result
 
-    def itemFromIndex(self, index):
-        """Returns the user Object from the rowDataSource
-        :param index:
-        :type index:
-        :return:
-        :rtype:
-        """
-        return index.data(self.userObject) if index.isValid() else self._rowDataSource.userObject(index.row())
+        return result

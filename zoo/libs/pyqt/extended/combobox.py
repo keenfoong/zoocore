@@ -46,4 +46,3 @@ class ExtendedComboBox(QtWidgets.QComboBox):
         self.complete.setCompletionColumn(column)
         self.pFilterModel.setFilterKeyColumn(column)
         super(ExtendedComboBox, self).setModelColumn(column)
-

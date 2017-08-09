@@ -1,0 +1,2 @@
+SPACING = 0
+MARGINS = 0, 0, 0, 0

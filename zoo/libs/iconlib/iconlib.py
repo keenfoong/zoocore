@@ -82,6 +82,7 @@ class Icon(object):
     def iconColorized(cls, iconName, size=16, color=(255, 255, 255)):
         """Colorizers the icon from the library expects the default icon
         to be white for tinting.
+
         :param iconName: the icon name from the library
         :type iconName: str
         :param size: the uniform icon size
@@ -95,12 +96,9 @@ class Icon(object):
         if not icon:
             return icon  # will return an empty QIcon
         color = QtGui.QColor(*color)
-        # icon.setColor(color)
-        # return icon
 
         pixmap = icon.pixmap(QtCore.QSize(size, size))
         mask = pixmap.createMaskFromColor(QtGui.QColor('white'), QtCore.Qt.MaskOutColor)
         pixmap.fill(color)
         pixmap.setMask(mask)
         return QtGui.QIcon(pixmap)
-
