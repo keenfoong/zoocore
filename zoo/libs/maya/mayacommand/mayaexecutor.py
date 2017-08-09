@@ -38,7 +38,6 @@ class MayaExecutor(base.ExecutorBase):
             if command.isUndoable:
                 cmds.undoInfo(openChunk=True)
             om2._ZOOCOMMAND = command
-            print om2._ZOOCOMMAND
             cmds.zooAPIUndo(id=command.id)
         except errors.UserCancel:
             command.stats.finish(None)
@@ -50,50 +49,82 @@ class MayaExecutor(base.ExecutorBase):
             tb = None
             if exc_type and exc_value and exc_tb:
                 tb = traceback.format_exception(exc_type, exc_value, exc_tb)
-            if command.isUndoable:
+            if command.isUndoable and not tb:
                 self.undoStack.append(command)
                 cmds.undoInfo(closeChunk=True)
             command.stats.finish(tb)
             return command._returnResult
 
     def undoLast(self):
-        if self.undoStack:
-            command = self.undoStack[-1]
-            if command is not None and command.isUndoable:
-                # todo need to check against mayas undo?
-                cmds.undo()
-                self.redoStack.append(command)
+        if not self.undoStack:
+            return False
+        command = self.undoStack[-1]
+        if command is None or not command.isUndoable:
+            return False
+        exc_tb = None
+        exc_type = None
+        exc_value = None
+        # todo need to check against mayas undo?
+        try:
+            command.stats = base.CommandStats(command)
+            cmds.undo()
+        except errors.UserCancel:
+            command.stats.finish(None)
+            return
+        except Exception:
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_tb)
+            raise
+        finally:
+            tb = None
+            if exc_type and exc_value and exc_tb:
+                tb = traceback.format_exception(exc_type, exc_value, exc_tb)
+            elif command.isUndoable:
                 self.undoStack.remove(command)
-                return True
-        return False
+            self.redoStack.append(command)
+            command.stats.finish(tb)
+        return True
 
     def redoLast(self):
+        if not self.redoStack:
+            return
         result = None
-        command = self.redoStack.pop()
-        if command is not None:
-            exc_tb = None
-            exc_type = None
-            exc_value = None
-            try:
-                command.stats = base.CommandStats(command)
-                cmds.redo()
-            except errors.UserCancel:
-                self.undoStack.remove(command)
-                command.stats.finish(None)
-                return
-            except Exception:
-                exc_type, exc_value, exc_tb = sys.exc_info()
-                traceback.print_exception(exc_type, exc_value, exc_tb)
-                raise
-            finally:
-                tb = None
-                if exc_type and exc_value and exc_tb:
-                    tb = traceback.format_exception(exc_type, exc_value, exc_tb)
-                elif command.isUndoable:
-                    self.undoStack.append(command)
+        command = self.redoStack[-1]
+        if command is None:
+            return result
 
-                command.stats.finish(tb)
+        exc_tb = None
+        exc_type = None
+        exc_value = None
+        try:
+            command.stats = base.CommandStats(command)
+            cmds.redo()
+        except errors.UserCancel:
+            command.stats.finish(None)
+            return
+        except Exception:
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_tb)
+            raise
+        finally:
+            tb = None
+            command = self.redoStack.pop()
+            if exc_type and exc_value and exc_tb:
+                tb = traceback.format_exception(exc_type, exc_value, exc_tb)
+            elif command.isUndoable:
+                self.undoStack.append(command)
+            command.stats.finish(tb)
 
         return result
 
+    def flush(self):
+        super(MayaExecutor, self).flush()
+        cmds.flushUndo()
 
+    def _callDoIt(self, command):
+        if om2.MGlobal.isRedoing():
+            self.redoStack.pop()
+            result = super(MayaExecutor, self)._callDoIt(command)
+            self.undoStack.append(command)
+            return result
+        return super(MayaExecutor, self)._callDoIt(command)

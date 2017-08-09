@@ -5,7 +5,7 @@ from maya import cmds
 from maya.api import OpenMaya as om2
 
 from tests import mayatestutils
-from zoo.libs.maya.api import nodes
+from zoo.libs.maya.api import nodes, plugs
 from zoo.libs.maya.rig import control
 
 
@@ -57,8 +57,8 @@ class TestControl(mayatestutils.BaseMayaTest):
         con = control.Control(name="testControl")
         con.create(shape="arrow")
         con.setRotationOrder(om2.MTransformationMatrix.kXZY)
-        trans = om2.MFnTransform(con.dagPath.node()).transformation()
-        self.assertEqual(int(trans.rotationOrder()), om2.MTransformationMatrix.kXZY)
+        self.assertEqual(plugs.getPlugValue(om2.MFnDependencyNode(con.mobject()).findPlug("rotateOrder", False)),
+                         om2.MTransformationMatrix.kXZY)
 
     def test_setPivot(self):
         pass

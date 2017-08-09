@@ -9,6 +9,7 @@ from zoo.libs.utils import zlogging
 logger = zlogging.zooLogger
 
 
+
 class PluginManager(object):
     """This class manages a group of plugin instance's.
     use registerPlugin(instance) to registry a instance, automatically discover plugin classes use registerByModule or

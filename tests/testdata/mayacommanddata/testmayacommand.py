@@ -6,7 +6,21 @@ from maya.api import OpenMaya as om2
 
 class MayaSimpleCommand(command.ZooCommand):
     id = "test.mayaSimpleCommand"
+    creator = "David Sparrow"
     isUndoable = True
+    _testNode = None
+
+    def doIt(self):
+        return "hello world"
+
+    def undoIt(self):
+        return "undo"
+
+
+class MayaNotUndoableCommand(command.ZooCommand):
+    id = "test.mayaNotUndoableCommand"
+    creator = "David Sparrow"
+    isUndoable = False
     _testNode = None
 
     def doIt(self):
@@ -18,12 +32,14 @@ class MayaSimpleCommand(command.ZooCommand):
 
 class MayaTestCreateNodeCommand(command.ZooCommand):
     id = "test.mayaTestCreateNodeCommand"
+    creator = "David Sparrow"
     isUndoable = True
     _testNode = None
 
     def doIt(self):
         node = nodes.createDagNode("testNode", "transform")
         self._testNode = om2.MObjectHandle(node)
+        return node
 
     def undoIt(self):
         if self._testNode is None:
@@ -36,6 +52,7 @@ class MayaTestCreateNodeCommand(command.ZooCommand):
 
 class MayaTestCommandFailsOnDoIt(command.ZooCommand):
     id = "test.mayaTestCommandFailsOnDoIt"
+    creator = "David Sparrow"
     _testNode = None
     isUndoable = False
 
@@ -45,6 +62,7 @@ class MayaTestCommandFailsOnDoIt(command.ZooCommand):
 
 class MayaTestCommandFailsOnUndoIt(command.ZooCommand):
     id = "test.mayaTestCommandFailsOnUndoIt"
+    creator = "David Sparrow"
     _testNode = None
     isUndoable = True
 
@@ -58,7 +76,8 @@ class MayaTestCommandFailsOnUndoIt(command.ZooCommand):
 
 class MayaTestCommandFailsOnResolveArgs(command.ZooCommand):
     id = "test.mayaTestCommandFailsOnResolveArgs"
+    creator = "David Sparrow"
     _testNode = None
 
-    def doIt(self):
+    def doIt(self, test, test2=None):
         pass

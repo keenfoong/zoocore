@@ -55,20 +55,19 @@ def getNodesCreatedBy(function, *args, **kwargs):
     """
 
     # construct the node created callback
-    newNodeHandles = set()
+    newNodeHandles = []
 
     def newNodeCB(newNode, data):
 
-        newNodeHandles.add(om2.MObjectHandle(newNode))
+        newNodeHandles.append(om2.MObjectHandle(newNode))
 
     def remNodeCB(remNode, data):
         remNodeHandle = om2.MObjectHandle(remNode)
         if remNodeHandle in newNodeHandles:
             newNodeHandles.remove(remNodeHandle)
 
-    newNodeCBMsgId = om2.MDGMessage.addNodeAddedCallback(newNodeCB)
-    remNodeCBMsgId = om2.MDGMessage.addNodeRemovedCallback(remNodeCB)
-
+    newNodeCBMsgId = om2.MDGMessage.addNodeAddedCallback(newNodeCB, "dependNode")
+    remNodeCBMsgId = om2.MDGMessage.addNodeRemovedCallback(remNodeCB, "dependNode")
     try:
         ret = function(*args, **kwargs)
     finally:

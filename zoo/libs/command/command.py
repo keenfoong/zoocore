@@ -86,14 +86,6 @@ class CommandInterface(object):
         """
         return False
 
-    @abstractproperty
-    def description(self):
-        """The documentation for the command
-
-        :rtype: str
-        """
-        return ""
-
     @staticmethod
     def uiData():
         """A dict for persistent GUI styling which is used by any and all GUIs(menus etc).
@@ -116,6 +108,9 @@ class CommandInterface(object):
 
 class ZooCommand(CommandInterface):
     isEnabled = True
+
+    def description(self):
+        return self.__doc__
 
     def cancel(self, msg=None):
         # type: (object) -> object

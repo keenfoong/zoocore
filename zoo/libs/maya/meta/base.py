@@ -45,8 +45,7 @@ def findSceneRoots():
     for meta in iterSceneMetaNodes():
         dep = om2.MFnDependencyNode(meta)
         try:
-            isRoot = dep.findPlug("root", False).asBool()
-            if isRoot:
+            if dep.findPlug("root", False).asBool():
                 roots.append(MetaBase(node=meta))
         except RuntimeError:
             continue
@@ -56,6 +55,7 @@ def findSceneRoots():
 def filterSceneByAttributeValues(attributeNames, filter):
     """ From the all scene zoo meta nodes find all attributeNames on the node if the value of the attribute is a string
     the filter acts as a regex otherwise it'll will do a value == filter op.
+
     :param attributeNames: a list of attribute name to find on each node
     :type attributeNames: seq(str)
     :param filter: filters the found attributes by value
@@ -81,6 +81,7 @@ def filterSceneByAttributeValues(attributeNames, filter):
 
 def iterSceneMetaNodes():
     """Iterates all metanodes in the maya scene
+
     :rtype: Generator(MObject)
     """
     t = om2.MItDependencyNodes()
@@ -95,6 +96,7 @@ def iterSceneMetaNodes():
 def isMetaNode(node):
     """Determines if the node is a meta node by seeing if the attribute mnode exists and mclass value(classname) is
     within the current meta registry
+
     :param node:
     :type node: MObject
     :rtype: bool
@@ -136,6 +138,7 @@ class MetaRegistry(object):
     @classmethod
     def getType(cls, typeName):
         """Returns the class of the type
+        
         :param typeName: the class name
         :type typeName: str
         :return: returns the class object for the given type name

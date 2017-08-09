@@ -8,7 +8,6 @@ class ZooRenameCommand(command.ZooCommand):
     """
     id = "zoo.nodes.rename"
     creator = "David Sparrow"
-    description = __doc__
     isUndoable = True
     uiData = {"icon": "cube",
               "tooltip": "Batch renames nodes",

@@ -3,6 +3,7 @@ from maya import cmds
 from tests import mayatestutils
 
 from zoo.libs.command import executor
+from maya.api import OpenMaya as om2
 
 
 class TestMayaCommandExecutor(mayatestutils.BaseMayaTest):
@@ -13,49 +14,44 @@ class TestMayaCommandExecutor(mayatestutils.BaseMayaTest):
 
     def setUp(self):
         self.executor = executor.Executor()
+        self.executor.flush()
         self.env = "TESTDATA"
+        self.executor.registerEnv(self.env)
 
     def testCommandExecutes(self):
-        self.executor.registerEnv(self.env)
-        result = self.executor.execute("Test.mayaSimpleCommand")
-        self.assertEquals(result, "helloWorld")
+        result = self.executor.execute("test.mayaSimpleCommand")
+        self.assertEquals(result, "hello world")
         self.assertEquals(len(self.executor.undoStack), 1)
-        self.assertEquals(cmds.undoInfo(l=True), 1)
 
     # standalone based commands need to be tested in maya as well
     def testCommandFailsArguments(self):
-        self.executor.registerEnv(self.env)
         with self.assertRaises(ValueError) as context:
             self.executor.execute("Test.FailCommandArguments", value="helloWorld")
         self.assertTrue('Test.FailCommandArguments' in str(context.exception))
         self.assertEquals(len(self.executor.undoStack), 0)
-        self.assertEquals(len(cmds.undoInfo), 0)
 
     def testUndoLast(self):
-        self.executor.registerEnv(self.env)
-        result = self.executor.execute("Test.TestCommandUndoable", value="helloWorld")
-        self.assertEquals(result, "helloWorld")
-        self.assertEquals(len(self.executor.undoStack), 1)
-        self.assertEquals(len(cmds.undoInfo), 1)
-        result = self.executor.undoLast()
-        self.assertTrue(result)
         self.assertEquals(len(self.executor.undoStack), 0)
-        self.assertEquals(len(cmds.undoInfo), 0)
+        result = self.executor.execute("test.mayaTestCreateNodeCommand")
+        self.assertIsInstance(result, om2.MObject)
+        self.assertEquals(len(self.executor.undoStack), 1)
+        cmds.undo()
+        self.assertEquals(len(self.executor.undoStack), 0)
         self.assertEquals(len(self.executor.redoStack), 1)
+        cmds.redo()
+        self.assertEquals(len(self.executor.redoStack), 0)
+        self.assertEquals(len(self.executor.undoStack), 1)
 
     def testUndoSkips(self):
-        self.executor.registerEnv(self.env)
-        result = self.executor.execute("Test.TestCommandNotUndoable", value="helloWorld")
-        self.assertEquals(result, "helloWorld")
+        result = self.executor.execute("test.mayaNotUndoableCommand")
+        self.assertEquals(result, "hello world")
         self.assertEquals(len(self.executor.undoStack), 0)
-        self.assertEquals(len(cmds.undoInfo), 0)
         result = self.executor.undoLast()
         self.assertFalse(result)
 
     def testFlush(self):
-        self.executor.registerEnv(self.env)
-        result = self.executor.execute("Test.TestCommandUndoable", value="helloWorld")
-        self.assertEquals(result, "helloWorld")
+        result = self.executor.execute("test.mayaTestCreateNodeCommand")
+        self.assertIsInstance(result, om2.MObject)
         self.assertEquals(len(self.executor.undoStack), 1)
         self.executor.flush()
         self.assertEquals(len(self.executor.undoStack), 0)

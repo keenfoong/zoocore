@@ -56,12 +56,12 @@ class UndoCmd(om2.MPxCommand):
         if self._command is None:
             return
         elif self._command != om2._COMMANDEXECUTOR.undoStack[-1]:
-
             raise ValueError("Undo stack has become out of the sync with zoocommands {}".format(self._command.id))
         elif self._command.isUndoable:
             try:
                 self._command.undoIt()
             finally:
+                om2._COMMANDEXECUTOR.redoStack.append(self._command)
                 om2._COMMANDEXECUTOR.undoStack.pop()
 
     def isUndoable(self):

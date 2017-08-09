@@ -18,6 +18,8 @@ class CommandRegistry(object):
         """
         commands = []
         for p in paths:
+            if p.endswith(".pyc"):
+                continue
             if len(p.split(".")) > 1:
                 importedModule = modules.importModule(p)
                 p = os.path.realpath(importedModule.__file__)
@@ -64,7 +66,7 @@ class CommandRegistry(object):
         commands = []
         for subModule in modules.iterModules(pkg):
             filename = os.path.splitext(os.path.basename(subModule))[0]
-            if filename.startswith("__") or filename in visited:
+            if filename.startswith("__") or subModule.endswith(".pyc") or filename in visited:
                 continue
             visited.add(filename)
             subModuleObj = modules.importModule(subModule)

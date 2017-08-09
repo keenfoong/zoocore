@@ -26,10 +26,13 @@ class TestScene(mayatestutils.BaseMayaTest):
 
     def test_getNodesCreatedBy(self):
         def testCreate():
-            cmds.createNode("transform")
-            nodes.createDagNode("test", "transform")
+
+
+            return nodes.asMObject(cmds.createNode("transform")), nodes.createDagNode("test", "transform")
         results = scene.getNodesCreatedBy(testCreate)
+
         self.assertEquals(len(results), 2)
-        self.assertIsinstance(results[0], basestring)
-        self.assertIsinstance(results[1], om2.MObject)
+        for i in results:
+            for n in i:
+                self.assertIsInstance(n, om2.MObject)
 
