@@ -11,10 +11,31 @@ class TreeViewPlus(QtWidgets.QFrame):
 
         self._setupLayouts()
         self.model = None
+        self.rowDataSource = None
+        self.columnDataSources = []
         self.connections()
         self.setSearchable(True)
         if expand:
             self.treeView.expandAll()
+
+    def registerRowDataSource(self, dataSource):
+        self.rowDataSource = dataSource
+        if hasattr(dataSource, "delegate"):
+            delegate = dataSource.delegate(self.tableview)
+            self.tableview.setItemDelegateForColumn(0, delegate)
+        self._model.rowDataSource = dataSource
+
+    def registerColumnDataSources(self, dataSources):
+        if not self.rowDataSource:
+            raise ValueError("Must assign rowDataSource before columns")
+        self.columnDataSources = dataSources
+        for i in xrange(len(dataSources)):
+            source = dataSources[i]
+            if hasattr(source, "delegate"):
+                delegate = source.delegate(self.tableview)
+                self.tableview.setItemDelegateForColumn(i + 1, delegate)
+
+        self._model.columnDataSources = dataSources
 
     def expandAll(self):
         self.treeView.expandAll()
@@ -91,20 +112,24 @@ class TreeViewPlus(QtWidgets.QFrame):
     def refresh(self):
         self.refreshRequested.emit()
         self.searchHeaderBox.clear()
-        for index in xrange(self.model.columnCount(QtCore.QModelIndex())):
+        rowDataSource = self._model.rowDataSource
+        columnDataSources = self._model.columnDataSources
+        self.searchHeaderBox.addItem(rowDataSource.headerText(0))
+        for i in xrange(len(columnDataSources)):
+            self.searchHeaderBox.addItem(columnDataSources[i].headerText(i))
             self.treeView.resizeColumnToContents(index)
             newWidth = self.treeView.columnWidth(index) + 10
             self.treeView.setColumnWidth(index, newWidth)
-            try:
-                header = self.model.root.headerText(index)
-                self.searchHeaderBox.addItem(header)
-            except AttributeError:
-                continue
+            header = self.model.root.headerText(index)
+            self.searchHeaderBox.addItem(header)
 
     def contextMenu(self, position):
         menu = QtWidgets.QMenu(self)
-        self.contextMenuRequested.emit(menu, self.selectedItems())
-        menu.exec_(self.treeView.viewport().mapToGlobal(position))
+        selection = self.selectedRows()
+        if self.rowDataSource:
+            self.rowDataSource.contextMenu(selection, menu)
+        self.contextMenuRequested.emit(selection, menu)
+        menu.exec_(self.treeview.viewport().mapToGlobal(position))
 
 
 if __name__ == "__main__":
