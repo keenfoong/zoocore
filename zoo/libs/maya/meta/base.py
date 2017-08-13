@@ -17,6 +17,12 @@ from zoo.libs.maya.api import attrtypes
 
 logger = zlogging.zooLogger
 
+MCLASS_ATTR_NAME = "mClass"
+MVERSION_ATTR_NAME = "version"
+MROOT_ATTR_NAME = "root"
+MUUID_ATTR_NAME = "uuid"
+MPARENT_ATTR_NAME = "metaParent"
+MCHILDREN_ATTR_NAME = "metaChildren"
 
 def lockMetaManager(func):
     """Decorator function to lock and unlock the meta, designed purely for the metaclass
@@ -88,7 +94,7 @@ def iterSceneMetaNodes():
     while not t.isDone():
         node = t.thisNode()
         dep = om2.MFnDependencyNode(node)
-        if dep.hasAttribute("mClass"):
+        if dep.hasAttribute(MCLASS_ATTR_NAME):
             yield node
         t.next()
 
@@ -104,8 +110,8 @@ def isMetaNode(node):
     if isinstance(node, MetaBase) or issubclass(type(node), MetaBase):
         return True
     dep = om2.MFnDependencyNode(node)
-    if dep.hasAttribute("mClass"):
-        return MetaRegistry.isInRegistry(dep.findPlug("mClass", False).asString())
+    if dep.hasAttribute(MCLASS_ATTR_NAME):
+        return MetaRegistry.isInRegistry(dep.findPlug(MCLASS_ATTR_NAME, False).asString())
     return False
 
 
@@ -261,7 +267,7 @@ class MetaBase(object):
             return node.mClass.asString()
         dep = om2.MFnDependencyNode(node)
         try:
-            return dep.findPlug("mClass", False).asString()
+            return dep.findPlug(MCLASS_ATTR_NAME, False).asString()
         except RuntimeError:
             return ""
 
@@ -276,7 +282,7 @@ class MetaBase(object):
             self._mfn = om2.MFnDagNode(node)
         else:
             self._mfn = om2.MFnDependencyNode(node)
-        if initDefaults and not self._mfn.hasAttribute("mClass"):
+        if initDefaults and not self._mfn.hasAttribute(MCLASS_ATTR_NAME):
             self._initMeta()
         if not self._mfn.isLocked:
             self.lock(True)
@@ -284,8 +290,8 @@ class MetaBase(object):
     def _initMeta(self):
         """Initializes the standard attributes for the meta nodes
         """
-        self.addAttribute("mClass", self.__class__.__name__, attrtypes.kMFnDataString)
-        self.addAttribute("version", "1.0.0", attrtypes.kMFnDataString)
+        self.addAttribute(MCLASS_ATTR_NAME, self.__class__.__name__, attrtypes.kMFnDataString)
+        self.addAttribute(MVERSION_ATTR_NAME, "1.0.0", attrtypes.kMFnDataString)
         self.addAttribute("root", False, attrtypes.kMFnNumericBoolean)
         self.addAttribute("uuid", str(uuid.uuid4()), attrtypes.kMFnDataString)
         self.addAttribute("metaParent", None, attrtypes.kMFnMessageAttribute)
@@ -408,14 +414,18 @@ class MetaBase(object):
 
     @lockMetaManager
     def addAttribute(self, name, value, Type, isArray=False):
+        mobj = self._handle.object()
+        mfn = om2.MFnDependnecyNode(mobj)
+        if mfn.hasAttribute(name):
+            return
         try:
-            attr = nodes.addAttribute(self._handle.object(), name, name, Type)
+            attr = nodes.addAttribute(mobj, name, name, Type)
             attr.array = isArray
         except RuntimeError:
             return
         newPlug = None
         if attr is not None:
-            newPlug = om2.MPlug(self._handle.object(), attr.object())
+            newPlug = om2.MPlug(mobj, attr.object())
 
         if value is not None and newPlug is not None:
             # if mobject expect it to be a node
