@@ -10,8 +10,9 @@ class MetaCamera(base.MetaBase):
     """
     def __init__(self, node=None, name=None, initDefaults=True):
         super(MetaCamera, self).__init__(node, name, initDefaults)
-        if self._handle.object().apiType() == om2.MFn.kCamera:
-            self._mfn = om2.MFnCamera(self._handle.object())
+        child = list(nodes.iterChildren(self.mobject(), False, om2.MFn.kCamera))
+        self.camMfn = om2.MFnCamera(child[0])
+
 
     def _initMeta(self):
         super(MetaCamera, self)._initMeta()
@@ -21,28 +22,46 @@ class MetaCamera(base.MetaBase):
         self.addAttribute("shotName", "", attrtypes.kMFnDataString)
         self.addAttribute("cameraVersion", 1, attrtypes.kMFnNumericInt)
 
-    @base.lockMetaManager
-    def delete(self):
-        fn = self._mfn
-        if fn.object().apiType() == om2.MFn.kCamera:
-            node = nodes.getParent(fn.object())
-        else:
-            node = fn.object()
+    @property
+    def aspectRatio(self):
+        return self.camMfn.aspectRatio()
 
-        nodes.delete(node)
+    @aspectRatio.setter
+    def aspectRatio(self, value):
+        self.camMfn.setAspectRatio(value)
 
-    @base.lockMetaManager
-    def rename(self, name):
-        """Renames the camera node if the node is kCamera type then the parent transform will
-        be renamed instead of the shape.
+    @property
+    def focalLength(self):
+        return self.camMfn.focalLength
 
-        :param name: the new name for the node.
-        :type name: str
-        """
-        fn = self.mfn()
+    @focalLength.setter
+    def focalLength(self, value):
+        self.camMfn.focalLength = value
 
-        if fn.object().apiType() == om2.MFn.kCamera:
-            node = nodes.getParent(fn.object())
-        else:
-            node = fn.object()
-        nodes.rename(node, name)
+    @property
+    def verticalFilmAperture(self):
+        return self.camMfn.verticalFilmAperture
+
+    @verticalFilmAperture.setter
+    def verticalFilmAperture(self, value):
+        self.camMfn.verticalFilmAperture = value
+    @property
+    def filmFit(self):
+        return self.camMfn.filmFit
+
+    @filmFit.setter
+    def filmFit(self, value):
+        self.camMfn.filmFit = int(value)
+
+    def copyFrom(self, metaCamera):
+        self.lockedOff = metaCamera.lockedOff.asBool()
+        self.startFrame = metaCamera.startFrame.asInt()
+        self.endFrame = metaCamera.endFrame.asInt()
+        self.framePadding = metaCamera.framePadding.asInt()
+        self.shotName = metaCamera.shotName.asString()
+        self.camera_version = metaCamera.camera_version.asInt()
+        self.shotgun_context = metaCamera.shotgun_context.asString()
+        self.filmFit = float(metaCamera.filmFit)
+        self.aspectRatio = float(metaCamera.aspectRatio)
+        self.focalLength = float(metaCamera.focalLength)
+        self.verticalFilmAperture = float(metaCamera.verticalFilmAperture)
