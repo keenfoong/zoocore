@@ -190,6 +190,7 @@ def lockNode(mobject, state=True):
         return True
     return False
 
+
 def unlockConnectedAttributes(mobject):
     """Unlocks all connected attributes to this node
 
@@ -208,7 +209,7 @@ def unlockedAndDisconnectConnectedAttributes(mobject):
     :type mobject: MObject
     """
     for thisNodeP, otherNodeP in iterConnections(mobject, source=True, destination=True):
-        plugs.disconnectPlug(thisNodeP, otherNodeP)
+        plugs.disconnectPlug(thisNodeP)
 
 
 def childPathAtIndex(path, index):
@@ -554,6 +555,13 @@ def getWorldMatrix(mobject):
     return plugs.getPlugValue(matplug)
 
 
+def decomposeMatrix(matrix, rotationOrder, space=om2.MSpace.kWorld):
+    transformMat = om2.MTransformationMatrix(matrix)
+    rotation = transformMat.rotation()
+    rotation.reorderIt(rotationOrder)
+    return transformMat.translation(space), rotation, transformMat.scale(space)
+
+
 def getWorldInverseMatrix(mobject):
     """Returns the world inverse matrix of the given MObject
 
@@ -876,7 +884,7 @@ def deserializeNode(data, includeConnections=True):
     name = om2.MNamespace.stripNamespaceFromName(data["name"]).split("|")[-1]
     nodeType = data["type"]
     parent = data["parent"]
-    req = data["requirements"]
+    req = data.get("requirements")
     if req:
         for r in iter(req):
             try:
@@ -893,7 +901,7 @@ def deserializeNode(data, includeConnections=True):
         dep = om2.MFnDagNode(newNode)
     # attribute key doesn't need to exist so check
     attributes = data.get("attributes", {})
-    for attrData in iter(attributes.items()):
+    for attrData in iter(attributes):
         # @todo create deserialize plug function which includes connections?
         attrName = attrData["name"]
         if not attrData.get("isDynamic"):
@@ -907,22 +915,23 @@ def deserializeNode(data, includeConnections=True):
             newAttr = addAttribute(newNode, attrName, attrName, attrData["type"])
             if newAttr is None:
                 continue
-            plug = om2.MPlug(newNode, newAttr.object())
-            max = attrData.get("max")
-            min = attrData.get("min")
-            softMax = attrData.get("softMax")
-            softMin = attrData.get("softMin")
-            default = attrData.get("default")
-            if default is not None:
-                plugs.setPlugDefault(plug, default)
-            if max is not None:
-                plugs.setMax(plug, max)
-            if min is not None:
-                plugs.setMin(plug, min)
-            if softMax is not None:
-                plugs.setSoftMax(plug, softMax)
-            if softMin is not None:
-                plugs.setSoftMin(plug, softMin)
+            if attrData["type"] != attrtypes.kMFnMessageAttribute:
+                plug = om2.MPlug(newNode, newAttr.object())
+                max = attrData.get("max")
+                min = attrData.get("min")
+                softMax = attrData.get("softMax")
+                softMin = attrData.get("softMin")
+                default = attrData.get("default")
+                if default is not None:
+                    plugs.setPlugDefault(plug, default)
+                if max is not None:
+                    plugs.setMax(plug, max)
+                if min is not None:
+                    plugs.setMin(plug, min)
+                if softMax is not None:
+                    plugs.setSoftMax(plug, softMax)
+                if softMin is not None:
+                    plugs.setSoftMin(plug, softMin)
         newAttr.keyable = attrData["keyable"]
         newAttr.channelBox = attrData["channelBox"]
         plug.isLocked = attrData["locked"]
