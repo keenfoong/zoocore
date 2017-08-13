@@ -109,6 +109,10 @@ class TableViewPlus(QtWidgets.QFrame):
         self.proxySearch.setFilterRole(QtCore.Qt.DisplayRole)
         self.proxySearch.setFilterKeyColumn(0)
         self._model = model
+        if self.rowDataSource:
+            self.rowDataSource.model = model
+        for i in iter(self.columnDataSources):
+            i.model = model
         self.tableview.setModel(self._model)
 
     def refresh(self):

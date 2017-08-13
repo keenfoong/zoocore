@@ -10,10 +10,17 @@ class ListViewPlus(QtWidgets.QFrame):
     def __init__(self, searchable=False, parent=None):
         super(ListViewPlus, self).__init__(parent)
         self.model = None
-
+        self.rowDataSource = None
         self._setupLayouts()
         self.connections()
         self.setSearchable(searchable)
+
+   def registerRowDataSource(self, dataSource):
+        self.rowDataSource = dataSource
+        if hasattr(dataSource, "delegate"):
+            delegate = dataSource.delegate(self.tableview)
+            self.tableview.setItemDelegateForColumn(0, delegate)
+        self._model.rowDataSource = dataSource
 
     def expandAll(self):
         self.listview.expandAll()
@@ -79,8 +86,11 @@ class ListViewPlus(QtWidgets.QFrame):
         self.proxySearch.setSourceModel(model)
         self.model = model
         self.listview.setModel(self.proxySearch)
-        self.searchEdit.textChanged.connect(self.proxySearch.setFilterRegExp)
+        if self.rowDataSource:
+            self.rowDataSource.model = model
 
+        self.searchEdit.textChanged.connect(self.proxySearch.setFilterRegExp)
+        
     def onSearchBoxChanged(self):
         index = self.searchHeaderBox.currentIndex()
         self.proxySearch.setFilterKeyColumn(index)
@@ -88,20 +98,18 @@ class ListViewPlus(QtWidgets.QFrame):
 
     def refresh(self):
         self.refreshRequested.emit()
-        currentIndex = self.searchHeaderBox.currentIndex()
         self.searchHeaderBox.clear()
-        for index in xrange(self.model.columnCount(QtCore.QModelIndex())):
-            self.listview.resizeColumnToContents(index)
-            newWidth = self.listview.columnWidth(index) + 10
-            self.listview.setColumnWidth(index, newWidth)
-            header = self.model.root.headerText(index)
-            self.searchHeaderBox.addItem(header)
-        self.searchHeaderBox.setCurrentIndex(currentIndex)
+        rowDataSource = self._model.rowDataSource
+        self.searchHeaderBox.addItem(rowDataSource.headerText(0))
 
-    def onContextMenuRequested(self, position):
-        menu = QtWidgets.QMenu(parent=self)
-        self.contextMenuRequestedSignal.emit(menu)
-        menu.exec_(self.listview.viewport().mapToGlobal(position))
+    def contextMenu(self, position):
+        menu = QtWidgets.QMenu(self)
+        selection = self.selectedRows()
+        if self.rowDataSource:
+            self.rowDataSource.contextMenu(selection, menu)
+        self.contextMenuRequested.emit(selection, menu)
+        menu.exec_(self.treeview.viewport().mapToGlobal(position))
+
 
 
 if __name__ == "__main__":

@@ -105,7 +105,12 @@ class TreeViewPlus(QtWidgets.QFrame):
     def setModel(self, model):
         self.model = model
         self.proxySearch.setSourceModel(model)
-
+        if self.rowDataSource:
+            self.rowDataSource.model = model
+        for i in iter(self.columnDataSources):
+            i.model = model
+        self.treeView.setModel(self.model)
+        
     def onSearchBoxChanged(self):
         self.proxySearch.setFilterKeyColumn(self.searchHeaderBox.currentIndex())
 
