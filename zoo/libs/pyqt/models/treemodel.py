@@ -8,33 +8,9 @@ class TreeModel(QtCore.QAbstractItemModel):
     filterRole = QtCore.Qt.UserRole + 1
     userObject = QtCore.Qt.UserRole + 2
 
-    def __init__(self, parent=None):
-        """first element is the rowDataSource
-        :param parent:
-        :type parent:
-        """
-        super(TreeModel, self).__init__(parent=parent)
-        self._rowDataSource = None
-        self.columnDataSources = []
-
-    @property
-    def rowDataSource(self):
-        return self._rowDataSource
-
-    @rowDataSource.setter
-    def rowDataSource(self, source):
-        self._rowDataSource = source
-
-    def columnDataSource(self, index):
-        if not self._rowDataSource or not self.columnDataSources:
-            return
-
-        return self.columnDataSources[index - 1]
-
-    def dataSource(self, index):
-        if index == 0:
-            return self._rowDataSource
-        return self.columnDataSources[index - 1]
+    def __init__(self, root, parent=None):
+        super(TreeModel, self).__init__(parent)
+        self.root = root
 
     def reload(self):
         """Hard reloads the model, we do this by the modelReset slot, the reason why we do this instead of insertRows()
@@ -43,157 +19,154 @@ class TreeModel(QtCore.QAbstractItemModel):
         """
         self.modelReset.emit()
 
-    def rowCount(self, parent=QtCore.QModelIndex()):
+    def itemFromIndex(self, index):
+        return index.data(self.userObject) if index.isValid() else self.root
 
-        if parent.column() > 0 or self._rowDataSource is None:
+    def rowCount(self, parent):
+        if parent.column() > 0 or self.root is None:
             return 0
-        return self.rowDataSource.childCount()
+        parentItem = self.getItem(parent)
+        return parentItem.rowCount()
 
     def columnCount(self, parent):
-        if not self._rowDataSource or not self.columnDataSources:
+        if self.root is None:
             return 0
-        return len(self.columnDataSources) + 1
+        return self.root.columnCount()
 
     def data(self, index, role):
         if not index.isValid():
             return None
-
-        column = int(index.column())
-        row = int(index.row())
-        dataSource = self.dataSource(column)
-        if dataSource is None:
-            return
-        if column == 0:
-            kwargs = {"index": row}
-        else:
-            kwargs = {"rowDataSource": self._rowDataSource,
-                      "index": row}
+        item = index.internalPointer()
+        row = index.row()
+        column = index.column()
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            return dataSource.data(**kwargs)
+            return item.text(column)
         elif role == QtCore.Qt.ToolTipRole:
-            return dataSource.toolTip(**kwargs)
+            return item.tooltip()
         elif role == QtCore.Qt.DecorationRole:
-            return dataSource.icon(**kwargs)
-        elif role == QtCore.Qt.CheckStateRole and dataSource.isCheckable(**kwargs):
-            if dataSource.isCheckable(**kwargs):
-                return QtCore.Qt.Checked
-            return QtCore.Qt.Unchecked
-        elif role == QtCore.Qt.TextAlignmentRole:
-            return dataSource.alignment(**kwargs)
+            return item.icon(column)
         elif role == QtCore.Qt.BackgroundRole:
-            color = dataSource.backgroundColor(**kwargs)
+            color = item.backgroundColor(row, column)
             if color:
                 return QtGui.QColor(*color)
         elif role == QtCore.Qt.ForegroundRole:
-            color = dataSource.foregroundColor(**kwargs)
+            color = item.foregroundColor(row, column)
             if color:
                 return QtGui.QColor(*color)
+        elif role == QtCore.Qt.FontRole:
+            return item.font(column)
         elif role == TreeModel.sortRole:
-            return dataSource.data(**kwargs)
+            return item.text(column)
         elif role == TreeModel.filterRole:
-            return dataSource.data(**kwargs)
+            return item.text(column)
         elif role == TreeModel.userObject:
-            return dataSource.userObject(row)
+            return item
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
-        if not index.isValid() or not self._rowDataSource:
+        if not index.isValid():
             return False
+        pointer = index.internalPointer()
         if role == QtCore.Qt.EditRole:
             column = index.column()
-
-            if column == 0:
-                self._rowDataSource.setData(index.row(), value)
-            else:
-                self.columnDataSources[column - 1].setData(self._rowDataSource, index.row(), value)
+            pointer.setText(column, value)
             self.dataChanged.emit(index, index)
             return True
         return False
 
-    def supportedDropActions(self):
-        return QtCore.Qt.CopyAction | QtCore.Qt.MoveAction
-
     def flags(self, index):
-        if not index.isValid() or not self._rowDataSource:
+        if not index.isValid():
             return QtCore.Qt.NoItemFlags
         row = index.row()
         column = index.column()
-        dataSource = self.dataSource(column)
+        pointer = index.internalPointer()
         flags = QtCore.Qt.ItemIsEnabled
-        if column == 0:
-            kwargs = {"index": row}
-            if dataSource.supportsDrag(**kwargs):
-                flags |= QtCore.Qt.ItemIsDragEnabled
-            if dataSource.supportsDrop(*kwargs):
-                flags |= QtCore.Qt.ItemIsDropEnabled
-        else:
-            kwargs = {"rowDataSource": self._rowDataSource,
-                      "index": row}
-        if dataSource.isCheckable(**kwargs):
-            flags |= QtCore.Qt.ItemIsUserCheckable
-        if dataSource.isEditable(**kwargs):
+        if pointer.supportsDrag(row, column):
+            flags |= QtCore.Qt.ItemIsDragEnabled
+        if pointer.supportsDrop(row, column):
+            flags |= QtCore.Qt.ItemIsDropEnabled
+        if pointer.isEditable(row, column):
             flags |= QtCore.Qt.ItemIsEditable
-        if dataSource.isSelectable(**kwargs):
+        if pointer.isSelectable(row, column):
             flags |= QtCore.Qt.ItemIsSelectable
-        if dataSource.isEnabled(**kwargs):
+        if pointer.isEnabled(row, column):
             flags |= QtCore.Qt.ItemIsEnabled
-
         return flags
 
     def headerData(self, section, orientation, role):
-        if orientation == QtCore.Qt.Horizontal:
-            dataSource = self.dataSource(section)
-            if role == QtCore.Qt.DisplayRole:
-                return dataSource.headerText(section)
-            elif role == QtCore.Qt.DecorationRole:
-                icon = dataSource.headerIcon(section)
-                if icon.isNull:
-                    return
-                return icon.pixmap(icon.availableSizes()[-1])
+        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+            return self.root.headerText(section)
         return None
 
     def index(self, row, column, parent=QtCore.QModelIndex()):
         if not self.hasIndex(row, column, parent):
             return QtCore.QModelIndex()
 
-        parent = self._rowDataSource.parent
-        if not parent:
-            return QtCore.QModelIndex()
-        child = parent().child(row)
-        if child:
-            return self.createIndex(row, column, child)
+        parentItem = self.getItem(parent)
+        childItem = parentItem.child(row)
+        if childItem:
+            return self.createIndex(row, column, childItem)
         return QtCore.QModelIndex()
 
     def parent(self, index):
         if not index.isValid():
             return QtCore.QModelIndex()
 
-        childDataSource = index.internalPointer()
-        if not childDataSource:
-            return QtCore.QModelIndex()
-        parentDataSource = childDataSource.parent()
-        if parentDataSource == self._rowDataSource or parentDataSource is None:
+        childItem = index.internalPointer()
+
+        parentItem = childItem.parent()
+        if parentItem == self.root or parentItem is None:
             return QtCore.QModelIndex()
 
-        return self.createIndex(parentDataSource.index(), 0, parentDataSource)
+        return self.createIndex(parentItem.index(), 0, parentItem)
+
+    def insertRow(self, position, parent=QtCore.QModelIndex(), **kwargs):
+        parentItem = self.getItem(parent)
+        self.beginInsertRows(parent, position)
+        if position < 0 or position > parentItem.childCount():
+            return False
+        parentItem.insertChild(position, **kwargs)
+        self.endInsertRows()
+
+        return True
 
     def insertRows(self, position, rows, parent=QtCore.QModelIndex(), **kwargs):
-        if not parent.isValid():
-            return False
-        parentDataSource = parent.internalPointer()
+        parentItem = self.getItem(parent)
         self.beginInsertRows(parent, position, position + rows - 1)
-        if position < 0 or position > parentDataSource.childCount():
+        if position < 0 or position > parentItem.childCount():
             return False
-        result = parentDataSource.inserRowDataSources(position, **kwargs)
+        result = parentItem.insertRowDataSources(int(position), int(rows), **kwargs)
+
         self.endInsertRows()
 
         return result
 
     def removeRows(self, position, rows, parent=QtCore.QModelIndex(), **kwargs):
-        if not parent.isValid():
-            return False
-        parentDataSource = parent.internalPointer()
+        parentNode = self.getItem(parent)
         self.beginRemoveRows(parent, position, position + rows - 1)
-        result = parentDataSource.removeRowDataSources(int(position), **kwargs)
+        if position < 0 or position > parentNode.childCount():
+            return False
+        result = parentNode.insertRowDataSources(int(position), int(rows), **kwargs)
+
         self.endRemoveRows()
 
         return result
+
+    def removeRow(self, position, rows, parent=QtCore.QModelIndex()):
+        parentNode = self.getItem(parent)
+        self.beginRemoveRows(parent, position, position + rows - 1)
+        if position < 0 or position > parentNode.childCount():
+            return False
+
+        success = parentNode.remove(position)
+
+        self.endRemoveRows()
+
+        return success
+
+    def getItem(self, index):
+        if index.isValid():
+            item = index.internalPointer()
+            if item:
+                return item
+
+        return self.root

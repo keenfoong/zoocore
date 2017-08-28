@@ -296,7 +296,7 @@ def setParent(child, newParent, maintainOffset=False):
     :rtype bool
     """
 
-    newParent = newParent if newParent is not None else om2.MObject.kNullObj
+    newParent = newParent or om2.MObject.kNullObj
     if child == newParent:
         return False
     dag = om2.MDagModifier()
@@ -399,6 +399,16 @@ def iterChildren(mObject, recursive=False, filter=None):
             if recursive:
                 for x in iterChildren(childObj, recursive, filter):
                     yield x
+
+
+def breadthFirstSearchDag(node, filter=None):
+    ns = [i for i in iterChildren(node, False, filter=filter)]
+    if not ns:
+        return
+    yield ns
+    for i in ns:
+        for t in breadthFirstSearchDag(i):
+            yield t
 
 
 def getChildren(mObject, recursive=False, filter=om2.MFn.kTransform):
@@ -519,8 +529,7 @@ def delete(node):
         return
     lockNode(node, False)
     unlockedAndDisconnectConnectedAttributes(node)
-    if not isValidMObject(node):
-        return
+
     mod = om2.MDagModifier()
     mod.deleteNode(node)
     mod.doIt()

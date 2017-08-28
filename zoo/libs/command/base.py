@@ -94,7 +94,7 @@ class ExecutorBase(object):
         return result
 
     def registerCommand(self, clsobj):
-        command = commandregistry.CommandRegistry().registerCommand(clsobj)
+        command = commandregistry.registerCommand(clsobj)
         if command is not None:
             self.commands[command.id] = command
             return True
@@ -105,7 +105,7 @@ class ExecutorBase(object):
         if environmentPaths is None:
             raise ValueError("No environment variable with the name -> {} exists".format(env))
         environmentPaths = environmentPaths.split(os.pathsep)
-        commands = commandregistry.CommandRegistry().registerCommands(environmentPaths)
+        commands = commandregistry.registerCommands(environmentPaths)
 
         added = False
         for command in commands:

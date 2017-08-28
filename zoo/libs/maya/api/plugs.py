@@ -4,21 +4,6 @@ from zoo.libs.maya.api import attrtypes
 import contextlib
 
 
-def asMObject(name):
-    """ Returns the MObject from the given name
-
-    :param name: The name to get from maya to convert to an mobject
-    :type name: str
-    :return: The mobject for the given str
-    :rtype: MObject
-    """
-    sel = om2.MSelectionList()
-    sel.add(name)
-    plug = sel.getPlug(0)
-
-    return plug.asMObject()
-
-
 def asMPlug(name):
     """returns the MPlug instance for the given name
 
@@ -50,26 +35,34 @@ def connectPlugs(source, destination):
 
 
 def disconnectPlug(plug, source=True, destination=True):
-    dep = om2.MFnDependencyNode(plug.node())
-    changedNodeState = False
-    if dep.isLocked:
-        dep.isLocked = False
-        changedNodeState = True
+    """Disconnect the plug connections, if 'source' is True and the 'plug' is a destination then disconnect the source
+    from this plug. If 'destination' True and plug is a source then disconnect this plug from the destination.
+    This function will also lock the plugs otherwise maya raises an error
+
+    :param plug: the plug to disconnect
+    :type plug: om2.MPlug
+    :param source: if true disconnect from the connected source plug if it has one
+    :type source: bool
+    :param destination: if true disconnect from the connected destination plug if it has one
+    :type destination: bool
+    :return: True if succeed with the disconnection
+    :rtype: bool
+    :raises maya api error
+    """
     if plug.isLocked:
         plug.isLocked = False
     mod = om2.MDGModifier()
     if source and plug.isDestination:
-        if plug.source().isLocked:
-            plug.source().isLocked = False
-        mod.disconnect(plug.source(), plug)
+        sourcePlug = plug.source()
+        if sourcePlug.isLocked:
+            sourcePlug.isLocked = False
+        mod.disconnect(sourcePlug, plug)
     if destination and plug.isSource:
         for conn in plug.destinations():
             if conn.isLocked:
                 conn.isLocked = False
-            mod.disconnect(conn, plug)
+            mod.disconnect(plug, conn)
     mod.doIt()
-    if changedNodeState:
-        dep.isLocked = True
     return True
 
 
@@ -84,13 +77,28 @@ def isValidMPlug(plug):
 
 @contextlib.contextmanager
 def setLockedContext(plug):
-    if plug.isLocked:
+    """Context manager to set the 'plug' lock state to False then reset back to what the state was at the end
+
+    :param plug: the MPlug to work on
+    :type plug: om2.MPlug
+    """
+    current = plug.isLocked
+    if current:
         plug.isLocked = False
     yield
-    plug.isLocked = True
+    plug.isLocked = current
 
 
 def setLockState(plug, state):
+    """Sets the 'plug' lock state
+
+    :param plug: the Plug to work on.
+    :type plug: om2.MPlug
+    :param state: False to unlock , True to lock.
+    :type state: bool
+    :return: True if the operation succeeded.
+    :rtype: bool
+    """
     if plug.isLocked != state:
         plug.isLocked = state
         return True
@@ -203,13 +211,20 @@ def serializePlug(plug):
 
 
 def enumNames(plug):
+    """Returns the 'plug' enumeration field names.
+
+    :param plug: the MPlug to query
+    :type plug: om2.MPlug
+    :return: A sequence of enum names
+    :rtype: list(str)
+    """
     obj = plug.attribute()
     enumoptions = []
     if obj.hasFn(om2.MFn.kEnumAttribute):
         attr = om2.MFnEnumAttribute(obj)
         min = attr.getMin()
         max = attr.getMax()
-        for i in xrange(min, max, 1):
+        for i in xrange(min, max+1):
             # enums can be a bit screwed, i.e 5 options but max 10
             try:
                 enumoptions.append(attr.fieldName(i))
@@ -219,19 +234,17 @@ def enumNames(plug):
 
 
 def enumIndices(plug):
+    """Returns the 'plug' enums indices as a list.
+
+    :param plug: The MPlug to query
+    :type plug: om2.MPlug
+    :return: a sequence of enum indices
+    :rtype: list(int)
+    """
     obj = plug.attribute()
-    indices = []
     if obj.hasFn(om2.MFn.kEnumAttribute):
         attr = om2.MFnEnumAttribute(obj)
-        min = attr.getMin()
-        max = attr.getMax()
-        for i in xrange(min, max, 1):
-            # enums can be a bit screwed, i.e 5 options but max 10
-            try:
-                indices.append(attr.fieldValue(i))
-            except:
-                pass
-        return indices
+        return range(attr.getMax()+1)
 
 
 def plugDefault(plug):
@@ -662,7 +675,8 @@ def setPlugValue(plug, value):
         connectPlugs(plug, value)
     else:
         raise ValueError(
-            "Currently we don't support dataType ->%s contact the developers to get this implemented" % obj.apiTypeStr)
+            "Currently we don't support dataType ->{} contact the developers to get this implemented".format(
+                obj.apiTypeStr))
 
 
 def getPlugFn(obj):

@@ -1,4 +1,7 @@
-"""
+"""The module deals with meta data in maya scenes by adding attributes to nodes and providing
+quick and easy query features. Everything is built with the maya python 2.0 to make queries and creation
+as fast as possible. Graph Traversal methods work by walking the dependency graph by message attributes.
+
 @todo may need to create a scene cache with a attach node callback to remove node form the cache
 """
 import inspect
@@ -51,7 +54,7 @@ def findSceneRoots():
     for meta in iterSceneMetaNodes():
         dep = om2.MFnDependencyNode(meta)
         try:
-            if dep.findPlug("root", False).asBool():
+            if dep.findPlug(MROOT_ATTR_NAME, False).asBool():
                 roots.append(MetaBase(node=meta))
         except RuntimeError:
             continue
@@ -115,9 +118,16 @@ def isMetaNode(node):
     return False
 
 
-def getConnectedMetaNodes(node):
+def getConnectedMetaNodes(mObj):
+    """Returns all the downStream connected meta nodes of 'mObj'
+
+    :param mObj: The meta node MObject to search
+    :type mObj: om2.MObject
+    :return: A list of MetaBase instances, each node will have its own subclass of metabase returned.
+    :rtype: list(MetaBase)
+    """
     mNodes = []
-    for dest, source in nodes.iterConnections(node, True, False):
+    for dest, source in nodes.iterConnections(mObj, True, False):
         node = source.node()
         if isMetaNode(node):
             mNodes.append(MetaBase(node))
@@ -170,7 +180,7 @@ class MetaRegistry(object):
             if os.path.isdir(p):
                 cls.registerByPackage(p)
                 continue
-            if os.path.isfile(p):
+            elif os.path.isfile(p):
                 importedModule = modules.importModule(p)
                 if importedModule:
                     cls.registerByModule(importedModule)
@@ -258,6 +268,7 @@ class MetaBase(object):
     def classNameFromPlug(node):
         """Given the MObject node or metaClass return the associated class name which should exist on the maya node
         as an attribute
+        
         :param node: the node to find the class name for
         :type node: MObject or MetaBase instance
         :return:  the mClass name
@@ -292,10 +303,10 @@ class MetaBase(object):
         """
         self.addAttribute(MCLASS_ATTR_NAME, self.__class__.__name__, attrtypes.kMFnDataString)
         self.addAttribute(MVERSION_ATTR_NAME, "1.0.0", attrtypes.kMFnDataString)
-        self.addAttribute("root", False, attrtypes.kMFnNumericBoolean)
-        self.addAttribute("uuid", str(uuid.uuid4()), attrtypes.kMFnDataString)
-        self.addAttribute("metaParent", None, attrtypes.kMFnMessageAttribute)
-        self.addAttribute("metaChildren", None, attrtypes.kMFnMessageAttribute)
+        self.addAttribute(MROOT_ATTR_NAME, False, attrtypes.kMFnNumericBoolean)
+        self.addAttribute(MUUID_ATTR_NAME, str(uuid.uuid4()), attrtypes.kMFnDataString)
+        self.addAttribute(MPARENT_ATTR_NAME, None, attrtypes.kMFnMessageAttribute)
+        self.addAttribute(MCHILDREN_ATTR_NAME, None, attrtypes.kMFnMessageAttribute)
 
     def __getattr__(self, name):
         if name.startswith("_"):
@@ -415,7 +426,7 @@ class MetaBase(object):
     @lockMetaManager
     def addAttribute(self, name, value, Type, isArray=False):
         mobj = self._handle.object()
-        mfn = om2.MFnDependnecyNode(mobj)
+        mfn = om2.MFnDependencyNode(mobj)
         if mfn.hasAttribute(name):
             return
         try:
@@ -611,17 +622,17 @@ class MetaBase(object):
             parent = coParent
 
     def metaParent(self):
-        parentPlug = self._mfn.findPlug("metaParent", False)
+        parentPlug = self._mfn.findPlug(MPARENT_ATTR_NAME, False)
         if parentPlug.isConnected:
             return MetaBase(parentPlug.connectedTo(True, False)[0].node())
 
     def iterParents(self, depthLimit=256):
-        parentPlug = self._mfn.findPlug("metaParent", False)
+        parentPlug = self._mfn.findPlug(MPARENT_ATTR_NAME, False)
         for parent in plugs.iterDependencyGraph(parentPlug, depthLimit=depthLimit, transverseType="up"):
             yield MetaBase(parent.node())
 
     def metaChildren(self, depthLimit=256):
-        return [i for i in self.iterMetaChildren(depthLimit=depthLimit)]
+        return list(self.iterMetaChildren(depthLimit=depthLimit))
 
     def iterMetaChildren(self, depthLimit=256):
         """This function iterate the meta children by the metaChildren Plug and return the metaBase instances
@@ -631,7 +642,7 @@ class MetaBase(object):
         :return: A list of Metabase instances
         :rtype: list(MetaBase)
         """
-        childPlug = self._mfn.findPlug("metaChildren", False)
+        childPlug = self._mfn.findPlug(MCHILDREN_ATTR_NAME, False)
         for child in plugs.iterDependencyGraph(childPlug, depthLimit=depthLimit):
             yield MetaBase(child.node())
 
@@ -669,9 +680,9 @@ class MetaBase(object):
         metaParent = self.metaParent()
         if metaParent is not None or metaParent == parent:
             self.removeParent()
-        parentPlug = self._mfn.findPlug("metaParent", False)
+        parentPlug = self._mfn.findPlug(MPARENT_ATTR_NAME, False)
         with plugs.setLockedContext(parentPlug):
-            plugs.connectPlugs(parent.findPlug("metaChildren", False), parentPlug)
+            plugs.connectPlugs(parent.findPlug(MCHILDREN_ATTR_NAME, False), parentPlug)
 
     def findChildrenByFilter(self, filter, plugName=None):
         children = []
@@ -711,8 +722,8 @@ class MetaBase(object):
         if parent is None:
             return False
         mod = om2.MDGModifier()
-        source = parent.findPlug("metaChildren", False)
-        destination = self.findPlug("metaParent", False)
+        source = parent.findPlug(MCHILDREN_ATTR_NAME, False)
+        destination = self.findPlug(MPARENT_ATTR_NAME, False)
         with plugs.setLockedContext(source):
             destination.isLocked = False
             mod.disconnect(source, destination)
@@ -729,9 +740,9 @@ class MetaBase(object):
         if isinstance(node, MetaBase):
             node.removeParent()
             return True
-        childPlug = self._mfn.findPlug("metaChildren", False)
+        childPlug = self._mfn.findPlug(MCHILDREN_ATTR_NAME, False)
         mod = om2.MDGModifier()
-        destination = om2.MFnDependencyNode(node).findPlug("metaParent", False)
+        destination = om2.MFnDependencyNode(node).findPlug(MPARENT_ATTR_NAME, False)
         with plugs.setLockedContext(childPlug):
             destination.isLocked = False
         mod.disconnect(childPlug, destination)

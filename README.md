@@ -37,7 +37,7 @@ Commands provide persistent Gui data aka settings
 These include :
     Label, icon, toolip, color(foreground), backgroundColor
 
-Any command can have a QAction generate on demand via command.commandUi()
+Any command can have a QAction generate on demand via command.commandAction()
 
 Usage
 =====

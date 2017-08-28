@@ -7,7 +7,7 @@ from tests.testdata.commanddata import testcommands
 
 class TestCommandRegistry(unittestBase.BaseUnitest):
     def setUp(self):
-        self.registry = commandregistry.CommandRegistry()
+        self.registry = commandregistry
 
     def testRegisterCommand(self):
         result = self.registry.registerCommand(testcommands.TestCommandReg)

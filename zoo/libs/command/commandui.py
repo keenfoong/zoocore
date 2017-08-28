@@ -52,7 +52,7 @@ class CommandAction(CommandUi):
                     self.item.setIcon(icon)
         self.item.setStatusTip(uiData.get("tooltip"))
         self.item.triggered.connect(partial(self.triggered.emit, self.command.id))
-        logger.debug("Added commandUi, {}".format(text))
+        logger.debug("Added commandAction, {}".format(text))
         return self.item
 
     def show(self):

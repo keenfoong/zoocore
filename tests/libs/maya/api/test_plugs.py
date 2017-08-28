@@ -33,6 +33,46 @@ class TestPlugs(mayatestutils.BaseMayaTest):
         self.assertTrue(connections[0] == plugdestination)
         self.assertEquals(plugdestination.connectedTo(True, False)[0].name(), plugSource.name())
 
+    def test_disconnect(self):
+        node2 = cmds.createNode("transform")
+        node3 = cmds.createNode("transform")
+        plugSource = plugs.asMPlug(node2 + ".translate")
+        plugMid = plugs.asMPlug(self.node + ".translate")
+        plugDest = plugs.asMPlug(node3 + ".translate")
+        plugs.connectPlugs(plugSource, plugMid)
+        plugs.connectPlugs(plugMid, plugDest)
+        plugSource.isLocked = True
+        plugMid.isLocked = True
+        plugDest.isLocked = True
+        self.assertTrue(plugs.disconnectPlug(plugMid))
+        self.assertFalse(plugSource.isSource)
+        self.assertFalse(plugMid.isSource)
+        self.assertFalse(plugDest.isSource)
+        self.assertFalse(plugDest.isDestination)
+
+    def test_setLockState(self):
+        p = plugs.asMPlug(self.node + ".translate")
+        self.assertTrue(plugs.setLockState(p, True))
+        self.assertTrue(p.isLocked)
+        self.assertTrue(plugs.setLockState(p, False))
+        self.assertFalse(p.isLocked)
+
+    def test_isLockedContext(self):
+        p = plugs.asMPlug(self.node + ".translate")
+        p.isLocked = True
+        with plugs.setLockedContext(p):
+            self.assertFalse(p.isLocked)
+        self.assertTrue(p.isLocked)
+
+    def test_enumNames(self):
+        p = plugs.asMPlug(self.node + ".rotateOrder")
+        self.assertEquals(len(plugs.enumNames(p)), 6)
+
+    def test_enumIndices(self):
+        p = plugs.asMPlug(self.node + ".rotateOrder")
+        self.assertEquals(len(plugs.enumIndices(p)), 6)
+        self.assertEquals(plugs.enumIndices(p), range(6))
+
     def test_iterChildren(self):
         translate = plugs.asMPlug(self.node + ".translate")
         worldMatrix = plugs.asMPlug(self.node + ".parentInverseMatrix")

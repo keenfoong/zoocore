@@ -1,4 +1,5 @@
 from zoo.libs.pyqt.qt import QtWidgets, QtCore
+from zoo.libs import iconlib
 
 
 class TreeViewPlus(QtWidgets.QFrame):
@@ -23,7 +24,7 @@ class TreeViewPlus(QtWidgets.QFrame):
         if hasattr(dataSource, "delegate"):
             delegate = dataSource.delegate(self.tableview)
             self.tableview.setItemDelegateForColumn(0, delegate)
-        self._model.rowDataSource = dataSource
+        self.model.rowDataSource = dataSource
 
     def registerColumnDataSources(self, dataSources):
         if not self.rowDataSource:
@@ -35,7 +36,7 @@ class TreeViewPlus(QtWidgets.QFrame):
                 delegate = source.delegate(self.tableview)
                 self.tableview.setItemDelegateForColumn(i + 1, delegate)
 
-        self._model.columnDataSources = dataSources
+        self.model.columnDataSources = dataSources
 
     def expandAll(self):
         self.treeView.expandAll()
@@ -50,6 +51,8 @@ class TreeViewPlus(QtWidgets.QFrame):
         self.searchFrame = QtWidgets.QFrame(parent=self)
         self.searchFrame.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.searchFrame.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.reloadBtn = QtWidgets.QToolButton(parent=self)
+        self.reloadBtn.setIcon(iconlib.icon("reload"))
         self.searchLayout = QtWidgets.QHBoxLayout(self)
         self.searchLayout.setContentsMargins(2, 2, 2, 2)
         self.searchClearBtn = QtWidgets.QPushButton("Clear", parent=self)
@@ -57,6 +60,7 @@ class TreeViewPlus(QtWidgets.QFrame):
         self.searchEdit = QtWidgets.QLineEdit(self)
         self.searchEdit.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.searchFrame.setLayout(self.searchLayout)
+        self.searchLayout.addWidget(self.reloadBtn)
         self.searchLayout.addWidget(self.searchBoxLabel)
         self.searchLayout.addWidget(self.searchHeaderBox)
         self.searchLayout.addWidget(self.searchLabel)
@@ -102,6 +106,8 @@ class TreeViewPlus(QtWidgets.QFrame):
         self.searchHeaderBox.currentIndexChanged.connect(self.onSearchBoxChanged)
         self.searchEdit.textChanged.connect(self.proxySearch.setFilterRegExp)
 
+        self.reloadBtn.clicked.connect(self.refresh)
+
     def setModel(self, model):
         self.model = model
         self.proxySearch.setSourceModel(model)
@@ -110,23 +116,12 @@ class TreeViewPlus(QtWidgets.QFrame):
         for i in iter(self.columnDataSources):
             i.model = model
         self.treeView.setModel(self.model)
-        
+
     def onSearchBoxChanged(self):
         self.proxySearch.setFilterKeyColumn(self.searchHeaderBox.currentIndex())
 
     def refresh(self):
         self.refreshRequested.emit()
-        self.searchHeaderBox.clear()
-        rowDataSource = self._model.rowDataSource
-        columnDataSources = self._model.columnDataSources
-        self.searchHeaderBox.addItem(rowDataSource.headerText(0))
-        for i in xrange(len(columnDataSources)):
-            self.searchHeaderBox.addItem(columnDataSources[i].headerText(i))
-            self.treeView.resizeColumnToContents(index)
-            newWidth = self.treeView.columnWidth(index) + 10
-            self.treeView.setColumnWidth(index, newWidth)
-            header = self.model.root.headerText(index)
-            self.searchHeaderBox.addItem(header)
 
     def contextMenu(self, position):
         menu = QtWidgets.QMenu(self)

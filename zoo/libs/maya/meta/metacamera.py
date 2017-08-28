@@ -5,22 +5,19 @@ from zoo.libs.maya.api import attrtypes, nodes
 
 
 class MetaCamera(base.MetaBase):
-    """Wrapper for camera shape nodes to add generic meta data of the start/end frame
-    camera_version number and shot_name
-    """
     def __init__(self, node=None, name=None, initDefaults=True):
         super(MetaCamera, self).__init__(node, name, initDefaults)
         child = list(nodes.iterChildren(self.mobject(), False, om2.MFn.kCamera))
         self.camMfn = om2.MFnCamera(child[0])
-
 
     def _initMeta(self):
         super(MetaCamera, self)._initMeta()
         self.addAttribute("isCamera", True, attrtypes.kMFnNumericBoolean)
         self.addAttribute("startFrame", 0, attrtypes.kMFnNumericInt)
         self.addAttribute("endFrame", 0, attrtypes.kMFnNumericInt)
+        self.addAttribute("framePadding", 10, attrtypes.kMFnNumericInt)
         self.addAttribute("shotName", "", attrtypes.kMFnDataString)
-        self.addAttribute("cameraVersion", 1, attrtypes.kMFnNumericInt)
+        self.addAttribute("camera_version", 1, attrtypes.kMFnNumericInt)
 
     @property
     def aspectRatio(self):
@@ -45,6 +42,15 @@ class MetaCamera(base.MetaBase):
     @verticalFilmAperture.setter
     def verticalFilmAperture(self, value):
         self.camMfn.verticalFilmAperture = value
+
+    @property
+    def horizontalFilmAperture(self):
+        return self.camMfn.horizontalFilmAperture
+
+    @horizontalFilmAperture.setter
+    def horizontalFilmAperture(self, value):
+        self.camMfn.horizontalFilmAperture = value
+
     @property
     def filmFit(self):
         return self.camMfn.filmFit
@@ -65,3 +71,4 @@ class MetaCamera(base.MetaBase):
         self.aspectRatio = float(metaCamera.aspectRatio)
         self.focalLength = float(metaCamera.focalLength)
         self.verticalFilmAperture = float(metaCamera.verticalFilmAperture)
+

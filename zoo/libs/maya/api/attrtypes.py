@@ -38,76 +38,76 @@ kMFnNumeric4Double = 35
 kMFnMessageAttribute = 36
 
 
-def mayaTypeFromZooType(zooType):
-    if zooType == kMFnNumericBoolean:
+def mayaTypeFromType(Type):
+    if Type == kMFnNumericBoolean:
         return om2.MFnNumericAttribute, om2.MFnNumericData.kBoolean
-    elif zooType == kMFnNumericByte:
+    elif Type == kMFnNumericByte:
         return om2.MFnNumericAttribute, om2.MFnNumericData.kByte
-    elif zooType == kMFnNumericShort:
+    elif Type == kMFnNumericShort:
         return om2.MFnNumericAttribute, om2.MFnNumericData.kShort
-    elif zooType == kMFnNumericInt:
+    elif Type == kMFnNumericInt:
         return om2.MFnNumericAttribute, om2.MFnNumericData.kInt
-    elif zooType == kMFnNumericLong:
+    elif Type == kMFnNumericLong:
         return om2.MFnNumericAttribute, om2.MFnNumericData.kLong
-    elif zooType == kMFnNumericDouble:
+    elif Type == kMFnNumericDouble:
         return om2.MFnNumericAttribute, om2.MFnNumericData.kDouble
-    elif zooType == kMFnNumericFloat:
+    elif Type == kMFnNumericFloat:
         return om2.MFnNumericAttribute, om2.MFnNumericData.kFloat
-    elif zooType == kMFnNumericAddr:
+    elif Type == kMFnNumericAddr:
         return om2.MFnNumericAttribute, om2.MFnNumericData.kAddr
-    elif zooType == kMFnNumericChar:
+    elif Type == kMFnNumericChar:
         return om2.MFnNumericAttribute, om2.MFnNumericData.kChar
-    elif zooType == kMFnNumeric2Double:
+    elif Type == kMFnNumeric2Double:
         return om2.MFnNumericAttribute, om2.MFnNumericData.k2Double
-    elif zooType == kMFnNumeric2Float:
+    elif Type == kMFnNumeric2Float:
         return om2.MFnNumericAttribute, om2.MFnNumericData.k2Float
-    elif zooType == kMFnNumeric2Int:
+    elif Type == kMFnNumeric2Int:
         return om2.MFnNumericAttribute, om2.MFnNumericData.k2Int
-    elif zooType == kMFnNumeric2Long:
+    elif Type == kMFnNumeric2Long:
         return om2.MFnNumericAttribute, om2.MFnNumericData.k2Long
-    elif zooType == kMFnNumeric2Short:
+    elif Type == kMFnNumeric2Short:
         return om2.MFnNumericAttribute, om2.MFnNumericData.k2Short
-    elif zooType == kMFnNumeric3Double:
+    elif Type == kMFnNumeric3Double:
         return om2.MFnNumericAttribute, om2.MFnNumericData.k3Double
-    elif zooType == kMFnNumeric3Float:
+    elif Type == kMFnNumeric3Float:
         return om2.MFnNumericAttribute, om2.MFnNumericData.k3Float
-    elif zooType == kMFnNumeric3Int:
+    elif Type == kMFnNumeric3Int:
         return om2.MFnNumericAttribute, om2.MFnNumericData.k3Int
-    elif zooType == kMFnNumeric3Long:
+    elif Type == kMFnNumeric3Long:
         return om2.MFnNumericAttribute, om2.MFnNumericData.k3Long
-    elif zooType == kMFnNumeric3Short:
+    elif Type == kMFnNumeric3Short:
         return om2.MFnNumericAttribute, om2.MFnNumericData.k3Short
-    elif zooType == kMFnNumeric4Double:
+    elif Type == kMFnNumeric4Double:
         return om2.MFnNumericAttribute, om2.MFnNumericData.k4Double
 
-    if zooType == kMFnUnitAttributeDistance:
+    if Type == kMFnUnitAttributeDistance:
         return om2.MFnUnitAttribute, om2.MFnUnitAttribute.kDistance
-    elif zooType == kMFnUnitAttributeAngle:
+    elif Type == kMFnUnitAttributeAngle:
         return om2.MFnUnitAttribute, om2.MFnUnitAttribute.kAngle
-    elif zooType == kMFnUnitAttributeTime:
+    elif Type == kMFnUnitAttributeTime:
         return om2.MFnUnitAttribute, om2.MFnUnitAttribute.kTime
-    elif zooType == kMFnkEnumAttribute:
+    elif Type == kMFnkEnumAttribute:
         return om2.MFnEnumAttribute, om2.MFn.kEnumAttribute
 
-    if zooType == kMFnDataString:
+    if Type == kMFnDataString:
         return om2.MFnTypedAttribute, om2.MFnData.kString
-    elif zooType == kMFnDataMatrix:
+    elif Type == kMFnDataMatrix:
         return om2.MFnTypedAttribute,om2.MFnData.kMatrix
-    elif zooType == kMFnDataFloatArray:
+    elif Type == kMFnDataFloatArray:
         return om2.MFnTypedAttribute,om2.MFnData.kFloatArray
-    elif zooType == kMFnDataDoubleArray:
+    elif Type == kMFnDataDoubleArray:
         return om2.MFnTypedAttribute,om2.MFnData.kDoubleArray
-    elif zooType == kMFnDataIntArray:
+    elif Type == kMFnDataIntArray:
         return om2.MFnTypedAttribute,om2.MFnData.kIntArray
-    elif zooType == kMFnDataPointArray:
+    elif Type == kMFnDataPointArray:
         return om2.MFnTypedAttribute,om2.MFnData.kPointArray
-    elif zooType == kMFnDataVectorArray:
+    elif Type == kMFnDataVectorArray:
         return om2.MFnTypedAttribute,om2.MFnData.kVectorArray
-    elif zooType == kMFnDataStringArray:
+    elif Type == kMFnDataStringArray:
         return om2.MFnTypedAttribute,om2.MFnData.kStringArray
-    elif zooType == kMFnDataMatrixArray:
+    elif Type == kMFnDataMatrixArray:
         return om2.MFnTypedAttribute,om2.MFnData.kMatrixArray
 
-    elif zooType == kMFnMessageAttribute:
+    elif Type == kMFnMessageAttribute:
         return om2.MFnMessageAttribute, om2.MFn.kMessageAttribute
     return None, None

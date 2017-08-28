@@ -11,6 +11,8 @@ FRAME_REGEX = re.compile("(.*)([._-])(\d+)\.([^.]+)$", re.IGNORECASE)
 
 
 class Path(str):
+    """Wrapper class around file and folder paths providing compability with unc
+    """
     caseMatters = os.name != 'nt'
 
     @classmethod
@@ -55,6 +57,8 @@ class Path(str):
         return True
 
     def __add__(self, other):
+        """add to paths to together
+        """
         return self.__class__("".join([self, '/', other]), self.caseMatters)
 
     def __radd__(self, other):
@@ -129,6 +133,7 @@ class Path(str):
         """compares two paths after all variables have been resolved, and case sensitivity has been
         taken into account - the idea being that two paths are only equal if they refer to the
         same filesystem object.
+
         :note: this doesn't take into account any sort of linking on *nix systems
         """
         if not isinstance(other, Path):
@@ -383,16 +388,15 @@ class Path(str):
         a/b
         a
         """
-        for n in range(len(self)):
+        for n in xrange(len(self)):
             yield self.up(n)
 
     def replace(self, search, replace):
         """
         a simple search replace method - works on path tokens
         """
-        idx = self.find(search)
         toks = self.split()
-        toks[idx] = replace
+        toks[self.find(search)] = replace
 
         return self._toksToPath(toks, self.isUNC, self.hasTrailing)
 
@@ -400,11 +404,10 @@ class Path(str):
         """
         returns the index of the given path token
         """
-        toks = self.split(self.caseMatters)
         if not self.caseMatters:
             search = search.lower()
 
-        return toks.index(search)
+        return self.split(self.caseMatters).index(search)
 
     def rfind(self, search):
         toks = self.split(self.caseMatters)
@@ -479,10 +482,8 @@ class Path(str):
             newPath = self.up() / newName
 
         if self.isfile():
-            if newPath != self:
-                if newPath.exists():
-                    newPath.delete()
-
+            if newPath != self and newPath.exists():
+                newPath.delete()
             # now perform the rename
             os.rename(self, newPath)
         elif self.isdir():
@@ -668,7 +669,8 @@ class Path(str):
             return False
 
         for tokOther, tokSelf in zip(otherToks, selfToks):
-            if tokOther != tokSelf: return False
+            if tokOther != tokSelf:
+                return False
 
         return True
 
@@ -946,18 +948,14 @@ def getFrameSequencePath(path, frameSpec=None):
     frame_pattern_match = re.search(FRAME_REGEX, os.path.basename(path))
     if not frame_pattern_match:
         return ""
-
-    prefix = frame_pattern_match.group(1)
-    frame_sep = frame_pattern_match.group(2)
-    frame_str = frame_pattern_match.group(3)
-    extension = frame_pattern_match.group(4) or ""
-
     # make sure we maintain the same padding
     if not frameSpec:
-        frameSpec = "%0{:d}d".format(len(frame_str), )
+        frameSpec = "%0{:d}d".format(len(frame_pattern_match.group(3)), )
 
-    newSeqName = "".join([prefix, frame_sep, frameSpec])
-
+    newSeqName = "".join([frame_pattern_match.group(1),
+                          frame_pattern_match.group(2),
+                          frameSpec])
+    extension = frame_pattern_match.group(4) or ""
     if extension:
         newSeqName = ".".join([newSeqName, extension])
 

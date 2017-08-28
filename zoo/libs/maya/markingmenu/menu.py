@@ -207,7 +207,7 @@ class MarkingMenu(object):
                 continue
             # single item
             command = self.commandExecutor.findCommand(data)
-            uiData = command.commandUi(1)
+            uiData = command.commandAction(1)
             uiData.create(parent=menu)
             cmds.menuItem(uiData.item, e=True, radialPosition=item.upper())
             uiData.triggered.connect(self.commandExecutor.execute)

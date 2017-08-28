@@ -1,9 +1,23 @@
+from maya import cmds
 from maya.api import OpenMaya as om2
+
 from zoo.libs.maya.api import nodes
 from zoo.libs.maya.api import plugs
 
 
 def distanceBetween(firstNode, secondNode, name):
+    """Creates a distance between node and connects the 'firstNode' and 'secondNode' world space
+    matrices.
+
+    :param firstNode: The start transform node
+    :type firstNode: MObject
+    :param secondNode: The second transform node
+    :type secondNode: MObject
+    :return:  the Three nodes created by the function in the form of a tuple, the first element
+    is the distance between node, the second is the start node decompose matrix, the third element
+    is the second node decompose matrix
+    :rtype: tuple(om2.MObject, om2.MObject, om2.MObject)  
+    """
     firstFn = om2.MFnDependencyNode(firstNode)
     secondFn = om2.MFnDependencyNode(secondNode)
 
@@ -177,6 +191,21 @@ def conditionVector(firstTerm, secondTerm, colorIfTrue, colorIfFalse, operation,
             child = color.child(i)
             plugs.connectPlugs(p, child)
     return condNode.object()
+
+
+def createAnnotation(rootObj, endObj, text=None, name=None):
+    name = name or "annotation"
+    rootDag = om2.MFnDagNode(rootObj)
+    boundingBox = rootDag.boundingBox
+    center = om2.MVector(boundingBox.center)
+    transform = nodes.createDagNode("_".join([name, "loc"]), "transform", parent=rootObj)
+    nodes.setTranslation(transform, nodes.getTranslation(rootObj, om2.MSpace.kWorld), om2.MSpace.kWorld)
+    annotationNode = nodes.asMObject(cmds.annotate(nodes.nameFromMObject(transform), tx=text))
+    annParent = nodes.getParent(annotationNode)
+    nodes.rename(annParent, name)
+    plugs.setPlugValue(om2.MFnDagNode(annotationNode).findPlug("position", False), center)
+    nodes.setParent(annParent, endObj, False)
+    return annotationNode, transform
 
 
 def graphSerialize(graphNodes):

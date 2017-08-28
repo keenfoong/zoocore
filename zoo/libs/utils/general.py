@@ -16,3 +16,14 @@ def merge(a, b, path=None):
             raise Exception('Conflict at %s' % '.'.join(path + [str(key)]))
 
     return a
+
+
+def formatFrameToTime(start, current, frameRate):
+    total = current - start
+    seconds = float(total) / float(frameRate)
+    minutes = int(seconds / 60.0)
+    seconds -= minutes * 60
+
+    return ":".join(["00", str(minutes).zfill(2),
+                     str(round(seconds, 1)).zfill(2),
+                     str(int(current)).zfill(2)])

@@ -11,7 +11,7 @@ class CommandInterface(object):
 
     def __init__(self, stats=None):
         self.stats = stats
-        self.arguments = {}
+        self.arguments = ArgumentParser()
         self.initialize()
         self._returnResult = None
 
@@ -64,6 +64,7 @@ class CommandInterface(object):
     @abstractproperty
     def id(self):
         """Returns the command id which is used to call the command and should be unique
+
         :return: the Command id
         :rtype: str
         """
@@ -86,9 +87,16 @@ class CommandInterface(object):
         """
         return False
 
+    def commandUi(self):
+        """Method to launch dialogs for this command instance, When a command is run the client can specify 
+        if the ui is require
+        """
+        pass
+
     @staticmethod
     def uiData():
         """A dict for persistent GUI styling which is used by any and all GUIs(menus etc).
+
         :rtype: dict
         ::Example
             {"icon": "greenCircle",
@@ -140,13 +148,13 @@ class ZooCommand(CommandInterface):
         if len(args) != len(defaults):
             raise ValueError("The command doIt function({}) must use keyword argwords".format(self.id))
         elif args and defaults:
-            arguments = dict(zip(args, defaults))
+            arguments = ArgumentParser(zip(args, defaults))
             self.arguments = arguments
             return arguments
-        return dict()
+        return ArgumentParser()
 
     @classmethod
-    def commandUi(cls, uiType, parent=None):
+    def commandAction(cls, uiType, parent=None):
         # import locally due to avoid qt dependencies by default
         from zoo.libs.command import commandui
 
@@ -156,6 +164,14 @@ class ZooCommand(CommandInterface):
             widget = commandui.MenuItem(cls)
         widget.create(parent=parent)
         return widget
+
+
+class ArgumentParser(dict):
+    def __getattr__(self, item):
+        result = self.get(item)
+        if result:
+            return result
+        return super(ArgumentParser, self).__getAttribute__(item)
 
 
 def generateCommandTemplate(className, id, doItContent, undoItContent, filePath,

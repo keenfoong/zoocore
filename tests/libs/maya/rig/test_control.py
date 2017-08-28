@@ -61,10 +61,10 @@ class TestControl(mayatestutils.BaseMayaTest):
                          om2.MTransformationMatrix.kXZY)
 
     def test_setPivot(self):
-        pass
+        raise ValueError("no test")
 
     def test_setColour(self):
-        pass
+        raise ValueError("no test")
 
     def test_addSrt(self):
         con = control.Control(name="testControl")

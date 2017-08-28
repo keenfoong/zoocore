@@ -31,7 +31,7 @@ def getMayaLocation(mayaVersion):
 
 def mayaScriptPaths():
     """Returns a list of maya script paths, received from the MAYA_SCRIPT_PATH environment
-
+    
     :rtype: list(str)
     """
     try:
@@ -68,7 +68,8 @@ def mayaPluginPaths():
 def pythonPath():
     """Return a list of paths, received from the PYTHONPATH evironment
 
-    :return:
+    :return: a list of paths
+    :rtype: list(str)
     """
     try:
         return os.environ["PYTHONPATH"].split(os.path.pathsep)
@@ -78,6 +79,10 @@ def pythonPath():
 
 
 def mayaIconPath():
+    """Returns the xbmlangpath environment as a list of path
+    
+    :rtype: list(str)
+    """
     try:
         paths = os.environ["XBMLANGPATH"].split(os.path.pathsep)
     except KeyError:

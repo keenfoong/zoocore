@@ -43,22 +43,40 @@ def isXAxisUp():
 
 
 def loadPlugin(pluginPath):
+    """Loads the given maya plugin path can be .mll or .py
+
+    :param pluginPath: the absolute fullpath file path to the plugin
+    :type pluginPath: str
+    :rtype: bool
+    """
     try:
         if not isPluginLoaded(pluginPath):
             cmds.loadPlugin(pluginPath)
     except RuntimeError:
         logger.debug("Could not load plugin->{}".format(pluginPath))
+        return False
+    return True
 
 
 def unloadPlugin(pluginPath):
+    """unLoads the given maya plugin name can be .mll or .py
+
+    :param pluginPath: Maya plugin name
+    :type pluginPath: str
+    :rtype: bool
+    """
     try:
         if isPluginLoaded(pluginPath):
             cmds.unloadPlugin(pluginPath)
     except RuntimeError:
         logger.debug("Could not load plugin->{}".format(pluginPath))
+        return False
+    return False
 
 
 def isPluginLoaded(pluginPath):
+    """Returns True if the given plugin name is loaded
+    """
     return cmds.pluginInfo(pluginPath, q=True, loaded=True)
 
 
@@ -85,6 +103,7 @@ def unLoadMayaPlugins():
         unloadPlugin(plugin)
     logger.debug("unloaded all plugins")
 
+
 @contextmanager
 def namespaceContext(namespace):
     currentNamespace = om2.MNamespace.currentNamespace()
@@ -100,3 +119,20 @@ def namespaceContext(namespace):
     om2.MNamespace.setCurrentNamespace(namespace)
     yield
     om2.MNamespace.setCurrentNamespace(currentNamespace)
+
+
+@contextmanager
+def isolatedNodes(nodes, panel):
+    """Context manager for isolating `nodes` in maya model `panel`
+
+    :param nodes: A list of node fullpaths to isolate
+    :type nodes: seq(str)
+    :param panel: The maya model panel
+    :type panel: str
+    """
+
+    cmds.isolateSelect(panel, state=True)
+    for obj in nodes:
+        cmds.isolateSelect(panel, addDagObject=obj)
+    yield
+    cmds.isolateSelect(panel, state=False)

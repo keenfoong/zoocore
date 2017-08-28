@@ -21,7 +21,8 @@ def flushUnder(dirpath):
     """
     modulePaths = list()
     for name, module in sys.modules.items():
-        if not module:
+        if module is None:
+            del sys.modules[name]
             continue
         try:
             moduleDirpath = os.path.realpath(os.path.dirname(inspect.getfile(module)))

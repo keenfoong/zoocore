@@ -24,6 +24,8 @@ class ZooRenameCommand(command.ZooCommand):
         valid = []
         for n, newName in iter(nodes):
             handle = om2.MObjectHandle(n)
+            if not handle.isAlive() or not handle.isValid():
+                continue
             if n.hasFn(om2.MFn.kDagNode):
                 fn = om2.MFnDagNode(n)
                 name = fn.fullPathName().split("|")[-1].split(":")[-1]
@@ -32,8 +34,7 @@ class ZooRenameCommand(command.ZooCommand):
                 name = fn.name()
             if newName == name:
                 continue
-            if handle.isAlive() and handle.isValid():
-                valid.append((handle, newName))
+            valid.append((handle, newName))
         if not valid:
             self.cancel("No valid node to rename, either the nodes don't exist or the names are the same")
         return {"nodes": tuple(valid)}

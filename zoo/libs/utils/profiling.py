@@ -1,3 +1,5 @@
+"""Python profiling tools"""
+
 import cProfile
 import time
 from zoo.libs.utils import zlogging
@@ -10,8 +12,9 @@ def profileit(name):
     """cProfile decorator to profile said function, must pass in a filename to write the information out to
     use RunSnakeRun to run the output
 
-    :param name:
-    :return:
+    :param name: The output file path
+    :type name: str
+    :return: Function
     """
 
     def inner(func):

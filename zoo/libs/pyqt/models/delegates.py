@@ -82,7 +82,6 @@ class EnumerationDelegate(QtWidgets.QItemDelegate):
                       "index": index.row()}
             dataSource = model.columnDataSource(column)
         combo = combobox.ExtendedComboBox(dataSource.enums(**kwargs), parent)
-        combo.currentIndexChanged.connect(self.currentIndexChanged)
         return combo
 
     def setEditorData(self, editor, index):
@@ -93,8 +92,6 @@ class EnumerationDelegate(QtWidgets.QItemDelegate):
     def setModelData(self, editor, model, index):
         model.setData(index, editor.currentIndex(), role=QtCore.Qt.EditRole)
 
-    def currentIndexChanged(self):
-        self.commitData.emit(self.sender())
 
 
 class ButtonDelegate(QtWidgets.QItemDelegate):
@@ -123,7 +120,40 @@ class ButtonDelegate(QtWidgets.QItemDelegate):
         pass
 
     def setModelData(self, widget, model, index):
-        model.setData(index, 1, QtCore.QtEditRole)
+        model.setData(index, 1, QtCore.Qt.EditRole)
+
+    def updateEditorGeometry(self, editor, option, index):
+        editor.setGeometry(option.rect)
+
+
+class CheckBoxDelegate(QtWidgets.QItemDelegate):
+    def __init__(self, parent):
+        super(CheckBoxDelegate, self).__init__(parent)
+
+    def createEditor(self, parent, option, index):
+        model = index.model()
+        column = index.column()
+        dataSource = model.rowDataSource
+        if column == 0:
+            dataSource = model.rowDataSource
+            kwargs = {"index": index.row()}
+        else:
+            kwargs = {"rowDataSource": dataSource,
+                      "index": index.row()}
+            dataSource = model.columnDataSource(column)
+        widget = QtWidgets.QCheckBox(parent=parent)
+        widget.clicked.connect(self.onClicked)
+        widget.setChecked(dataSource.data(**kwargs))
+        return widget
+
+    def onClicked(self):
+        self.commitData.emit(self.sender())
+
+    def setEditorData(self, widget, index):
+        widget.setChecked(index.model().data(index, QtCore.Qt.CheckStateRole))
+
+    def setModelData(self, widget, model, index):
+        model.setData(index, widget.isChecked(), QtCore.Qt.EditRole)
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)

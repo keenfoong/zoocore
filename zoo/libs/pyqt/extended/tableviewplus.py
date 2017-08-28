@@ -4,26 +4,28 @@ from zoo.libs import iconlib
 
 class TableViewPlus(QtWidgets.QFrame):
     selectionChanged = QtCore.Signal(object)
-    contextMenuRequested = QtCore.Signal(object, list)
+    contextMenuRequested = QtCore.Signal(list, object)
     refreshRequested = QtCore.Signal()
 
     def __init__(self, searchable=False, parent=None):
         super(TableViewPlus, self).__init__(parent)
 
-        self._model = None
-        self.rowDataSource = None
-        self.columnDataSources = []
-
         self._setupLayouts()
+        self._model = None
         self.connections()
         self.setSearchable(searchable)
+        self.rowDataSource = None
+        self.columnDataSources = []
 
     def registerRowDataSource(self, dataSource):
         self.rowDataSource = dataSource
         if hasattr(dataSource, "delegate"):
             delegate = dataSource.delegate(self.tableview)
             self.tableview.setItemDelegateForColumn(0, delegate)
+
+        self.rowDataSource.model = self._model
         self._model.rowDataSource = dataSource
+        self.tableview.verticalHeader().sectionClicked.connect(self.rowDataSource.onVerticalHeaderSelection)
 
     def registerColumnDataSources(self, dataSources):
         if not self.rowDataSource:
@@ -31,6 +33,7 @@ class TableViewPlus(QtWidgets.QFrame):
         self.columnDataSources = dataSources
         for i in xrange(len(dataSources)):
             source = dataSources[i]
+            source.model = self._model
             if hasattr(source, "delegate"):
                 delegate = source.delegate(self.tableview)
                 self.tableview.setItemDelegateForColumn(i + 1, delegate)
@@ -84,19 +87,20 @@ class TableViewPlus(QtWidgets.QFrame):
         self.tableview.setShowGrid(False)
         self.tableview.setAlternatingRowColors(True)
         self.tableview.horizontalHeader().setStretchLastSection(True)
-        self.selectionModel = self.tableview.selectionModel()
+
+    def selectionModel(self):
+        return self.tableview.selectionModel()
 
     def connections(self):
         self.searchClearBtn.clicked.connect(self.searchEdit.clear)
         self.searchHeaderBox.currentIndexChanged.connect(self.onSearchBoxChanged)
         self.reloadBtn.clicked.connect(self.refresh)
-        self.tableview.selectionModel().selectionChanged.connect(self.onSelectionChanged)
+        self.selectionModel().selectionChanged.connect(self.onSelectionChanged)
         self.searchEdit.textChanged.connect(self.proxySearch.setFilterRegExp)
 
     def onSelectionChanged(self, current, previous):
         indices = current.indexes()
-        model = self._model
-        self.selectionChanged.emit([(model.itemFromIndex(i), i) for i in indices])
+        self.selectionChanged.emit([self._model.itemFromIndex(i) for i in indices])
 
     def onSearchBoxChanged(self):
         index = self.searchHeaderBox.currentIndex()
@@ -108,6 +112,7 @@ class TableViewPlus(QtWidgets.QFrame):
         self.proxySearch.setSortRole(QtCore.Qt.DisplayRole)
         self.proxySearch.setFilterRole(QtCore.Qt.DisplayRole)
         self.proxySearch.setFilterKeyColumn(0)
+
         self._model = model
         if self.rowDataSource:
             self.rowDataSource.model = model
@@ -125,10 +130,19 @@ class TableViewPlus(QtWidgets.QFrame):
 
     def contextMenu(self, position):
         menu = QtWidgets.QMenu(self)
-        self.contextMenuRequested.emit(menu, self.selectedItems())
+        selection = self.selectedRows()
+        if self.rowDataSource:
+            self.rowDataSource.contextMenu(selection, menu)
+        self.contextMenuRequested.emit(selection, menu)
         menu.exec_(self.tableview.viewport().mapToGlobal(position))
 
-    def selectedItems(self):
-        indices = self.selectionModel.selectedRows()
-        model = self._model
-        return [model.itemFromIndex(i) for i in indices]
+    def selectedRows(self):
+        """From all the selectedIndices grab the row numbers, this use selectionModel.selectedIndexes() to pull the rows
+        out
+        :return: A list of row numbers
+        :rtype: list(int)
+        """
+        return list(set([i.row() for i in self.selectionModel().selectedIndexes()]))
+
+    def selectedColumns(self):
+        return list(set([i.column() for i in self.selectionModel().selectedColumns()]))

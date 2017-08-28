@@ -72,7 +72,7 @@ class TableModel(QtCore.QAbstractTableModel):
         elif role == QtCore.Qt.DecorationRole:
             return dataSource.icon(**kwargs)
         elif role == QtCore.Qt.CheckStateRole and dataSource.isCheckable(**kwargs):
-            if dataSource.isCheckable(**kwargs):
+            if dataSource.data(**kwargs):
                 return QtCore.Qt.Checked
             return QtCore.Qt.Unchecked
         elif role == QtCore.Qt.TextAlignmentRole:
@@ -100,11 +100,12 @@ class TableModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.EditRole:
             column = index.column()
             if column == 0:
-                self._rowDataSource.setData(index.row(), value)
+                result = self._rowDataSource.setData(index.row(), value)
             else:
-                self.columnDataSources[column - 1].setData(self._rowDataSource, index.row(), value)
-            self.dataChanged.emit(index, index)
-            return True
+                result = self.columnDataSources[column - 1].setData(self._rowDataSource, index.row(), value)
+            if result:
+                self.dataChanged.emit(index, index)
+                return True
         return False
 
     def flags(self, index):
@@ -159,7 +160,7 @@ class TableModel(QtCore.QAbstractTableModel):
 
     def insertRows(self, position, rows, parent=QtCore.QModelIndex(), **kwargs):
         self.beginInsertRows(parent, position, position + rows - 1)
-        result = self._rowDataSource.insertRowDataSources(int(rows), **kwargs)
+        result = self._rowDataSource.insertRowDataSources(int(position), int(rows), **kwargs)
         self.endInsertRows()
         return result
 

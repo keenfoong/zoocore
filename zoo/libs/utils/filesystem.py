@@ -22,6 +22,8 @@ def clearUnMasked(func):
     that have a permissions parameter, it is important that the
     umask is cleared prior to execution, otherwise the default
     umask may alter the resulting permissions
+
+    :type func: function
     """
 
     @functools.wraps(func)
@@ -84,27 +86,19 @@ def findParentDirectory(childPath, folder):
 
 
 def openLocation(path):
-    """
-        Opens the parent directory of a file, selecting the file if possible.
+    """Opens the parent directory of a file, selecting the file if possible.
     """
     platform = sys.platform
     if platform == 'win32':
-        # Normally we can just run `explorer /select, filename`, but Python 2
-        # always calls CreateProcessA, which doesn't support Unicode. We could
-        # call CreateProcessW with ctypes, but the following is more robust.
-        import ctypes
-        ctypes.windll.ole32.CoInitialize(None)
-        # Not sure why this is always UTF-8.
-        upath = path.decode('utf-8')
-        pidl = ctypes.windll.shell32.ILCreateFromPathW(upath)
-        ctypes.windll.shell32.SHOpenFolderAndSelectItems(pidl, 0, None, 0)
-        ctypes.windll.shell32.ILFree(pidl)
-        ctypes.windll.ole32.CoUninitialize()
+        if os.path.isdir(path):
+            subprocess.Popen(["explorer", os.path.dirname(path)], shell=True)
+            return
+        subprocess.Popen(["explorer", "/select", path], shell=True)
     elif platform == 'darwin':
         if os.path.isdir(path):
             subprocess.Popen(["explorer", os.path.dirname(path)])
             return
-        subprocess.Popen(["explorer", "/select", path])
+        subprocess.Popen(["open" "-R", os.path.dirname(path)])
     else:
         subprocess.Popen(["xdg-open", os.path.dirname(path)])
 
@@ -139,8 +133,10 @@ def copyDirectoy(src, dst, ignorePattern=None):
 
 def folderSize(path):
     """Retrieves the total folder size in bytes
-    :param path:
-    :type path:
+
+    :param path: Returns the total folder size by walking the directory adding together all child files sizes.
+
+    :type path: str
     :return: size in bytes
     :rtype: int
     """
@@ -155,7 +151,8 @@ def folderSize(path):
 def ensureFolderExists(path, permissions=0775, placeHolder=False):
     """if the folder doesnt exist then one will be created.
     Function built due to version control mishaps with uncommited empty folders, this folder can generate
-    a place holder file
+    a place holder file.
+
     :param path: the folderpath to check or create
     :type path: str
     :param permissions: folder permissions mode
@@ -185,6 +182,7 @@ def ensureFolderExists(path, permissions=0775, placeHolder=False):
 def createValidfilename(name):
     """Sanitizer for file names which everyone tends to screw up, this function replace spaces and random character with
     underscore.
+
     ::example 
         "Some random file name" == "Some_random_file_name"
     :param name: the name to convert
@@ -253,6 +251,7 @@ def zipwalk(zfilename):
 if os.name == "nt" and sys.version_info[0] < 3:
     def symlink_ms(source, linkname):
         """Python 2 doesn't have os.symlink on windows so we do it ourselfs
+        
         :param source: sourceFile
         :type source: str
         :param linkname: symlink path

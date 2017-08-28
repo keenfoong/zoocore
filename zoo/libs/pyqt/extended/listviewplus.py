@@ -4,7 +4,7 @@ from zoo.libs.pyqt.qt import QtWidgets, QtCore
 
 class ListViewPlus(QtWidgets.QFrame):
     selectionChanged = QtCore.Signal()
-    contextMenuRequestedSignal = QtCore.Signal(object)
+    contextMenuRequested = QtCore.Signal(list, object)
     refreshRequested = QtCore.Signal()
 
     def __init__(self, searchable=False, parent=None):
@@ -15,12 +15,12 @@ class ListViewPlus(QtWidgets.QFrame):
         self.connections()
         self.setSearchable(searchable)
 
-   def registerRowDataSource(self, dataSource):
+    def registerRowDataSource(self, dataSource):
         self.rowDataSource = dataSource
         if hasattr(dataSource, "delegate"):
             delegate = dataSource.delegate(self.tableview)
             self.tableview.setItemDelegateForColumn(0, delegate)
-        self._model.rowDataSource = dataSource
+        self.model.rowDataSource = dataSource
 
     def expandAll(self):
         self.listview.expandAll()
@@ -57,7 +57,7 @@ class ListViewPlus(QtWidgets.QFrame):
         self.listview = QtWidgets.QListView(parent=self)
         self.listview.setSelectionMode(self.listview.ExtendedSelection)
         self.listview.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.listview.customContextMenuRequested.connect(self.onContextMenuRequested)
+        self.listview.customContextMenuRequested.connect(self.contextMenu)
         self._setupFilter()
 
         self.mainLayout.addWidget(self.listview)
@@ -69,12 +69,12 @@ class ListViewPlus(QtWidgets.QFrame):
         self.selectionModel = self.listview.selectionModel()
 
     def selectedItems(self):
-        indices = self.selectionModel.selectedRows()
+        indices = self.selectionModel.selectedIndexes()
         model = self.model
         return [model.itemFromIndex(i) for i in indices]
 
     def selectedQIndices(self):
-        return self.selectionModel.selectedRows()
+        return self.selectionModel.selectedIndexes()
 
     def connections(self):
         self.searchClearBtn.clicked.connect(self.searchEdit.clear)
@@ -90,7 +90,7 @@ class ListViewPlus(QtWidgets.QFrame):
             self.rowDataSource.model = model
 
         self.searchEdit.textChanged.connect(self.proxySearch.setFilterRegExp)
-        
+
     def onSearchBoxChanged(self):
         index = self.searchHeaderBox.currentIndex()
         self.proxySearch.setFilterKeyColumn(index)
@@ -104,18 +104,17 @@ class ListViewPlus(QtWidgets.QFrame):
 
     def contextMenu(self, position):
         menu = QtWidgets.QMenu(self)
-        selection = self.selectedRows()
+        selection = [int(i.row()) for i in self.selectionModel.selectedIndexes()]
         if self.rowDataSource:
             self.rowDataSource.contextMenu(selection, menu)
         self.contextMenuRequested.emit(selection, menu)
-        menu.exec_(self.treeview.viewport().mapToGlobal(position))
-
+        menu.exec_(self.listview.viewport().mapToGlobal(position))
 
 
 if __name__ == "__main__":
     import sys
 
     app = QtWidgets.QApplication(sys.argv)
-    view = listviewPlus()
+    view = ListViewPlus()
     view.show()
     sys.exit(app.exec_())

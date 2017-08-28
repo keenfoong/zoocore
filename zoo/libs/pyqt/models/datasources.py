@@ -2,13 +2,15 @@ from zoo.libs.pyqt.models import delegates
 from zoo.libs.pyqt.qt import QtCore, QtWidgets, QtGui
 
 
-
 class BaseDataSource(QtCore.QObject):
-    def __init__(self):
+    def __init__(self, parent=None):
         super(BaseDataSource, self).__init__()
-        self._parent = None
+        self._parent = parent
         self.children = []
         self.model = None
+
+    def userObject(self, index):
+        return None
 
     def isRoot(self):
         """Determines if this item is the root of the tree
@@ -22,6 +24,26 @@ class BaseDataSource(QtCore.QObject):
         :rtype: int
         """
         return 0
+
+    def parent(self):
+        """Returns the parent of this node
+        :rtype: Node
+        """
+        return self._parent
+
+    def index(self):
+        if self._parent is not None and self._parent.children:
+            return self._parent.children.index(self)
+        return 0
+
+    def child(self, index):
+        """
+
+        :param index: the column index
+        :type index: int
+        """
+        if index in xrange(self.rowCount()):
+            return self._children[index]
 
     def setData(self, index, value):
         """Sets the text value of this node at the specified column
@@ -62,20 +84,16 @@ class BaseDataSource(QtCore.QObject):
         """
         pass
 
-    def headerIcon(self, index):
+    def headerIcon(self):
         """Returns the column header icon
 
-        :param index: The column index for the item
-        :type index: int
         :rtype: QtGui.QIcon
         """
         return QtGui.QIcon()
 
-    def headerText(self, index):
+    def headerText(self):
         """Returns the column header text
 
-        :param index: The column index for the item
-        :type index: int
         :return: the header value
         :rtype: str
         """
@@ -108,7 +126,7 @@ class BaseDataSource(QtCore.QObject):
         :return: whether or not this node is editable, defaults to False
         :rtype: bool
         """
-        return False
+        return True
 
     def isEnabled(self, index):
         """Determines if this node is enabled
@@ -121,54 +139,138 @@ class BaseDataSource(QtCore.QObject):
         return True
 
     def supportsDrag(self, index):
+        """
+
+        :param index: the column index
+        :type index: int
+        """
         return False
 
     def supportsDrop(self, index):
+        """
+
+        :param index: the column index
+        :type index: int
+        """
         return False
 
     def mimeTypes(self):
         pass
 
     def mimeData(self, indices):
+
         return QtCore.QMimeData()
 
     def dropMimeData(self, index):
+        """
+
+        :param index: the column index
+        :type index: int
+        """
         return False
 
     def mimeText(self, index):
+        """
+
+        :param index: the column index
+        :type index: int
+        """
         return
 
     def isSelectable(self, index):
+        """
+
+        :param index: the column index
+        :type index: int
+        """
         return True
 
     def foregroundColor(self, index):
+        """
+
+        :param index: the column index
+        :type index: int
+        """
         return None
 
     def backgroundColor(self, index):
+        """
+
+        :param index: the column index
+        :type index: int
+        """
         return None
 
     def alignment(self, index):
-        return QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter
+        """
+
+        :param index: the column index
+        :type index: int
+        """
+        return QtCore.Qt.AlignVCenter
 
     def font(self, index):
+        """
+
+        :param index: the column index
+        :type index: int
+        """
         return
 
     def isCheckable(self, index):
-        return
+        """
 
-    def insertRowDataSources(self, index, count):
-        return None
+        :param index: the column index
+        :type index: int
+        """
+        return False
 
     def insertColumnDataSources(self, index, count):
-        return None
+        """
+
+        :param index: the column index
+        :type index: int
+        """
+        return False
+
+    def removeColumnDataSources(self, index, count):
+        """
+
+        :param index: the column index
+        :type index: int
+        """
+        return False
 
     def removeRowDataSource(self, index):
+        """
+
+        :param index: the column index
+        :type index: int
+        """
         return False
 
     def removeRowDataSources(self, index, count):
+        """
+
+        :param index: the column index
+        :type index: int
+        """
         return False
 
+    def insertRowDataSources(self, index, count):
+        """
+
+        :param index: the column index
+        :type index: int
+        """
+        return None
+
     def insertRowDataSource(self, index):
+        """
+
+        :param index: the column index
+        :type index: int
+        """
         return False
 
     def onVerticalHeaderSelection(self, index):
@@ -178,119 +280,29 @@ class BaseDataSource(QtCore.QObject):
         """
         pass
 
-    def userObject(self, index):
-        return None
-
     def contextMenu(self, indices, menu):
+
         pass
 
-    def append(self, item):
-        """Given another Node instance add it as a child.
-        :param item: The child item to add, the child must already have this node as a parent.
-        :type item: Node instance
-        :rtype: None
-        """
-        if item not in self.children:
-            self.children.append(item)
-            item.parent = self
-
-    def extend(self, items):
-        for i in iter(items):
-            if i not in self.children:
-                self.children.append(i)
-                i.parent = self
-
-    def insertChild(self, index, item=None):
-        """To support arbitrary child class types we allow the parameter "item" however if its None then a empty child
-        of the current class type is created
-        :param index: the index to insert the child
-        :type index: int
-        :param item: The child node if any, if None is provided then the current class Type is used
-        :type item: Node
-        :return: The new child is returned
-        :rtype: Node
-        """
-        if item is None:
-            item = self.__class__()
-
-        self.children.insert(index, item)
-        item.parent = self
-        return item
-
-    def remove(self, item):
-        """Remove the child node
-        :param item: the item to remove
-        :type item: Node
-        :return: True if child was removed
-        :rtype: bool
-        """
-        try:
-            item.parent = None
-            self.children.remove(item)
-            return True
-        except:
-            return False
-
-    def removeChildren(self, position, count):
-        """Removes a number of children from this node starting at a position index.
-        :param position: the starting position(child index) to remove
-        :type position: int
-        :param count: the number of children to remove
-        :type count: int
-        :rtype: bool
-        """
-        if position < 0 or position + count > self.childCount():
-            return False
-
-        for row in xrange(count):
-            child = self.children.pop(position)
-            child.parent = None
-        return True
-
-    def child(self, index):
-        """Return the child of this node by index
-        :param index: the child index
-        :type index: int
-        :return: Returns the node instance for the child
-        :rtype: Node
-        """
-        if index in range(len(self.children)):
-            return self.children[index]
-
-    def iterChildren(self, node):
-        for n in iter(node.children):
-            yield n
-            for i in iter(n.children):
-                yield i
-
-    def childCount(self):
-        """The number of children for this node
-        :return: child count
-        :rtype: int
-        """
-        return len(self.children)
-
-    def parent(self):
-        """Returns the parent of this node
-        :rtype: Node
-        """
-        return self._parent
-
-    def index(self):
+    def qModelIndex(self):
+        rowIndex = self.index()
         if self._parent is not None:
-            return self._parent.children.index(self)
-
-        return 0
+            parentIndex = self._parent.qModelIndex()
+        else:
+            parentIndex = QtCore.QModelIndex()
+        return QtCore.QModelIndex(rowIndex, 0, parentIndex)
 
 
 class ColumnDataSource(BaseDataSource):
-    def __init__(self):
-        super(ColumnDataSource, self).__init__()
+    def __init__(self, parent=None):
+        super(ColumnDataSource, self).__init__(parent=parent)
 
     def setData(self, rowDataSource, index, value):
-        """Sets the text value of this node at the specified column
+        """Sets the text value of this node at the specified column.
 
-        :param index:
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
+        :param index: The column index
         :type index: int
         :return: the new text value for this nodes column index
         :rtype: str
@@ -299,8 +311,10 @@ class ColumnDataSource(BaseDataSource):
 
     def data(self, rowDataSource, index):
         """The text for this node or column. index parameter with a value of 0 is
-        the first column
+        the first column.
 
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
         :param index: The column index for the text
         :type index: int
         :return: the column text
@@ -311,21 +325,35 @@ class ColumnDataSource(BaseDataSource):
     def toolTip(self, rowDataSource, index):
         """The tooltip for this node
 
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
         :rtype: str
         """
         return ""
 
     def icon(self, rowDataSource, index):
         """The icon for this node
+
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
         :rtype: QtGui.QIcon
         """
         pass
 
     def isCheckable(self, rowDataSource, index):
-        pass
+        """The icon for this node
+
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
+        :rtype: QtGui.QIcon
+        """
+        return False
 
     def isEditable(self, rowDataSource, index):
         """Determines if this node can be editable e.g set text. Defaults to False
+
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
         :param index: the column index
         :type index: int
         :return: whether or not this node is editable, defaults to False
@@ -336,6 +364,8 @@ class ColumnDataSource(BaseDataSource):
     def isEnabled(self, rowDataSource, index):
         """Determines if this node is enabled
 
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
         :param index: the column index
         :type index: int
         :return: whether or not this node is enabled, defaults to True
@@ -344,33 +374,109 @@ class ColumnDataSource(BaseDataSource):
         return True
 
     def supportsDrag(self, rowDataSource, index):
+        """
+
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
+        :param index: the column index
+        :type index: int
+        :return: whether or not this node supports drag
+        :rtype: bool
+        """
         return False
 
     def supportsDrop(self, rowDataSource, index):
+        """
+
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
+        :param index: the column index
+        :type index: int
+        :return: whether or not this node supports drop
+        :rtype: bool
+        """
         return False
 
     def mimeData(self, rowDataSource, index):
+        """
+
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
+        :param index: the column index
+        :type index: int
+        :return: The mime data for drag drop features
+        :rtype: QtCore.QMimeData
+        """
         return QtCore.QMimeData()
 
     def dropMimeData(self, rowDataSource, index):
+        """
+
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
+        :param index: the column index
+        :type index: int
+        """
         return False
 
     def mimeText(self, rowDataSource, index):
+        """
+
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
+        :param index: the column index
+        :type index: int
+        """
         return
 
     def isSelectable(self, rowDataSource, index):
+        """
+
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
+        :param index: the column index
+        :type index: int
+        """
         return True
 
     def foregroundColor(self, rowDataSource, index):
+        """
+
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
+        :param index: the column index
+        :type index: int
+        """
         return None
 
     def backgroundColor(self, rowDataSource, index):
+        """
+
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
+        :param index: the column index
+        :type index: int
+        """
         return None
 
     def alignment(self, rowDataSource, index):
-        return QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter
+        """
+
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
+        :param index: the column index
+        :type index: int
+        """
+        return QtCore.Qt.AlignVCenter
 
     def font(self, rowDataSource, index):
+        """
+
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
+        :param index: the column index
+        :type index: int
+        """
         return
 
 
@@ -437,3 +543,11 @@ class ColumnEnumerationDataSource(ColumnDataSource):
 
     def enums(self, rowDataSource, index):
         return []
+
+
+class ColumnBooleanDataSource(ColumnDataSource):
+    # def delegate(self, parent):
+    #     return delegates.CheckBoxDelegate(parent)
+
+    def isCheckable(self, rowDataSource, index):
+        return True

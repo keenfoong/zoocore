@@ -1,5 +1,8 @@
 
 class Singleton(type):
+    """Singleton metaclass that overrides the __call__ method and always returns a single class instance
+    of the cls.
+    """
     _instances = {}
 
     def __call__(cls, *args, **kwargs):

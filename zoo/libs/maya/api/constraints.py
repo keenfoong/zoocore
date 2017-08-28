@@ -100,3 +100,4 @@ class ParentConstraint(BaseConstraint):
         # setting offset value
         plugs.setPlugValue(targetPlug.child(6), translation)  # targetOffsetTranslate
         plugs.setPlugValue(targetPlug.child(10), rotation)  # targetOffsetRotate
+
