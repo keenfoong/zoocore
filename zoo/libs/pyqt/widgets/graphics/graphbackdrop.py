@@ -75,12 +75,15 @@ class BackDrop(QtWidgets.QGraphicsWidget):
         layout.addStretch(1)
 
     def mouseMoveEvent(self, event):
-        self.setPos(self.position() + self.mapToParent(event.pos()) - self.mapToParent(event.lastPos()))
-        event.accept()
+        # event.accept()
+        if self.selected:
+            self.setPos(self.pos() + self.mapToParent(event.pos()) - self.mapToParent(event.lastPos()))
+        super(BackDrop, self).mousePressEvent(event)
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
             self.selected = True
+        super(BackDrop, self).mousePressEvent(event)
 
     def serialize(self):
         return {

@@ -149,6 +149,9 @@ class SelectionRect(QtWidgets.QGraphicsWidget):
         self._pen = pen
         self.update()
 
+    def setStartPoint(self, point):
+        self._mouseDownPos = point
+
     def setDragPoint(self, dragPoint):
         topLeft = QtCore.QPointF(self._mouseDownPos)
         bottomRight = QtCore.QPointF(dragPoint)

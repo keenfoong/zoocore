@@ -1,11 +1,19 @@
 import math
 from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
+from zoo.libs.pyqt.widgets.graphics import graphicitems
 
 
 class GraphicsView(QtWidgets.QGraphicsView):
     contextMenuRequest = QtCore.Signal(object)
     clearSelectionRequest = QtCore.Signal()
-
+    gridSize = 30
+    backgroundColor = QtGui.QColor(50, 50, 50)
+    gridColor = QtGui.QColor(200, 200, 200)
+    gridLineWidth = 1
+    overlayAxisPen = QtGui.QPen(QtGui.QColor(255, 50, 50, 255), gridLineWidth)
+    thinGridLinePen = QtGui.QPen(QtGui.QColor(80, 80, 80, 255), 0.5)
+    selectionRectOutlinerPen = QtGui.QPen(QtGui.QColor(70, 70, 150)),
+    selectionRectColor = QtGui.QColor(60, 60, 60, 150),
     def __init__(self, parent=None, setAntialiasing=True):
         super(GraphicsView, self).__init__(parent)
 
@@ -24,11 +32,10 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._contextMenu)
-
-        self.pan_active = True
-        self.sceneOrigin = QtCore.QPointF()
-        self.gridSize = 30
-        self.overlayAxisPen = QtGui.QPen(QtGui.QColor(255, 50, 50, 150), 1, QtCore.Qt.DashLine)
+        self.drawGrid = True
+        self.pan_active = False
+        self.previousMousePos = QtCore.QPointF()
+        self.rubberBand = None
 
     def wheelEvent(self, event):
         self.scaleView(math.pow(2.0, -event.delta() / 240.0))
@@ -57,28 +64,46 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
     def mousePressEvent(self, event):
         button = event.buttons()
-        modifiers = event.modifiers()
         if button == QtCore.Qt.LeftButton:
-            scenePos = self.mapToScene(event.pos())
-            transform = self.viewportTransform()
-            if not self.scene().itemAt(scenePos, transform):
-                if not modifiers:
-                    self.clearSelectionRequest.emit()
+            item = self.itemAt(event.pos())
+            if item:
+                item.selected = True
+            else:
+                self.rubberBand = graphicitems.SelectionRect(self.selectionRectOutlinerPen,
+                                                             self.selectionRectColor,
+                                                             self.mapToScene(event.pos()))
+                scene = self.scene()
+                scene.addItem(self.rubberBand)
 
-        elif button == QtCore.Qt.MidButton:
+                self.rubberBand.show()
+            self.previousMousePos = event.pos()
+        elif event.button() == QtCore.Qt.MiddleButton:
             self.pan_active = True
-            self.sceneOrigin = self.mapToScene(event.pos())
-        else:
-            super(GraphicsView, self).mousePressEvent(event)
+            self.previousMousePos = self.mapToScene(event.pos()).toPoint()
+            self.setCursor(QtCore.Qt.OpenHandCursor)
+
+        super(GraphicsView, self).mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self.pan_active:
+            delta = self.mapToScene(event.pos()) - self.previousMousePos
+            rect = self.sceneRect()
+            rect.translate(-delta.x(), -delta.y())
+            self.setSceneRect(rect)
+            self.previousMousePos = self.mapToScene(event.pos()).toPoint()
+            return
+        if not self.previousMousePos.isNull() and self.rubberBand:
+            self.rubberBand.setDragPoint(self.mapToScene(event.pos()))
+        super(GraphicsView, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        result = super(GraphicsView, self).mouseReleaseEvent(event)
-        if self.pan_active:
-            current = self.centerPosition()
-            scenepanning = self.mapToScene(event.pos())
-            newCenter = current - (scenepanning - self.sceneOrigin)
-            self.centerOn(newCenter)
-        return result
+        if self.rubberBand:
+            self.rubberBand.close()
+            self.scene().removeItem(self.rubberBand)
+        elif self.pan_active:
+            self.pan_active = False
+            self.setCursor(QtCore.Qt.ArrowCursor)
+        super(GraphicsView, self).mouseReleaseEvent(event)
 
     def keyPressEvent(self, event):
         key = event.key()
@@ -86,12 +111,12 @@ class GraphicsView(QtWidgets.QGraphicsView):
             self.tabPress.emit(QtWidgets.QCursor.pos())
         elif key == QtCore.Qt.Key_Delete:
             self.deletePress.emit()
-        else:
-            super(GraphicsView, self).keyPressEvent(event)
+        super(GraphicsView, self).keyPressEvent(event)
 
     def drawMainAxis(self, painter, rect):
 
         painter.setPen(self.overlayAxisPen)
+
         xLine, yLine = QtCore.QLineF(), QtCore.QLineF()
         if rect.y() < 0 < (rect.height() - rect.y()):
             xLine = QtCore.QLineF(rect.x(), 0, rect.width() + rect.x(), 0)
@@ -100,10 +125,6 @@ class GraphicsView(QtWidgets.QGraphicsView):
             yLine = QtCore.QLineF(0, rect.y(), 0, rect.height() + rect.y())
 
         painter.drawLines([xLine, yLine])
-
-    def drawForeground(self, painter, rect):
-        self.drawMainAxis(painter, rect)
-        return super(GraphicsView, self).drawForeground(painter, rect)
 
     def frameSelectedItems(self, items):
         # itemsArea = self._getSelectedBoundingbox()
@@ -114,30 +135,6 @@ class GraphicsView(QtWidgets.QGraphicsView):
         itemsArea = self.scene().itemsBoundingRect()
         self.fitInView(itemsArea, QtCore.Qt.KeepAspectRatio)
 
-    def drawBackground(self, painter, rect):
-        """
-        Draw a grid in the background.
-        """
-        leftLine = rect.left() - rect.left() % self.gridSize
-        topLine = rect.top() - rect.top() % self.gridSize
-        lines = list()
-
-        i = int(leftLine)
-        while i < int(rect.right()):
-            lines.append(QtCore.QLineF(i, rect.top(), i, rect.bottom()))
-            i += self.gridSize
-
-        u = int(topLine)
-        while u < int(rect.bottom()):
-            lines.append(QtCore.QLineF(rect.left(), u, rect.right(), u))
-            u += self.gridSize
-
-        self.pen = QtGui.QPen()
-        self.pen.setColor(QtGui.QColor(100, 100, 100))
-        self.pen.setWidth(0)
-        painter.setPen(self.pen)
-        painter.drawLines(lines)
-
     def getViewRect(self):
         """Return the boundaries of the view in scene coordinates"""
         r = QtCore.QRectF(self.rect())
@@ -147,3 +144,34 @@ class GraphicsView(QtWidgets.QGraphicsView):
         menu = QtWidgets.QMenu()
         self.contextMenuRequest.emit(menu)
         menu.exec_(self.mapToGlobal(pos))
+
+    def drawBackground(self, painter, rect):
+        """
+        Draw a grid in the background.
+        """
+
+        painter.fillRect(rect, self.backgroundColor)
+
+        left = int(rect.left()) - (int(rect.left()) % self.gridSize)
+        top = int(rect.top()) - (int(rect.top()) % self.gridSize)
+
+        # Draw horizontal fine lines
+        gridLines = []
+        painter.setPen(self.thinGridLinePen)
+        y = float(top)
+        while y < float(rect.bottom()):
+            gridLines.append(QtCore.QLineF(rect.left(), y, rect.right(), y))
+            y += self.gridSize
+        painter.drawLines(gridLines)
+
+        # Draw vertical fine lines
+        gridLines = []
+        painter.setPen(self.thinGridLinePen)
+        x = float(left)
+        while x < float(rect.right()):
+            gridLines.append(QtCore.QLineF(x, rect.top(), x, rect.bottom()))
+            x += self.gridSize
+        painter.drawLines(gridLines)
+        # main axis
+        self.drawMainAxis(painter, rect)
+        return super(GraphicsView, self).drawBackground(painter, rect)

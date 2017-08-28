@@ -6,6 +6,7 @@ import site
 from zoo.libs.utils import filesystem
 from zoo.libs.utils import zlogging
 from zoo.libs.utils import env
+from zoo.libs.command import executor
 
 logger = zlogging.zooLogger
 
@@ -57,17 +58,18 @@ def _initEnv():
 
     if "ZOO_LOG_LEVEL" not in os.environ:
         os.environ['ZOO_LOG_LEVEL'] = 'DEBUG'
-    # register commands
-    from zoo.libs.command import executor
-    mayalib = os.path.join(zootoolsPath, "zoo", "libs", "maya", "mayacommand", "library")
-    os.environ["ZOO_COMMAND_LIB"] = os.pathsep.join([os.path.join(zootoolsPath, "zoo", "libs", "command", "library"), mayalib])
-    executor.Executor().registerEnv("ZOO_COMMAND_LIB")
 
 
 def _setupMaya():
     from zoo.libs.maya import mayastartup
     logger.debug("Starting up zoo maya")
     mayastartup.ZooMayaStartUp()
+    # register commands
+    zootoolsPath = str(filesystem.upDirectory(__file__, 3))
+    mayalib = os.path.join(zootoolsPath, "zoo", "libs", "maya", "mayacommand", "library")
+    os.environ["ZOO_COMMAND_LIB"] = os.pathsep.join(
+        [os.path.join(zootoolsPath, "zoo", "libs", "command", "library"), mayalib])
+    executor.Executor().registerEnv("ZOO_COMMAND_LIB")
 
 
 def startUp():
