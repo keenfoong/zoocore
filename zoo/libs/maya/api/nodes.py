@@ -1,8 +1,11 @@
+import contextlib
 import logging
 from maya.api import OpenMaya as om2
 from maya import cmds
-from zoo.libs.maya.api import plugs
+from zoo.libs.maya.api import plugs, generic
 from zoo.libs.maya.api import attrtypes
+from zoo.libs.maya.utils import mayamath
+from zoo.libs.utils import zoomath
 
 logger = logging.getLogger(__name__)
 
@@ -264,7 +267,7 @@ def shapes(path):
 
 def shapeAtIndex(path, index):
     """Finds and returns the shape DagPath under the specified path for the index
-    
+
     :param path: the MDagPath to the parent node that you wish to search under
     :type path: om2.MDagPath
     :param index: the shape index
@@ -300,16 +303,29 @@ def setParent(child, newParent, maintainOffset=False):
     if child == newParent:
         return False
     dag = om2.MDagModifier()
-    offset = om2.MMatrix()
     if maintainOffset:
-        start = getWorldMatrix(newParent)
-        end = getWorldMatrix(child)
-        offset = end * start.inverse()
+        if newParent == om2.MObject.kNullObj:
+            offset = getWorldMatrix(child)
+        else:
+            start = getWorldMatrix(newParent)
+            end = getWorldMatrix(child)
+            offset = end * start.inverse()
     dag.reparentNode(child, newParent)
     dag.doIt()
     if maintainOffset:
-        om2.MFnTransform(child).setTransformation(om2.MTransformationMatrix(offset))
+        setMatrix(child, offset)
     return True
+
+
+@contextlib.contextmanager
+def childContext(parent):
+    children = []
+    for child in iterChildren(parent, False, om2.MFn.kTransform):
+        setParent(child, om2.MObject.kNullObj)
+        children.append(child)
+    yield
+    for i in iter(children):
+        setParent(i, parent, True)
 
 
 def hasParent(mobject):
@@ -449,11 +465,11 @@ def iterExtraAttributes(node, filteredType=None):
 def iterConnections(node, source=True, destination=True):
     dep = om2.MFnDependencyNode(node)
     for pl in iter(dep.getConnections()):
-        if source and pl.isDestination:
-            yield pl, pl.connectedTo(True, False)[0]
-        if destination and pl.isSource:
+        if source and pl.isSource:
             for i in iter(pl.connectedTo(False, True)):
                 yield pl, i
+        if destination and pl.isDestination:
+            yield pl, pl.connectedTo(True, False)[0]
 
 
 def iterKeyablePlugs(node):
@@ -538,8 +554,8 @@ def delete(node):
 def getOffsetMatrix(startObj, endObj):
     start = getWorldMatrix(startObj)
     end = getWorldMatrix(endObj)
-    mOutputMatrix = om2.MTransformationMatrix(end * start.inverse())
-    return mOutputMatrix.asMatrix()
+    mOutputMatrix = end * start.inverse()
+    return mOutputMatrix
 
 
 def getObjectMatrix(mobject):
@@ -552,16 +568,20 @@ def getObjectMatrix(mobject):
     return om2.MFnTransform(dag).transformation().asMatrix()
 
 
+def worldMatrixPlug(mobject):
+    wm = om2.MFnDependencyNode(mobject).findPlug("worldMatrix", False)
+    wm.evaluateNumElements()
+    return wm.elementByPhysicalIndex(0)
+
+
 def getWorldMatrix(mobject):
     """Returns the worldMatrix value as an MMatrix.
 
     :param mobject: MObject, the MObject that points the dagNode
     :return: MMatrix
     """
-    wm = om2.MFnDependencyNode(mobject).findPlug("worldMatrix", False)
-    wm.evaluateNumElements()
-    matplug = wm.elementByPhysicalIndex(0)
-    return plugs.getPlugValue(matplug)
+    mat = worldMatrixPlug(mobject)
+    return plugs.getPlugValue(mat)
 
 
 def decomposeMatrix(matrix, rotationOrder, space=om2.MSpace.kWorld):
@@ -569,6 +589,12 @@ def decomposeMatrix(matrix, rotationOrder, space=om2.MSpace.kWorld):
     rotation = transformMat.rotation()
     rotation.reorderIt(rotationOrder)
     return transformMat.translation(space), rotation, transformMat.scale(space)
+
+
+def parentInverseMatrixPlug(mobject):
+    wm = om2.MFnDependencyNode(mobject).findPlug("parentInverseMatrix", False)
+    wm.evaluateNumElements()
+    return wm.elementByPhysicalIndex(0)
 
 
 def getWorldInverseMatrix(mobject):
@@ -601,10 +627,7 @@ def getParentInverseMatrix(mobject):
     :param mobject: MObject
     :return: MMatrix
     """
-    wm = om2.MFnDependencyNode(mobject).findPlug("parentInverseMatrix", False)
-    wm.evaluateNumElements()
-    matplug = wm.elementByPhysicalIndex(0)
-    return plugs.getPlugValue(matplug)
+    return plugs.getPlugValue(parentInverseMatrixPlug(mobject))
 
 
 def hasAttribute(node, name):
@@ -674,9 +697,40 @@ def addProxyAttribute(node, sourcePlug, longName, shortName, attrType=attrtypes.
     return attr1
 
 
-def addAttribute(node, longName, shortName, attrType=attrtypes.kMFnNumericDouble):
+def addCompoundAttribute(node, longName, shortName, attrMap, isArray=False):
+    """
+
+    :param node: the node to add the compound attribute too.
+    :type node: om2.MObject
+    :param longName: the compound longName
+    :type longName: str
+    :param shortName: the compound shortName
+    :type shortName: str
+    :param attrMap: [{"name":str, "type": attrtypes.kType, "isArray": bool}]
+    :type attrMap: list(dict())
+    :return:
+    :rtype:
+    ::example:
+    >>>attrMap = [{"name":"something", "type": attrtypes.kMFnMessageAttribute, "isArray": False}]
+    >>> print attrMap
+    # result <OpenMaya.MObject object at 0x00000000678CA790> #
+    """
+    compound = om2.MFnCompoundAttribute()
+    compObj = compound.create(longName, shortName)
+    compound.array = isArray
+    for attrData in attrMap:
+        child = addAttribute(node, shortName=attrData["name"], longName=attrData["name"], attrType=attrData["type"],
+                             isArray=attrData["isArray"], apply=False)
+        compound.addChild(child.object())
+    mod = om2.MDGModifier()
+    mod.addAttribute(node, compObj)
+    mod.doIt()
+    return compObj
+
+
+def addAttribute(node, longName, shortName, attrType=attrtypes.kMFnNumericDouble, isArray=False, apply=True):
     """This function uses the api to create attributes on the given node, currently WIP but currently works for
-    string,int, float, bool, message. if the attribute exists a ValueError will be raised.
+    string,int, float, bool, message, matrix. if the attribute exists a ValueError will be raised.
 
     :param node: MObject
     :param longName: str, the long name for the attribute
@@ -807,7 +861,8 @@ def addAttribute(node, longName, shortName, attrType=attrtypes.kMFnNumericDouble
         attr = om2.MFnNumericAttribute()
         aobj = attr.create(longName, shortName, om2.MFnNumericData.k4Double)
 
-    if aobj is not None:
+    if aobj is not None and apply:
+        attr.array = isArray
         mod = om2.MDGModifier()
         mod.addAttribute(node, aobj)
         mod.doIt()
@@ -866,7 +921,7 @@ def serializeNode(node, skipAttributes=None, includeConnections=True):
 
     if includeConnections:
         connections = []
-        for destination, source in iterConnections(node, source=True, destination=False):
+        for destination, source in iterConnections(node, source=False, destination=True):
             sourceNode = source.node()
             nodeName = om2.MFnDagNode(sourceNode).fullPathName() if sourceNode.hasFn(
                 om2.MFn.kDagNode) else om2.MFnDependencyNode(sourceNode).name()
@@ -910,13 +965,13 @@ def deserializeNode(data, includeConnections=True):
         dep = om2.MFnDagNode(newNode)
     # attribute key doesn't need to exist so check
     attributes = data.get("attributes", {})
-    for attrData in iter(attributes):
+    for attrData in iter(attributes.items()):
         # @todo create deserialize plug function which includes connections?
         attrName = attrData["name"]
         if not attrData.get("isDynamic"):
             plug = dep.findPlug(attrName, False)
             plugs.setPlugValue(plug, attrData["value"])
-            attr, at = attrtypes.mayaTypeFromZooType(attrData["type"])
+            attr, at = attrtypes.mayaTypeFromType(attrData["type"])
             if attr is None:
                 continue
             newAttr = attr(plug.attribute())
@@ -1023,3 +1078,55 @@ def showHideAttributes(node, attributes, state=True):
         if plug.isChannelBox != state:
             plug.isChannelBox = state
     return True
+
+
+def mirrorJoint(node, parent, translate, rotate):
+    nFn = om2.MFnDependencyNode(node)
+    rotateOrder = nFn.findPlug("rotateOrder", False).asInt()
+    transMatRotateOrder = generic.intToMTransformRotationOrder(rotateOrder)
+    translation, rotMatrix = mirrorTransform(node, parent, translate, rotate)  # MVector, MMatrix
+    jointOrder = om2.MEulerRotation(plugs.getPlugValue(nFn.findPlug("jointOrient", False)))
+    # deal with joint orient
+    jo = om2.MTransformationMatrix().setRotation(jointOrder).asMatrixInverse()
+    # applyRotation and translation
+    rot = mayamath.toEulerFactory(rotMatrix * jo, transMatRotateOrder)
+    setRotation(node, rot)
+    setTranslation(node, translation)
+
+
+def mirrorTransform(node, parent, translate, rotate):
+    currentMat = getWorldMatrix(node)
+
+    transMat = om2.MTransformationMatrix(currentMat)
+    translation = transMat.translation(om2.MSpace.kWorld)
+    if len(translate) == 3:
+        translation *= -1
+    else:
+        for i in translate:
+            translation[zoomath.AXIS[i]] *= -1
+    rotMatrix = transMat.asRotateMatrix()
+    # mirror the rotation on a plane
+    if rotate == "x":
+        mirrorRot = mayamath.mirrorYZ(rotMatrix)
+    elif rotate == "y":
+        mirrorRot = mayamath.mirrorXZ(rotMatrix)
+    else:
+        mirrorRot = mayamath.mirrorXY(rotMatrix)
+    # put the mirror rotationMat in the space of the parent
+    if parent != om2.MObject.kNullObj:
+        parentMatInv = getParentInverseMatrix(parent)
+    else:
+        parentMatInv = om2.MMatrix().inverse()
+    mirrorRot *= parentMatInv
+    return translation, mirrorRot
+
+
+def mirrorNode(node, parent, translate, rotate):
+    nFn = om2.MFnDependencyNode(node)
+    rotateOrder = nFn.findPlug("rotateOrder", False).asInt()
+    transMatRotateOrder = generic.intToMTransformRotationOrder(rotateOrder)
+    translation, rotMatrix = mirrorTransform(node, parent, translate, rotate)  # MVector, MMatrix
+    # applyRotation and translation
+    rot = mayamath.toEulerFactory(rotMatrix, transMatRotateOrder)
+    setRotation(node, rot)
+    setTranslation(node, translation)

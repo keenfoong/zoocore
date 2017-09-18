@@ -1,8 +1,8 @@
 # @todo mouse tracking
 import sys
 
-from zoo.libs.pyqt.qt import QtCore, QtGui
-from zoo.libs.pyqt.qt.phonon import Phonon
+from qt import Phonon
+from qt import QtCore, QtGui
 
 
 class VideoPlayer(Phonon.VideoPlayer):

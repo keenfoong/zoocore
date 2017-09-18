@@ -1,5 +1,5 @@
+from qt import QtCore, QtGui
 from zoo.libs.pyqt.models import delegates
-from zoo.libs.pyqt.qt import QtCore, QtWidgets, QtGui
 
 
 class BaseDataSource(QtCore.QObject):
@@ -10,7 +10,8 @@ class BaseDataSource(QtCore.QObject):
         self.model = None
 
     def userObject(self, index):
-        return None
+        if index in xrange(self.rowCount()):
+            return self.children[index]
 
     def isRoot(self):
         """Determines if this item is the root of the tree
@@ -20,12 +21,16 @@ class BaseDataSource(QtCore.QObject):
         return True if self.parent else False
 
     def rowCount(self):
-        """Returns the total row count for the dataSource
+        """Returns the total row count for the dataSource defaults to the len of the dataSource children
+
         :rtype: int
         """
+        return len(self.children)
+
+    def columnCount(self):
         return 0
 
-    def parent(self):
+    def parentSource(self):
         """Returns the parent of this node
         :rtype: Node
         """
@@ -43,7 +48,7 @@ class BaseDataSource(QtCore.QObject):
         :type index: int
         """
         if index in xrange(self.rowCount()):
-            return self._children[index]
+            return self.children[index]
 
     def setData(self, index, value):
         """Sets the text value of this node at the specified column
@@ -280,23 +285,11 @@ class BaseDataSource(QtCore.QObject):
         """
         pass
 
-    def contextMenu(self, indices, menu):
-
+    def contextMenu(self, menu):
         pass
-
-    def qModelIndex(self):
-        rowIndex = self.index()
-        if self._parent is not None:
-            parentIndex = self._parent.qModelIndex()
-        else:
-            parentIndex = QtCore.QModelIndex()
-        return QtCore.QModelIndex(rowIndex, 0, parentIndex)
 
 
 class ColumnDataSource(BaseDataSource):
-    def __init__(self, parent=None):
-        super(ColumnDataSource, self).__init__(parent=parent)
-
     def setData(self, rowDataSource, index, value):
         """Sets the text value of this node at the specified column.
 

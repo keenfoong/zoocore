@@ -81,7 +81,8 @@ def importObj(filePath):
     return filePath
 
 
-def importFbx(filepath):
+def importFbx(filepath, cameras=False, lights=False):
+    filepath = filepath.replace("/", "\\")
     mel.eval("FBXImportMode -v add;")
     mel.eval("FBXImportMergeAnimationLayers -v false;")
     mel.eval("FBXImportProtectDrivenKeys -v false;")
@@ -89,26 +90,29 @@ def importFbx(filepath):
     mel.eval("FBXImportMergeBackNullPivots -v false;")
     mel.eval("FBXImportSetLockedAttribute -v true;")
     mel.eval("FBXImportConstraints -v false;")
-    mel.eval("FBXImportLights -v false;")
-    mel.eval("FBXImportCameras -v false;")
+    mel.eval("FBXImportLights -v {};".format(str(lights).lower()))
+    mel.eval("FBXImportCameras -v {};".format(str(cameras).lower()))
     mel.eval("FBXImportHardEdges -v true;")
     mel.eval("FBXImportShapes -v true;")
     mel.eval("FBXImportUnlockNormals -v true;")
-
     mel.eval('FBXImport -f "{}";'.format(filepath.replace("\\", "/")))  # stupid autodesk and there mel crap
 
     return True
 
 
-def exportFbx(filePath, sceneNode):
+def exportFbx(filePath, sceneNode, version="FBX201600"):
+    filePath = filePath.replace("/", "\\")
+
     with exportContext(nodes.asMObject(sceneNode)):
+        mel.eval("FBXResetExport ;")
         mel.eval("FBXExportSmoothingGroups -v true;")
         mel.eval("FBXExportHardEdges -v true;")
         mel.eval("FBXExportTangents -v true;")
         mel.eval("FBXExportSmoothMesh -v false;")
         mel.eval("FBXExportInstances -v true;")
         # Animation
-        mel.eval("FBXExportBakeComplexAnimation -v false;")
+        mel.eval("FBXExportBakeComplexAnimation -v true;")
+        mel.eval("FBXExportApplyConstantKeyReducer -v true;")
         mel.eval("FBXExportUseSceneName -v false;")
         mel.eval("FBXExportQuaternion -v euler;")
         mel.eval("FBXExportShapes -v true;")
@@ -119,6 +123,7 @@ def exportFbx(filePath, sceneNode):
         mel.eval("FBXExportEmbeddedTextures -v false;")
         mel.eval("FBXExportInputConnections -v false;")
         mel.eval("FBXExportUpAxis {};".format(general.upAxis()))
+        mel.eval("FBXExportFileVersion -v {};".format(version))
         cmds.select(sceneNode)
         mel.eval('FBXExport -f "{}" -s;'.format(filePath.replace("\\", "/")))  # this maya is retarded
         cmds.select(cl=True)

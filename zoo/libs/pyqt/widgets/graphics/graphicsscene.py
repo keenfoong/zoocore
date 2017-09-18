@@ -4,7 +4,7 @@ Created on May 23, 2015
 @author: dave
 """
 
-from zoo.libs.pyqt.qt import QtWidgets
+from qt import QtWidgets
 
 
 class GraphicsScene(QtWidgets.QGraphicsScene):

@@ -1,6 +1,10 @@
 import sys
 import math
 
+AXIS = {"x": 0,
+        "y": 1,
+        "z": 2}
+
 
 def lerp(current, goal, weight=0.5):
     return (goal * weight) + ((1.0 - weight) * current)

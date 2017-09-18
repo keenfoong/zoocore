@@ -5,6 +5,7 @@ from zoo.libs.maya.api import nodes
 from zoo.libs.maya.api import plugs
 from zoo.libs.maya.api import generic
 from zoo.libs.maya.api import attrtypes
+from zoo.libs.maya.utils import creation
 
 
 class BaseConstraint(object):
@@ -101,3 +102,36 @@ class ParentConstraint(BaseConstraint):
         plugs.setPlugValue(targetPlug.child(6), translation)  # targetOffsetTranslate
         plugs.setPlugValue(targetPlug.child(10), rotation)  # targetOffsetRotate
 
+
+class MatrixConstraint(BaseConstraint):
+    # @todo optimize parentInverse matrix by reconnecting to driven parent
+    # @todo blending when needed
+    # @todo rediscovery of nodes
+    # @todo find drivers
+
+    def drivenObject(self):
+        pass
+
+    def driverObjects(self):
+        pass
+
+    def create(self, driver, driven, skipScale=None, skipRotate=None, skipTranslate=None, maintainOffset=False):
+        composename = "_".join([self.name, "wMtxCompose"])
+
+        decompose = creation.createDecompose(composename, destination=driven,
+                                             translateValues=skipTranslate,
+                                             scaleValues=skipScale, rotationValues=skipRotate)
+        decomposeFn = om2.MFnDependencyNode(decompose)
+
+        if maintainOffset:
+            offsetname = "_".join([self.name, "wMtxOffset"])
+            offset = nodes.getOffsetMatrix(driver, driven)
+            creation.createMultMatrix(offsetname,
+                                      inputs=(offset, nodes.worldMatrixPlug(driver),
+                                              nodes.parentInverseMatrixPlug(driven)),
+                                      output=decomposeFn.findPlug("inputMatrix", False))
+
+        else:
+            plugs.connectPlugs(nodes.worldMatrixPlug(driver), decomposeFn.findPlug("inputMatrix", False))
+        self.node = om2.MObjectHandle(decompose)
+        return decompose

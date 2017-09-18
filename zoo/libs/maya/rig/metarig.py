@@ -5,14 +5,21 @@ from zoo.libs.maya.api import attrtypes
 
 
 class MetaRig(base.MetaBase):
+    icon = "user"
     _ctrlPrefix = "CTRL"
     _jntPrefix = "JNT"
     _skinJntPrefix = "SKIN"
     _geoPrefix = "GEO"
+    _proxyGeoPrefix = "GEO_PROXY"
+    _rootPrefix = "ROOT"
 
     def _initMeta(self):
         super(MetaRig, self)._initMeta()
         self.addAttribute(name="name", value="", Type=attrtypes.kMFnDataString)
+
+    def addRootNode(self, node, name):
+        attrname = "_".join([self._rootPrefix, name])
+        return self.connectTo(attrname, node)
 
     def addControl(self, node, name):
         attrname = "_".join([self._ctrlPrefix, name])
@@ -26,9 +33,27 @@ class MetaRig(base.MetaBase):
         attrname = "_".join([self._skinJntPrefix, name])
         return self.connectTo(attrname, node)
 
+    def addProxyGeo(self, node, name):
+        attrname = "_".join([self._proxyGeoPrefix, name])
+        return self.connectTo(attrname, node)
+
     def addGeo(self, node, name):
         attrname = "_".join([self._geoPrefix, name])
         return self.connectTo(attrname, node)
+    def proxyGeo(self, recursive=True):
+        return self.findConnectedNodesByAttributeName(self._proxyGeoPrefix, recursive=recursive)
+
+    def addIkJoint(self, joint, name):
+        self.addJoint(joint, "_".join([self._ikPrefix, name, "jnt"]))
+
+    def addFkJoint(self, joint, name):
+        self.addJoint(joint, "_".join([self._fkPrefix, name, "jnt"]))
+
+    def addIkControl(self, ctrl, name):
+        self.addControl(ctrl, "_".join([self._ikPrefix, name, "anim"]))
+
+    def addFkControl(self, ctrl, name):
+        self.addControl(ctrl, "_".join([self._fkPrefix, name, "anim"]))
 
     def control(self, name, recursive):
         results = self.findConnectedNodesByAttributeName("_".join([self._ctrlPrefix, name]), recursive=recursive)
@@ -85,7 +110,7 @@ class MetaRig(base.MetaBase):
         elif isinstance(node, om2.MObject):
             node = MetaSupportSystem(node)
 
-        self.connectTo("supportSystem", node.mobject(), "metaParent")
+        self.connectTo("supportSystem", node.mobject(), base.MPARENT_ATTR_NAME)
 
         return node
 
@@ -95,7 +120,7 @@ class MetaRig(base.MetaBase):
         elif isinstance(node, om2.MObject):
             node = MetaSubSystem(node)
 
-        self.connectTo("subSystem", node.mobject(), "metaParent")
+        self.connectTo("subSystem", node.mobject(), base.MPARENT_ATTR_NAME)
 
         return node
 

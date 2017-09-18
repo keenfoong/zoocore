@@ -15,16 +15,12 @@ class Control(object):
     :note: transformations to most likely be on the srt as thats the preferred method in rigging
     """
 
-    def __init__(self, node=None, name="", colour=(0, 0, 0)):
+    def __init__(self, node=None, name=""):
         """
         :param name:The name of the curve, can be an existing node transform
         :type name: str
-        :param colour: The colour of the shape
-        :type colour: tuple(float)
-        :note:: colour may be moved to the create method.
         """
         self._name = name
-        self.colour = colour
         if node is not None:
             self.dagPath = om2.MFnDagNode(node).getPath()
             self._name = self.dagPath.partialPathName()
@@ -58,11 +54,11 @@ class Control(object):
         if self.dagPath is not None:
             return self.dagPath.node()
 
-    def setParent(self, parent):
+    def setParent(self, parent, maintainOffset=False):
         if self.srt is not None:
-            nodes.setParent(self.srt.object(), parent)
-        else:
-            nodes.setParent(self.mobject(), parent)
+            nodes.setParent(self.srt.object(), parent, maintainOffset=maintainOffset)
+            return
+        nodes.setParent(self.mobject(), parent, maintainOffset=maintainOffset)
 
     def addSrtBuffer(self, suffix="", parent=None):
         """Adds a parent transform to the curve transform
@@ -88,7 +84,7 @@ class Control(object):
     def parent(self):
         return self.dagPath.pop().node()
 
-    def create(self, shape=None, position=None, rotation=None, scale=(1, 1, 1), rotationOrder=0):
+    def create(self, shape=None, position=None, rotation=None, scale=(1, 1, 1), rotationOrder=0, color=None):
         """This method creates a new set of curve shapes for the control based on the shape type specified.
          if the self.node already initialized then this node will become the parent. this method has basic functionality
          for transformation if you need more control use the other helper method on this class.
@@ -123,9 +119,16 @@ class Control(object):
             self.setRotation(rotation, space=om2.MSpace.kWorld)
         if scale != (1, 1, 1) and scale:
             self.setScale(scale, space=om2.MSpace.kWorld)
-
+        if color is not None:
+            self.setColour(color, 0)
         self.setRotationOrder(rotationOrder)
         return self.dagPath
+
+    def addShapeFromLib(self, shapeName):
+        if shapeName in shapelib.shapeNames():
+            shapelib.loadFromLib(shapeName, parent=self.mobject())
+            return True
+        return False
 
     def setPosition(self, position, cvs=False, space=None, useParent=True):
         """Sets the translation component of this control, if cvs is True then translate the cvs instead
@@ -223,12 +226,12 @@ class Control(object):
             if shapeIndex == 0:
                 shapes = nodes.shapes(self.dagPath)
                 for shape in shapes:
-                    nodes.setNodeColour(shape, colour)
+                    nodes.setNodeColour(shape.node(), colour)
             else:
-                shape = nodes.shapeAtIndex(self.dagPath, shapeIndex)
-                nodes.setNodeColour(shape, colour)
+                shape = nodes.shapeAtIndex(self.dagPath.node(), shapeIndex)
+                nodes.setNodeColour(shape.node, colour)
             return
-        nodes.setNodeColour(self.dagPath, colour)
+        nodes.setNodeColour(self.dagPath.node(), colour)
 
     def setRotationOrder(self, rotateOrder=None):
         """Sets rotation order for the control

@@ -6,7 +6,7 @@ Comments added by Jos Balcaen(http://josbalcaen.com/)
 @date 1/1/2015
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-from zoo.libs.pyqt.qt import QtWidgets, QtCore
+from qt import QtWidgets, QtCore
 
 
 class FlowLayout(QtWidgets.QLayout):

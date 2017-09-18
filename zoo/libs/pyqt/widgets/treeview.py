@@ -1,4 +1,4 @@
-from zoo.libs.pyqt.qt import QtWidgets, QtCore
+from qt import QtWidgets, QtCore
 
 
 class TreeView(QtWidgets.QTreeView):

@@ -1,4 +1,4 @@
-from zoo.libs.pyqt.qt import QtWidgets, QtGui
+from qt import QtWidgets, QtGui
 from zoo.libs import iconlib
 
 

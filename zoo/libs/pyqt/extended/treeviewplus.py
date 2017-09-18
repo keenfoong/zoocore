@@ -1,9 +1,9 @@
-from zoo.libs.pyqt.qt import QtWidgets, QtCore
+from qt import QtWidgets, QtCore
 from zoo.libs import iconlib
 
 
 class TreeViewPlus(QtWidgets.QFrame):
-    selectionChanged = QtCore.Signal()
+    selectionChanged = QtCore.Signal(list, list)
     contextMenuRequested = QtCore.Signal(object, list)
     refreshRequested = QtCore.Signal()
 
@@ -15,7 +15,7 @@ class TreeViewPlus(QtWidgets.QFrame):
         self.rowDataSource = None
         self.columnDataSources = []
         self.connections()
-        self.setSearchable(True)
+        self.setSearchable(searchable)
         if expand:
             self.treeView.expandAll()
 
@@ -91,21 +91,18 @@ class TreeViewPlus(QtWidgets.QFrame):
         self.selectionModel = self.treeView.selectionModel()
 
     def selectedItems(self):
-        indices = self.selectionModel.selectedRows()
+        indices = self.selectedQIndices()
         model = self.model
         return [model.itemFromIndex(i) for i in indices]
 
     def selectedQIndices(self):
-        indices = self.selectionModel.selectedRows()
+        indices = self.treeView.selectionModel().selectedRows()
         return indices
 
     def connections(self):
-        self.treeView.expanded.connect(self.refresh)
-        self.treeView.collapsed.connect(self.refresh)
         self.searchClearBtn.clicked.connect(self.searchEdit.clear)
         self.searchHeaderBox.currentIndexChanged.connect(self.onSearchBoxChanged)
         self.searchEdit.textChanged.connect(self.proxySearch.setFilterRegExp)
-
         self.reloadBtn.clicked.connect(self.refresh)
 
     def setModel(self, model):
@@ -117,6 +114,9 @@ class TreeViewPlus(QtWidgets.QFrame):
             i.model = model
         self.treeView.setModel(self.model)
 
+        selModel = self.treeView.selectionModel()
+        selModel.selectionChanged.connect(self.selectionChanged.emit)
+
     def onSearchBoxChanged(self):
         self.proxySearch.setFilterKeyColumn(self.searchHeaderBox.currentIndex())
 
@@ -125,11 +125,10 @@ class TreeViewPlus(QtWidgets.QFrame):
 
     def contextMenu(self, position):
         menu = QtWidgets.QMenu(self)
-        selection = self.selectedRows()
-        if self.rowDataSource:
-            self.rowDataSource.contextMenu(selection, menu)
-        self.contextMenuRequested.emit(selection, menu)
-        menu.exec_(self.treeview.viewport().mapToGlobal(position))
+        indices = self.treeView.selectionModel().selectedRows()
+
+        self.contextMenuRequested.emit(indices, menu)
+        menu.exec_(self.treeView.viewport().mapToGlobal(position))
 
 
 if __name__ == "__main__":

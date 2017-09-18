@@ -208,6 +208,58 @@ def createAnnotation(rootObj, endObj, text=None, name=None):
     return annotationNode, transform
 
 
+def createMultMatrix(name, inputs, output):
+    multMatrix = nodes.createDGNode(name, "multMatrix")
+    fn = om2.MFnDependencyNode(multMatrix)
+    plugs.connectPlugs(fn.findPlug("matrixSum", False), output)
+    compound = fn.findPlug("matrixIn", False)
+    compound.evaluateNumElements()
+
+    for i in xrange(len(inputs)):
+        inp = inputs[i]
+        if isinstance(inp, om2.MPlug):
+            plugs.connectPlugs(inp, compound.elementByLogicalIndex(i))
+            continue
+        plugs.setPlugValue(compound.elementByLogicalIndex(i), inp)
+    return multMatrix
+
+
+def createWtAddMatrix():
+    pass
+
+
+def createDecompose(name, destination, translateValues, scaleValues, rotationValues, inputMatrixPlug=None):
+    """Creates a decompose node and connects it to the destination node.
+
+    :param inputMatrixPlug: The input matrix plug to connect from.
+    :type inputMatrixPlug: om2.MPlug
+    :param translateValues: the x,y,z to apply must have all three if all three are true then the compound will be
+    connected.
+    :type translateValues: list(str)
+    :param scaleValues: the x,y,z to apply must have all three if all three are true then the compound will be
+    connected.
+    :type scaleValues: list(str)
+    :param rotationValues: the x,y,z to apply must have all three if all three are true then the compound will be
+    connected.
+    :type rotationValues: list(str)
+    :param destination: the node to connect to
+    :type destination: om2.MObject
+    :return: the decompose node
+    :rtype: om2.MObject
+    """
+    decompose = nodes.createDGNode(name, "decomposeMatrix")
+    mfn = om2.MFnDependencyNode(decompose)
+    destFn = om2.MFnDependencyNode(destination)
+    if inputMatrixPlug is not None:
+        plugs.connectPlugs(inputMatrixPlug, mfn.findPlug("inputMatrix", False))
+    # translation
+    plugs.connectVectorPlugs(mfn.findPlug("outputTranslate", False), destFn.findPlug("translate", False),
+                             translateValues)
+    plugs.connectVectorPlugs(mfn.findPlug("outputRotate", False), destFn.findPlug("rotate", False), rotationValues)
+    plugs.connectVectorPlugs(mfn.findPlug("outputScale", False), destFn.findPlug("scale", False), scaleValues)
+    return decompose
+
+
 def graphSerialize(graphNodes):
     data = []
     for i in iter(graphNodes):

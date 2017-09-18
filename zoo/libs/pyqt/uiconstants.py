@@ -1,2 +1,4 @@
+DARKBGCOLOR = tuple([93, 93, 93])
+MEDBGCOLOR = tuple([73, 73, 73])
 SPACING = 0
 MARGINS = 0, 0, 0, 0

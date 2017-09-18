@@ -1,4 +1,5 @@
-from zoo.libs.pyqt.qt import QtWidgets, QtGui
+from qt import QtWidgets
+
 try:
     from shiboken2 import wrapInstance as wrapinstance
 except:

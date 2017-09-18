@@ -1,9 +1,9 @@
-from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
+from qt import QtWidgets
+from zoo.libs import iconlib
 from zoo.libs.pyqt.extended import tableviewplus
-from zoo.libs.pyqt.widgets import dialog
 from zoo.libs.pyqt.models import datasources
 from zoo.libs.pyqt.models import tablemodel
-from zoo.libs import iconlib
+from zoo.libs.pyqt.widgets import dialog
 
 
 class TableViewExample(dialog.Dialog):

@@ -1,6 +1,6 @@
 """This module is for a standard Qt tree model
 """
-from zoo.libs.pyqt.qt import QtCore, QtGui
+from qt import QtCore, QtGui
 
 
 class TreeModel(QtCore.QAbstractItemModel):
@@ -37,20 +37,20 @@ class TreeModel(QtCore.QAbstractItemModel):
         if not index.isValid():
             return None
         item = index.internalPointer()
-        row = index.row()
         column = index.column()
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            return item.text(column)
+            return item.data(column)
         elif role == QtCore.Qt.ToolTipRole:
-            return item.tooltip()
+            return item.toolTip(column)
         elif role == QtCore.Qt.DecorationRole:
             return item.icon(column)
+
         elif role == QtCore.Qt.BackgroundRole:
-            color = item.backgroundColor(row, column)
+            color = item.backgroundColor(column)
             if color:
                 return QtGui.QColor(*color)
         elif role == QtCore.Qt.ForegroundRole:
-            color = item.foregroundColor(row, column)
+            color = item.foregroundColor(column)
             if color:
                 return QtGui.QColor(*color)
         elif role == QtCore.Qt.FontRole:
@@ -68,7 +68,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         pointer = index.internalPointer()
         if role == QtCore.Qt.EditRole:
             column = index.column()
-            pointer.setText(column, value)
+            pointer.setData(column, value)
             self.dataChanged.emit(index, index)
             return True
         return False
@@ -76,19 +76,18 @@ class TreeModel(QtCore.QAbstractItemModel):
     def flags(self, index):
         if not index.isValid():
             return QtCore.Qt.NoItemFlags
-        row = index.row()
         column = index.column()
         pointer = index.internalPointer()
         flags = QtCore.Qt.ItemIsEnabled
-        if pointer.supportsDrag(row, column):
+        if pointer.supportsDrag(column):
             flags |= QtCore.Qt.ItemIsDragEnabled
-        if pointer.supportsDrop(row, column):
+        if pointer.supportsDrop(column):
             flags |= QtCore.Qt.ItemIsDropEnabled
-        if pointer.isEditable(row, column):
+        if pointer.isEditable(column):
             flags |= QtCore.Qt.ItemIsEditable
-        if pointer.isSelectable(row, column):
+        if pointer.isSelectable(column):
             flags |= QtCore.Qt.ItemIsSelectable
-        if pointer.isEnabled(row, column):
+        if pointer.isEnabled(column):
             flags |= QtCore.Qt.ItemIsEnabled
         return flags
 
@@ -113,7 +112,7 @@ class TreeModel(QtCore.QAbstractItemModel):
 
         childItem = index.internalPointer()
 
-        parentItem = childItem.parent()
+        parentItem = childItem.parentSource()
         if parentItem == self.root or parentItem is None:
             return QtCore.QModelIndex()
 
@@ -121,10 +120,10 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     def insertRow(self, position, parent=QtCore.QModelIndex(), **kwargs):
         parentItem = self.getItem(parent)
-        self.beginInsertRows(parent, position)
-        if position < 0 or position > parentItem.childCount():
+        self.beginInsertRows(parent, position, position)
+        if position < 0 or position > len(parentItem.children):
             return False
-        parentItem.insertChild(position, **kwargs)
+        parentItem.insertRowDataSource(position, **kwargs)
         self.endInsertRows()
 
         return True
@@ -132,18 +131,18 @@ class TreeModel(QtCore.QAbstractItemModel):
     def insertRows(self, position, rows, parent=QtCore.QModelIndex(), **kwargs):
         parentItem = self.getItem(parent)
         self.beginInsertRows(parent, position, position + rows - 1)
-        if position < 0 or position > parentItem.childCount():
+        if position < 0 or position > len(parentItem.children):
             return False
         result = parentItem.insertRowDataSources(int(position), int(rows), **kwargs)
 
-        self.endInsertRows()
+        self.endInsertRow()
 
         return result
 
     def removeRows(self, position, rows, parent=QtCore.QModelIndex(), **kwargs):
         parentNode = self.getItem(parent)
         self.beginRemoveRows(parent, position, position + rows - 1)
-        if position < 0 or position > parentNode.childCount():
+        if position < 0 or position > len(parentNode.children):
             return False
         result = parentNode.insertRowDataSources(int(position), int(rows), **kwargs)
 
@@ -154,10 +153,10 @@ class TreeModel(QtCore.QAbstractItemModel):
     def removeRow(self, position, rows, parent=QtCore.QModelIndex()):
         parentNode = self.getItem(parent)
         self.beginRemoveRows(parent, position, position + rows - 1)
-        if position < 0 or position > parentNode.childCount():
+        if position < 0 or position > len(parentNode.children):
             return False
 
-        success = parentNode.remove(position)
+        success = parentNode.removeRowDataSource(position)
 
         self.endRemoveRows()
 

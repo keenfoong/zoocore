@@ -5,6 +5,8 @@ from zoo.libs.maya.api import attrtypes, nodes
 
 
 class MetaCamera(base.MetaBase):
+    icon = "camera"
+
     def __init__(self, node=None, name=None, initDefaults=True):
         super(MetaCamera, self).__init__(node, name, initDefaults)
         child = list(nodes.iterChildren(self.mobject(), False, om2.MFn.kCamera))
@@ -25,7 +27,13 @@ class MetaCamera(base.MetaBase):
 
     @aspectRatio.setter
     def aspectRatio(self, value):
+        vPlug = self.camMfn.findPlug("verticalFilmAperture", False)
+        hPlug = self.camMfn.findPlug("horizontalFilmAperture", False)
+        vPlug.isLocked = False
+        hPlug.isLocked = False
         self.camMfn.setAspectRatio(value)
+        vPlug.isLocked = True
+        hPlug.isLocked = True
 
     @property
     def focalLength(self):
@@ -41,7 +49,13 @@ class MetaCamera(base.MetaBase):
 
     @verticalFilmAperture.setter
     def verticalFilmAperture(self, value):
+        vPlug = self.camMfn.findPlug("verticalFilmAperture", False)
+        hPlug = self.camMfn.findPlug("horizontalFilmAperture", False)
+        vPlug.isLocked = False
+        hPlug.isLocked = False
         self.camMfn.verticalFilmAperture = value
+        vPlug.isLocked = True
+        hPlug.isLocked = True
 
     @property
     def horizontalFilmAperture(self):
@@ -49,7 +63,13 @@ class MetaCamera(base.MetaBase):
 
     @horizontalFilmAperture.setter
     def horizontalFilmAperture(self, value):
+        vPlug = self.camMfn.findPlug("verticalFilmAperture", False)
+        hPlug = self.camMfn.findPlug("horizontalFilmAperture", False)
+        vPlug.isLocked = False
+        hPlug.isLocked = False
         self.camMfn.horizontalFilmAperture = value
+        vPlug.isLocked = True
+        hPlug.isLocked = True
 
     @property
     def filmFit(self):
@@ -71,4 +91,3 @@ class MetaCamera(base.MetaBase):
         self.aspectRatio = float(metaCamera.aspectRatio)
         self.focalLength = float(metaCamera.focalLength)
         self.verticalFilmAperture = float(metaCamera.verticalFilmAperture)
-

@@ -3,6 +3,8 @@ from maya.api import OpenMaya as om2
 from zoo.libs.maya.api import attrtypes
 import contextlib
 
+AXIS = ("X", "Y", "Z")
+
 
 def asMPlug(name):
     """returns the MPlug instance for the given name
@@ -23,15 +25,41 @@ def asMPlug(name):
         return sel.getPlug(0)
 
 
-def connectPlugs(source, destination):
+def connectPlugs(source, destination, mod=None):
     """Connects to MPlugs together
 
-    :param source: MObject
-    :param destination: MObject
+    :type source: MObject
+    :type destination: MObject
+    :type mod: om2.MDGModifier()
     """
-    mod = om2.MDGModifier()
+    mod = mod or om2.MDGModifier()
     mod.connect(source, destination)
     mod.doIt()
+    return mod
+
+
+def connectVectorPlugs(sourceCompound, destinationCompound, connectionValues):
+    """
+
+    :param sourceCompound:
+    :type sourceCompound:
+    :param destinationCompound:
+    :type destinationCompound:
+    :param connectionValues: Bool value for each axis if all axis are tre then just connect the compound
+    :type connectionValues: seq(str)
+    :return:
+    :rtype:
+    """
+    if all(connectionValues):
+        connectPlugs(sourceCompound, destinationCompound)
+        return
+    childCount = range(destinationCompound.numChildren())
+    sourceCount = range(sourceCompound.numChildren())
+    for i in connectionValues:
+        if i in childCount and i in sourceCount:
+            childSource = sourceCompound.child(i)
+            childDest = destinationCompound.child(i)
+            connectPlugs(childSource, childDest)
 
 
 def disconnectPlug(plug, source=True, destination=True):
@@ -224,7 +252,7 @@ def enumNames(plug):
         attr = om2.MFnEnumAttribute(obj)
         min = attr.getMin()
         max = attr.getMax()
-        for i in xrange(min, max+1):
+        for i in xrange(min, max + 1):
             # enums can be a bit screwed, i.e 5 options but max 10
             try:
                 enumoptions.append(attr.fieldName(i))
@@ -244,7 +272,7 @@ def enumIndices(plug):
     obj = plug.attribute()
     if obj.hasFn(om2.MFn.kEnumAttribute):
         attr = om2.MFnEnumAttribute(obj)
-        return range(attr.getMax()+1)
+        return range(attr.getMax() + 1)
 
 
 def plugDefault(plug):
@@ -291,12 +319,8 @@ def setPlugDefault(plug, default):
         attr.default = default
         return True
     elif obj.hasFn(om2.MFn.kMatrixAttribute):
-        if not isinstance(default, (om2.MMatrix, om2.MFloatMatrix)):
-            raise ValueError(
-                "Wrong type passed to MFnMatrixAttribute must be on type MMatrix or MFloatMatrix, received : {}".format(
-                    type(default)))
         attr = om2.MFnMatrixAttribute(obj)
-        attr.default = default
+        attr.default = om2.MFnMatrixData().create(om2.MMatrix(default))
         return True
     elif obj.hasFn(om2.MFn.kEnumAttribute):
         if not isinstance(default, (int, str)):
@@ -633,7 +657,7 @@ def setPlugValue(plug, value):
         elif ut == om2.MFnUnitAttribute.kTime:
             plug.setMTime(om2.MTime(value))
         elif ut == om2.MFnUnitAttribute.kAngle:
-            plug.setMAngle(om2.MAngle(value))
+            plug.setMAngle(value)
     elif obj.hasFn(om2.MFn.kNumericAttribute):
         attr = om2.MFnNumericAttribute(obj)
         at = attr.numericType()
@@ -664,9 +688,8 @@ def setPlugValue(plug, value):
         attr = om2.MFnTypedAttribute(obj)
         at = attr.attrType()
         if at == om2.MFnData.kMatrix:
-            mat = om2.MFnMatrixData(plug.asMObject())
-            newMat = mat.create(value)
-            plug.setMObject(newMat)
+            mat = om2.MFnMatrixData().create(value)
+            plug.setMObject(mat)
         elif at == om2.MFnData.kString:
             plug.setString(value)
 

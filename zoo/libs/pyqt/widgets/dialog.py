@@ -1,6 +1,7 @@
-from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
-from zoo.libs import iconlib
 import qdarkstyle
+
+from qt import QtWidgets, QtCore, QtGui
+from zoo.libs import iconlib
 
 
 class Dialog(QtWidgets.QDialog):
@@ -8,7 +9,7 @@ class Dialog(QtWidgets.QDialog):
                  parent=None, showOnInitialize=True):
         super(Dialog, self).__init__(parent=parent)
 
-        self.setStyleSheet(qdarkstyle.load_stylesheet(pyside=True))
+        # self.setStyleSheet(qdarkstyle.load_stylesheet(pyside=True))
         self.setContentsMargins(2, 2, 2, 2)
         self.title = title
         self.setObjectName(title)

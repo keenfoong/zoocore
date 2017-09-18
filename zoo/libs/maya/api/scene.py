@@ -2,6 +2,7 @@ from contextlib import contextmanager
 
 from maya.api import OpenMaya as om2
 from zoo.libs.maya.api import nodes
+from zoo.libs.maya.utils import mayamath
 
 
 def removeFromActiveSelection(node):
@@ -25,7 +26,7 @@ def getSelectedNodes(filter=None):
 
     :return: list(MObject)
     """
-    return [i for i in iterSelectedNodes(filter)]
+    return list(iterSelectedNodes(filter))
 
 
 def iterSelectedNodes(filter=None):
@@ -140,3 +141,30 @@ def deserializeNodes(data, includeConnections=True):
         if newNode:
             createNodes.append(newNode)
     return createNodes
+
+
+def aimSelected(aimVector=None,
+                upVector=None):
+    """Aim the the selected nodes to the last selected node.
+
+    :param aimVector: see mayamath.aimToNode for details
+    :type aimVector: om2.MVector
+    :param upVector: see mayamath.aimToNode for details
+    :type upVector: om2.MVector
+    """
+    selected = getSelectedNodes()
+    if len(selected) < 2:
+        raise ValueError("Please Select more than 2 nodes")
+    target = selected[-1]  # driver
+    toAim = selected[:-1]  # driven
+
+    for i in iter(toAim):
+        children = []
+
+        for child in list(nodes.iterChildren(i, False, om2.MFn.kTransform)):
+            nodes.setParent(child, None, True)
+            children.append(child)
+        mayamath.aimToNode(i, target, aimVector, upVector)
+
+        for child in iter(children):
+            nodes.setParent(child, i, True)

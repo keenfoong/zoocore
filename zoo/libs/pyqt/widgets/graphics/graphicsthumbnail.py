@@ -1,6 +1,6 @@
-from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
-from zoo.libs.pyqt.widgets.graphics import graphicspixmap
+from qt import QtWidgets, QtCore, QtGui
 from zoo.libs.pyqt.widgets.graphics import graphicitems
+from zoo.libs.pyqt.widgets.graphics import graphicspixmap
 
 
 class GraphicsThumbnailWidget(QtWidgets.QGraphicsWidget):

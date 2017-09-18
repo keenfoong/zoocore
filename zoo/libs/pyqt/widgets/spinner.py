@@ -1,7 +1,7 @@
-from zoo.libs.pyqt.qt import QtCore, QtGui, QtWidgets
-
-import time
 import math
+import time
+
+from qt import QtCore, QtGui, QtWidgets
 
 
 class Spinner(QtWidgets.QWidget):

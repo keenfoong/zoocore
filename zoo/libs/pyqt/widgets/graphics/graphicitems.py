@@ -1,4 +1,4 @@
-from zoo.libs.pyqt.qt import QtWidgets, QtGui, QtCore
+from qt import QtWidgets, QtGui, QtCore
 
 
 class ItemContainer(QtWidgets.QGraphicsWidget):
@@ -133,13 +133,14 @@ class CubicPath(QtWidgets.QGraphicsPathItem):
 
 
 class SelectionRect(QtWidgets.QGraphicsWidget):
-    def __init__(self, pen, color, mouseDownPos):
+    def __init__(self, mouseDownPos):
         super(SelectionRect, self).__init__()
         self.setZValue(-1)
-        self._color = color or QtGui.QColor(80, 80, 80, 50)
-        self._pen = pen or QtGui.QPen(QtGui.QColor(20, 20, 20), 1.0, QtCore.Qt.DashLine)
+        self._color = QtGui.QColor(80, 80, 80, 50)
+        self._pen = QtGui.QPen(QtGui.QColor(20, 20, 20), 1.0, QtCore.Qt.DashLine)
         self._mouseDownPos = mouseDownPos
         self.setPos(self._mouseDownPos)
+        self.resize(0, 0)
 
     def setColor(self, color):
         self._color = color

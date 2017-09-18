@@ -1,4 +1,4 @@
-from zoo.libs.pyqt.qt import QtWidgets, QtGui, QtCore
+from qt import QtWidgets, QtCore
 
 
 class TabWidget(QtWidgets.QTabWidget):

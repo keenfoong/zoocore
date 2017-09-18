@@ -1,4 +1,4 @@
-from zoo.libs.pyqt.qt import QtCore, QtGui
+from qt import QtCore, QtGui
 
 
 class Icon(QtGui.QIcon):

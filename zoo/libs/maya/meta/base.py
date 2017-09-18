@@ -21,11 +21,12 @@ from zoo.libs.maya.api import attrtypes
 logger = zlogging.zooLogger
 
 MCLASS_ATTR_NAME = "mClass"
-MVERSION_ATTR_NAME = "version"
-MROOT_ATTR_NAME = "root"
-MUUID_ATTR_NAME = "uuid"
-MPARENT_ATTR_NAME = "metaParent"
-MCHILDREN_ATTR_NAME = "metaChildren"
+MVERSION_ATTR_NAME = "mVersion"
+MROOT_ATTR_NAME = "mRoot"
+MUUID_ATTR_NAME = "mUuid"
+MPARENT_ATTR_NAME = "mMetaParent"
+MCHILDREN_ATTR_NAME = "mMetaChildren"
+
 
 def lockMetaManager(func):
     """Decorator function to lock and unlock the meta, designed purely for the metaclass
@@ -52,10 +53,10 @@ def findSceneRoots():
     """
     roots = []
     for meta in iterSceneMetaNodes():
-        dep = om2.MFnDependencyNode(meta)
+        dep = om2.MFnDependencyNode(meta.mobject())
         try:
             if dep.findPlug(MROOT_ATTR_NAME, False).asBool():
-                roots.append(MetaBase(node=meta))
+                roots.append(MetaBase(node=meta.mobject()))
         except RuntimeError:
             continue
     return roots
@@ -98,7 +99,7 @@ def iterSceneMetaNodes():
         node = t.thisNode()
         dep = om2.MFnDependencyNode(node)
         if dep.hasAttribute(MCLASS_ATTR_NAME):
-            yield node
+            yield MetaBase(node=node)
         t.next()
 
 
@@ -118,6 +119,13 @@ def isMetaNode(node):
     return False
 
 
+def isConnectedToMeta(node):
+    for dest, source in nodes.iterConnections(node, True, False):
+        if isMetaNode(source.node()):
+            return True
+    return False
+
+
 def getConnectedMetaNodes(mObj):
     """Returns all the downStream connected meta nodes of 'mObj'
 
@@ -127,7 +135,7 @@ def getConnectedMetaNodes(mObj):
     :rtype: list(MetaBase)
     """
     mNodes = []
-    for dest, source in nodes.iterConnections(mObj, True, False):
+    for dest, source in nodes.iterConnections(mObj, False, True):
         node = source.node()
         if isMetaNode(node):
             mNodes.append(MetaBase(node))
@@ -263,6 +271,8 @@ class MetaFactory(type):
 
 class MetaBase(object):
     __metaclass__ = MetaFactory
+    # for persistent ui icons
+    icon = "networking"
 
     @staticmethod
     def classNameFromPlug(node):
@@ -392,10 +402,15 @@ class MetaBase(object):
 
     @lockMetaManager
     def delete(self):
-        """Deletes the metaNode from the scene
+        """Deletes the metaNode from the scene, uses cmds its undoable with zoocommands
         """
-        metaMobj = self._handle.object()
-        nodes.delete(metaMobj)
+        mNode = self.mobject()
+        for source, destination in self.iterConnections(source=True, destination=True):
+            if source.node() == mNode:
+                self.disconnectFromNode(destination.node())
+                continue
+            self.disconnectFromNode(source.node())
+        cmds.delete(self.fullPathName())
 
     @lockMetaManager
     def rename(self, name):
@@ -424,7 +439,7 @@ class MetaBase(object):
             return self._mfn.findPlug(name, networked)
 
     @lockMetaManager
-    def addAttribute(self, name, value, Type, isArray=False):
+    def addAttribute(self, name, value, Type, isArray=False, lock=True):
         mobj = self._handle.object()
         mfn = om2.MFnDependencyNode(mobj)
         if mfn.hasAttribute(name):
@@ -444,7 +459,7 @@ class MetaBase(object):
                 self.connectTo(name, value)
             else:
                 plugs.setPlugValue(newPlug, value)
-        newPlug.isLocked = True
+        newPlug.isLocked = lock
         return attr
 
     def setAttribute(self, attr, value):
@@ -537,6 +552,17 @@ class MetaBase(object):
             filteredNodes.extend(filtered)
         return filteredNodes
 
+    def iterConnections(self, source=True, destination=True):
+        """
+        :param source: if True then return all nodes downstream of the node
+        :type source: bool
+        :param destination: if True then return all nodes upstream of this node
+        :type destination: bool
+        :return:
+        :rtype: generator
+        """
+        return nodes.iterConnections(self.mobject(), source, destination)
+
     def serialize(self):
         data = {}
         for plug in self.iterAttributes():
@@ -564,6 +590,7 @@ class MetaBase(object):
         """
         nodeAttributeName = nodeAttributeName or "metaNode"
         dep = om2.MFnDependencyNode(node)
+        self.disconnectFromNode(node)
         if not dep.hasAttribute(nodeAttributeName):
             destinationPlug = dep.findPlug(nodes.addAttribute(node, nodeAttributeName, nodeAttributeName,
                                                               attrtypes.kMFnMessageAttribute).object(), False)
@@ -613,6 +640,22 @@ class MetaBase(object):
                 destinationPlug.isLocked = True
         return destinationPlug
 
+    def disconnectFromNode(self, node):
+
+        metaObj = self.mobject()
+        for source, destination in nodes.iterConnections(node, True, False):
+            if source.node() != metaObj:
+                continue
+            plugs.disconnectPlug(source, destination)
+            if source.isLocked:
+                source.isLocked = False
+            mod = om2.MDGModifier()
+            mod.removeAttribute(self._handle.object(), destination.attribute())
+            mod.doIt()
+            self.removeAttribute(source.name())
+            return True
+        return False
+
     def metaRoot(self):
         parent = self.metaParent()
         while parent is not None:
@@ -656,7 +699,7 @@ class MetaBase(object):
         """
         if depthLimit < 1:
             return
-        for source, destination in nodes.iterConnections(self.mobject(), False, True):
+        for source, destination in nodes.iterConnections(self.mobject(), True, False):
             node = destination.node()
             if isMetaNode(node):
                 m = MetaBase(node)
@@ -708,7 +751,7 @@ class MetaBase(object):
 
     def allChildrenNodes(self, recursive=False):
         children = []
-        for source, destination in nodes.iterConnections(self.mobject(), False, True):
+        for source, destination in nodes.iterConnections(self.mobject(), True, False):
             node = destination.node()
             if node not in children:
                 children.append(destination.node())

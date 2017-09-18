@@ -56,7 +56,8 @@ def createCurveShape(parent, data):
             shape = nodes.childPathAtIndex(om2.MFnDagNode(shape).getPath(), -1)
             shape = nodes.asMObject(shape)
         if enabled:
-            plugs.setPlugValue(om2.MFnDependencyNode(shape).findPlug("overrideEnabled", False), int(curveData["overrideEnabled"]))
+            plugs.setPlugValue(om2.MFnDependencyNode(shape).findPlug("overrideEnabled", False),
+                               int(curveData["overrideEnabled"]))
             colours = curveData["overrideColorRGB"]
             nodes.setNodeColour(newCurve.object(), colours)
         created.append(shape)
@@ -114,3 +115,98 @@ def mirrorCurveCvs(curveObj, axis="x", space=None):
 
         curve.setCvPositions(copyCvs)
         curve.updateCurve()
+
+
+def iterCurvePoints(dagPath, count, space=om2.MSpace.kObject):
+    """Generator Function to iterate and return the position, normal and tangent for the curve with the given point count.
+
+    :param dagPath: the dagPath to the curve shape node
+    :type dagPath: om2.MDagPath
+    :param count: the point count to generate
+    :type count: int
+    :param space: the coordinate space to query the point data
+    :type space: om2.MSpace
+    :return: The first element is the Position, second is the normal, third is the tangent
+    :rtype: tuple(MVector, MVector, MVector)
+    """
+    crvFn = om2.MFnNurbsCurve(dagPath)
+    length = crvFn.length()
+    dist = length / float(count - 1)  # account for end point
+    current = 0.001
+    maxParam = crvFn.findParamFromLength(length)
+    for i in xrange(count):
+        param = crvFn.findParamFromLength(current)
+        # maya fails to get the normal when the param is the maxparam so we sample with a slight offset
+        if param == maxParam:
+            param = maxParam - 0.0001
+        point = om2.MVector(crvFn.getPointAtParam(param, space=space))
+        yield point, crvFn.normal(param, space=space), crvFn.tangent(param, space=space)
+        current += dist
+
+
+def iterCurveParams(dagPath, count):
+    """Generator Function to iterate and return the Parameter
+
+    :param dagPath: the dagPath to the curve shape node
+    :type dagPath: om2.MDagPath
+    :param count: the Number of params to loop
+    :type count: int
+    :return: The curve param value
+    :rtype: float
+    """
+    crvFn = om2.MFnNurbsCurve(dagPath)
+    length = crvFn.length()
+    dist = length / float(count - 1)  # account for end point
+    current = 0.001
+    for i in xrange(count):
+        yield crvFn.findParamFromLength(current)
+        current += dist
+
+
+def attachNodeToCurveAtParam(curve, node, param, name):
+    """Attaches the given node to the curve using a motion path node.
+
+    :param curve: nurbsCurve Shape to attach to
+    :type curve: om2.MObject
+    :param node: the node to attach to the curve
+    :type node: om2.MObject
+    :param param: the parameter float value along the curve
+    :type param: float
+    :param name: the motion path node name to use
+    :type name: str
+    :return: motion path node
+    :rtype: om2.MObject
+    """
+    nodeFn = om2.MFnDependencyNode(node)
+    crvFn = om2.MFnDependencyNode(curve)
+    mp = nodes.createDGNode(name, "motionPath")
+    mpFn = om2.MFnDependencyNode(mp)
+    plugs.connectVectorPlugs(mpFn.findPlug("rotate", False), nodeFn.findPlug("rotate", False),
+                             (True, True, True))
+    plugs.connectVectorPlugs(mpFn.findPlug("allCoordinates", False), nodeFn.findPlug("translate", False),
+                             (True, True, True))
+    crvWorld = crvFn.findPlug("worldSpace", False)
+    plugs.connectPlugs(crvWorld.elementByLogicalIndex(0), mpFn.findPlug("geometryPath", False))
+    mpFn.findPlug("uValue", False).setFloat(param)
+    mpFn.findPlug("frontAxis", False).setInt(0)
+    mpFn.findPlug("upAxis", False).setInt(1)
+    return mp
+
+
+def iterGenerateSrtAlongCurve(dagPath, count, name):
+    """Generator function to iterate the curve and attach transform nodes to the curve using a motionPath
+
+    :param dagPath: the dagpath to the nurbscurve shape node
+    :type dagPath: om2.MDagPath
+    :param count: the number of transforms
+    :type count: int
+    :param name: the name for the transform, the motionpath will have the same name plus "_mp"
+    :type name: str
+    :return: Python Generator  first element is the created transform node, the second is the motionpath node
+    :rtype: Generate(tuple(om2.MObject, om2.MObject))
+    """
+    curveNode = dagPath.node()
+    for index, param in enumerate(iterCurveParams(dagPath, count)):
+        transform = nodes.createDagNode(name, "transform")
+        motionPath = attachNodeToCurveAtParam(curveNode, transform, param, "_".join([name, "mp"]))
+        yield transform, motionPath

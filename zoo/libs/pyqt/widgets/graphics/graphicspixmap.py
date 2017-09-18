@@ -1,4 +1,4 @@
-from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
+from qt import QtWidgets, QtCore, QtGui
 
 
 class GraphicsPixmapWidget(QtWidgets.QGraphicsWidget):

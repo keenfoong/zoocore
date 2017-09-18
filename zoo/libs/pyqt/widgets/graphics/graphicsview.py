@@ -1,5 +1,6 @@
 import math
-from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
+
+from qt import QtWidgets, QtCore, QtGui
 from zoo.libs.pyqt.widgets.graphics import graphicitems
 
 
@@ -14,6 +15,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
     thinGridLinePen = QtGui.QPen(QtGui.QColor(80, 80, 80, 255), 0.5)
     selectionRectOutlinerPen = QtGui.QPen(QtGui.QColor(70, 70, 150)),
     selectionRectColor = QtGui.QColor(60, 60, 60, 150),
+
     def __init__(self, parent=None, setAntialiasing=True):
         super(GraphicsView, self).__init__(parent)
 
@@ -36,6 +38,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
         self.pan_active = False
         self.previousMousePos = QtCore.QPointF()
         self.rubberBand = None
+        self.currentSelection = []
 
     def wheelEvent(self, event):
         self.scaleView(math.pow(2.0, -event.delta() / 240.0))
@@ -68,20 +71,21 @@ class GraphicsView(QtWidgets.QGraphicsView):
             item = self.itemAt(event.pos())
             if item:
                 item.selected = True
+                self.currentSelection = [item]
             else:
-                self.rubberBand = graphicitems.SelectionRect(self.selectionRectOutlinerPen,
-                                                             self.selectionRectColor,
-                                                             self.mapToScene(event.pos()))
+                for i in self.currentSelection:
+                    i.selected = False
+                self.rubberBand = graphicitems.SelectionRect(self.mapToScene(event.pos()))
                 scene = self.scene()
                 scene.addItem(self.rubberBand)
-
-                self.rubberBand.show()
+                # self.rubberBand.show()
             self.previousMousePos = event.pos()
         elif event.button() == QtCore.Qt.MiddleButton:
             self.pan_active = True
             self.previousMousePos = self.mapToScene(event.pos()).toPoint()
             self.setCursor(QtCore.Qt.OpenHandCursor)
-
+        elif button == QtCore.Qt.RightButton:
+            self._contextMenu(event.pos())
         super(GraphicsView, self).mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
@@ -151,7 +155,8 @@ class GraphicsView(QtWidgets.QGraphicsView):
         """
 
         painter.fillRect(rect, self.backgroundColor)
-
+        if not self.drawGrid:
+            return super(GraphicsView, self).drawBackground(painter, rect)
         left = int(rect.left()) - (int(rect.left()) % self.gridSize)
         top = int(rect.top()) - (int(rect.top()) % self.gridSize)
 

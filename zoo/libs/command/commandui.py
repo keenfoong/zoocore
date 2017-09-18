@@ -1,19 +1,19 @@
 from functools import partial
 
+from qt import QtWidgets, QtGui, QtCore
 from zoo.libs import iconlib
 from zoo.libs.utils import zlogging
-from zoo.libs.pyqt.qt import QtWidgets, QtGui, QtCore
 
 logger = zlogging.getLogger(__name__)
 
 
-class CommandUi(QtCore.QObject):
+class CommandActionBase(QtCore.QObject):
     """CommandUi class deals with encapsulating a command as a widget
     """
     triggered = QtCore.Signal(str)
 
     def __init__(self, command):
-        super(CommandUi, self).__init__()
+        super(CommandActionBase, self).__init__()
         self.command = command
         self.item = None
 
@@ -21,7 +21,7 @@ class CommandUi(QtCore.QObject):
         pass
 
 
-class MenuItem(CommandUi):
+class MenuItem(CommandActionBase):
     def create(self, parent=None):
         from maya import cmds
         uiData = self.command.uiData()
@@ -29,7 +29,7 @@ class MenuItem(CommandUi):
                                   itl=uiData.get("italicized", False), c=partial(self.triggered.emit, self.command.id))
 
 
-class CommandAction(CommandUi):
+class CommandAction(CommandActionBase):
     def create(self, parent=None):
         uiData = self.command.uiData()
         self.item = QtWidgets.QWidgetAction(parent)

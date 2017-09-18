@@ -1,6 +1,7 @@
-from zoo.libs.pyqt.qt import QtWidgets
-from zoo.libs.utils import zlogging
 from functools import partial
+
+from qt import QtWidgets
+from zoo.libs.utils import zlogging
 
 
 def loggingMenu():

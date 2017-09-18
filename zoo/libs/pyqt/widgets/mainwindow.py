@@ -1,9 +1,10 @@
 import platform
-from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
-from zoo.libs import iconlib
-from zoo.libs.pyqt.widgets import dockwidget
 
 import qdarkstyle
+
+from qt import QtWidgets, QtCore, QtGui
+from zoo.libs import iconlib
+from zoo.libs.pyqt.widgets import dockwidget
 
 
 class MainWindow(QtWidgets.QMainWindow):

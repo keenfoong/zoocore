@@ -1,7 +1,11 @@
 from collections import OrderedDict
 
-from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
+from qt import QtWidgets, QtCore, QtGui
+from zoo.libs import iconlib
 from zoo.libs.pyqt.extended import combobox
+from zoo.libs.pyqt import uiconstants
+from zoo.libs.pyqt.widgets import frame
+
 
 class StringEdit(QtWidgets.QWidget):
     textChanged = QtCore.Signal(str)
@@ -61,7 +65,7 @@ class ComboBox(QtWidgets.QWidget):
         :param label: the label of the combobox
         :type label: str
         :param items: the item list of the combobox
-        :type items: list
+        :type items: tuple
         :param parent: the qt parent
         :type parent: class
         """
@@ -263,7 +267,7 @@ class OkCancelButtons(QtWidgets.QWidget):
     OkBtnPressed = QtCore.Signal()
     CancelBtnPressed = QtCore.Signal()
 
-    def __init__(self,  okText="OK", cancelTxt="Cancel", parent=None):
+    def __init__(self, okText="OK", cancelTxt="Cancel", parent=None):
         """Creates OK Cancel Buttons bottom of window, can change the names
 
         :param okText: the text on the ok (first) button
@@ -285,10 +289,10 @@ class OkCancelButtons(QtWidgets.QWidget):
     def connections(self):
         self.okBtn.clicked.connect(self.OkBtnPressed.emit)
         self.cancelBtn.clicked.connect(self.CancelBtnPressed.emit)
-        
+
 
 class labelColorBtn(QtWidgets.QWidget):
-    def __init__(self,  label="Color:", initialRgbColor=(255,0,0), initialRgbColorF=None, parent=None):
+    def __init__(self, label="Color:", initialRgbColor=(255, 0, 0), initialRgbColorF=None, parent=None):
         """Creates a label and a color button (with no text) which opens a QT color picker,
         returns both rgb (0-255) and rgbF (0-1.0) values
 
@@ -308,7 +312,7 @@ class labelColorBtn(QtWidgets.QWidget):
         if not initialRgbColorF:  # if initialRgbColorF is None then input values are in 0-255 range
             self.storedRgbColor = initialRgbColor
         else:  # if initialRgbColorF exists then input values are in 0.0-1.0 range
-            self.storedRgbColor = tuple([i*255 for i in initialRgbColorF])
+            self.storedRgbColor = tuple([i * 255 for i in initialRgbColorF])
         self.colorPickerBtn.setStyleSheet("background-color: rgb{}".format(str(self.storedRgbColor)))
         self.layout.addWidget(self.colorPickerBtn)
         self.setLayout(self.layout)
@@ -333,9 +337,141 @@ class labelColorBtn(QtWidgets.QWidget):
     def rgbColorF(self):
         """returns rgb tuple with 0-1.0 float ranges Eg (1.0, .5, .6666)
         """
-        return tuple(float(i)/255 for i in self.storedRgbColor)
+        return tuple(float(i) / 255 for i in self.storedRgbColor)
 
     def connections(self):
         """Open the color picker when the button is pressed
         """
         self.colorPickerBtn.clicked.connect(self.pickColor)
+
+
+class CollapsableFrameLayout(QtWidgets.QWidget):
+    closeRequested = QtCore.Signal()
+    openRequested = QtCore.Signal()
+    _collapsedIcon = iconlib.icon("sortClosed")
+    _expandIcon = iconlib.icon("sortDown")
+
+    def __init__(self, title, collapsed=False, collapsable=True, contentMargins=uiconstants.MARGINS,
+                 contentSpacing=uiconstants.SPACING, color=uiconstants.DARKBGCOLOR,
+                 parent=None):
+        """Collapsable framelayout, similar to Maya's cmds.frameLayout
+        Title is inside a bg colored frame layout that can open and collapse
+        Code example for how to use is as follows...
+
+            self.collapseLayout = layouts.collapsableFrameLayout("Custom Title Goes Here", parent=self)
+            self.collapseLayout.addWidget(self.customWidget)  # for adding widgets
+            self.collapseLayout.addLayout(self.customLayout)  # for adding layouts
+
+        :param title: The name of the collapsable frame layout
+        :type title: str
+        :param collapsed: Is the default state collapsed, if False it's open
+        :type collapsed: bool
+        :param collapsable: Are the contents collapsable? If False the contents are always open
+        :type collapsed: bool
+        :param contentMargins: The margins for the collapsable contents section, left, top, right, bottom (pixels)
+        :type contentMargins: tuple
+        :param contentSpacing: spacing (padding) for the collapsable contents section, in pixels
+        :type contentSpacing: int
+        :param parent: the widget parent
+        :type parent: class
+        """
+        super(CollapsableFrameLayout, self).__init__(parent=parent)
+        self.layout = QtWidgets.QVBoxLayout()
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(0)
+        self.title = title
+        self.color = color
+        self.contentMargins = contentMargins
+        self.contentSpacing = contentSpacing
+        self.collapsable = collapsable
+        self.collapsed = collapsed
+        if not collapsable:  # if not collapsable must be open
+            self.collapsed = False
+        self.initUi()
+        self.setLayout(self.layout)
+        self.connections()
+
+    def initUi(self):
+        """Builds the UI, the title and the collapsable widget that' the container for self.hiderLayout
+        """
+        self.buildTitleFrame()
+        self.buildHiderWidget()
+        self.layout.addWidget(self.titleFrame)
+        self.layout.addWidget(self.widgetHider)
+
+    def buildTitleFrame(self):
+        """Builds the title part of the layout with a QFrame widget
+        """
+        # main dark grey qframe
+        self.titleFrame = frame.QFrame(parent=self)
+        self.setFrameColor(self.color)
+        self.titleFrame.setContentsMargins(4, 0, 4, 0)
+        # the horizontal layout
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.titleFrame)
+        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
+        # the icon and title and spacer
+        self.iconButton = QtWidgets.QToolButton(parent=self)
+        if self.collapsed:
+            self.iconButton.setIcon(self._collapsedIcon)
+        else:
+            self.iconButton.setIcon(self._expandIcon)
+        self.titleLabel = QtWidgets.QLabel(self.title, parent=self)
+        self.titleLabel.setStyleSheet("font: bold;")
+        self.titleLabel.setContentsMargins(0, 0, 0, 0)
+        spacerItem = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        # add to horizontal layout
+        self.horizontalLayout.addWidget(self.iconButton)
+        self.horizontalLayout.addWidget(self.titleLabel)
+        self.horizontalLayout.addItem(spacerItem)
+
+    def setFrameColor(self, color):
+        self.titleFrame.setStyleSheet("background-color: rgb{0}; "
+                                      "border-radius: 3px;"
+                                      "border: 1px solid rgb{0}".format(str(color)))
+
+    def addWidget(self, widget):
+        self.hiderLayout.addWidget(widget)
+
+    def addLayout(self, layout):
+        self.hiderLayout.addLayout(layout)
+
+    def buildHiderWidget(self):
+        """Builds widget that is collapsable
+        Widget can be toggled so it's a container for the layout
+        """
+        self.widgetHider = QtWidgets.QFrame()
+        self.widgetHider.setContentsMargins(0, 0, 0, 0)
+        self.hiderLayout = QtWidgets.QVBoxLayout(self.widgetHider)
+        self.hiderLayout.setContentsMargins(*self.contentMargins)
+        self.hiderLayout.setSpacing(self.contentSpacing)
+        self.widgetHider.setHidden(self.collapsed)
+
+    def onCollapsed(self):
+        self.widgetHider.setHidden(True)
+        self.iconButton.setIcon(self._collapsedIcon)
+        self.closeRequested.emit()
+        self.collapsed = 1
+
+    def onExpand(self):
+        self.widgetHider.setHidden(False)
+        self.iconButton.setIcon(self._expandIcon)
+        self.openRequested.emit()
+        self.collapsed = 0
+
+    def showHideWidget(self, *args):
+        """Shows and hides the widget `self.widgetHider` this contains the layout `self.hiderLayout`
+        which will hold the custom contents that the user specifies
+        """
+        if not self.collapsable:
+            return
+        # If we're already collapsed then expand the layout
+        if self.collapsed:
+            self.onExpand()
+            return
+        self.onCollapsed()
+
+    def connections(self):
+        """toggle widgetHider vis
+        """
+        self.iconButton.clicked.connect(self.showHideWidget)
+        self.titleFrame.mouseReleased.connect(self.showHideWidget)

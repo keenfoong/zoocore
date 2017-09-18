@@ -7,6 +7,17 @@ from zoo.libs.utils import zoomath
 
 def aimToNode(source, target, aimVector=None,
               upVector=None):
+    """Function to aim one node at another using quaternions
+
+    :param source: node to aim towards the target node
+    :type source: om2.MObject
+    :param target: the node which the source will aim at
+    :type target: om2.MObject
+    :param aimVector: the om2.MVector for the aim axis defaults to om2.MVector(1.0,0.0,0.0)
+    :type aimVector: om2.MVector
+    :param upVector: the om2.MVector for the upVector axis defaults to om2.MVector(0.0,1.0,0.0)
+    :type upVector: om2.MVector
+    """
     eyeAim = aimVector or om2.MVector(1.0, 0.0, 0.0)
     eyeUp = upVector or om2.MVector(0.0, 1.0, 0.0)
 
@@ -27,8 +38,10 @@ def aimToNode(source, target, aimVector=None,
     quatU = om2.MQuaternion(eyeAim, eyeU)
 
     upRotated = eyeUp.rotateBy(quatU)
-
-    angle = math.acos(upRotated * eyeV)
+    try:
+        angle = math.acos(upRotated * eyeV)
+    except ZeroDivisionError:
+        return # if already aligned then we just return
 
     quatV = om2.MQuaternion(angle, eyeU)
 
@@ -76,19 +89,19 @@ def slerp(qa, qb, weight):
 
 def toEulerXYZ(rotMatrix, degrees=False):
     rotXZ = rotMatrix[2]
-    if zoomath.almostEqual(rotZ, 1.0, 2):
+    if zoomath.almostEqual(rotXZ, 1.0, 2):
         z = math.pi
         y = -math.pi * 0.5
-        x = -z + atan2(-rotMatrix[4], -rotMatrix[7])
-    elif zoomath.almostEqual(rotZ, -1.0, 2):
+        x = -z + math.atan2(-rotMatrix[4], -rotMatrix[7])
+    elif zoomath.almostEqual(rotXZ, -1.0, 2):
         z = math.pi
         y = math.pi * 0.5
-        x = z + atan2(rotMatrix[4], rotMatrix[7])
+        x = z + math.atan2(rotMatrix[4], rotMatrix[7])
     else:
-        y = -asin(rotZ)
-        cosY = cos(y)
-        x = atan2(rotMatrix[6] * cosY, rotMatrix[10] * cosY)
-        z = atan2(rotMatrix[1] * cosY, rotMatrix[0] * cosY)
+        y = -math.asin(rotXZ)
+        cosY = math.cos(y)
+        x = math.atan2(rotMatrix[6] * cosY, rotMatrix[10] * cosY)
+        z = math.atan2(rotMatrix[1] * cosY, rotMatrix[0] * cosY)
     angles = x, y, z
     if degrees:
         return map(math.degrees, angles)
@@ -97,11 +110,11 @@ def toEulerXYZ(rotMatrix, degrees=False):
 
 def toEulerXZY(rotMatrix, degrees=False):
     rotYY = rotMatrix[1]
-    z = asin(rotYY)
-    cosZ = cos(z)
+    z = math.asin(rotYY)
+    cosZ = math.cos(z)
 
-    x = atan2(-rotMatrix[9] * cosZ, rotMatrix[5] * cosZ)
-    y = atan2(-rotMatrix[2] * cosZ, rotMatrix[0] * cosZ)
+    x = math.atan2(-rotMatrix[9] * cosZ, rotMatrix[5] * cosZ)
+    y = math.atan2(-rotMatrix[2] * cosZ, rotMatrix[0] * cosZ)
 
     angles = x, y, z
 
@@ -113,11 +126,11 @@ def toEulerXZY(rotMatrix, degrees=False):
 
 def toEulerYXZ(rotMatrix, degrees=False):
     rotZ = rotMatrix[6]
-    x = asin(rotZ)
-    cosX = cos(x)
+    x = math.asin(rotZ)
+    cosX = math.cos(x)
 
-    y = atan2(-rotMatrix[2] * cosX, rotMatrix[10] * cosX)
-    z = atan2(-rotMatrix[4] * cosX, rotMatrix[5] * cosX)
+    y = math.atan2(-rotMatrix[2] * cosX, rotMatrix[10] * cosX)
+    z = math.atan2(-rotMatrix[4] * cosX, rotMatrix[5] * cosX)
 
     angles = x, y, z
 
@@ -127,14 +140,13 @@ def toEulerYXZ(rotMatrix, degrees=False):
     return om2.MEulerRotation(angles)
 
 
-
-def toEulerYZX(self, degrees=False):
+def toEulerYZX(rotMatrix, degrees=False):
     rotYX = rotMatrix[4]
-    z = -asin(rotYX)
-    cosZ = cos(z)
+    z = -math.asin(rotYX)
+    cosZ = math.cos(z)
 
-    x = atan2(rotMatrix[6] * cosZ, rotMatrix[5] * cosZ)
-    y = atan2(rotMatrix[8] * cosZ, rotMatrix[0] * cosZ)
+    x = math.atan2(rotMatrix[6] * cosZ, rotMatrix[5] * cosZ)
+    y = math.atan2(rotMatrix[8] * cosZ, rotMatrix[0] * cosZ)
 
     angles = x, y, z
 
@@ -146,11 +158,11 @@ def toEulerYZX(self, degrees=False):
 
 def toEulerZXY(rotMatrix, degrees=False):
     rotZY = rotMatrix[9]
-    x = -asin(rotZY)
-    cosX = cos(x)
+    x = -math.asin(rotZY)
+    cosX = math.cos(x)
 
-    z = atan2(rotMatrix[1] * cosX, rotMatrix[5] * cosX)
-    y = atan2(rotMatrix[8] * cosX, rotMatrix[10] * cosX)
+    z = math.atan2(rotMatrix[1] * cosX, rotMatrix[5] * cosX)
+    y = math.atan2(rotMatrix[8] * cosX, rotMatrix[10] * cosX)
 
     angles = x, y, z
 
@@ -162,11 +174,11 @@ def toEulerZXY(rotMatrix, degrees=False):
 
 def toEulerZYX(rotMatrix, degrees=False):
     rotZX = rotMatrix[8]
-    y = asin(rotZX)
-    cosY = cos(y)
+    y = math.asin(rotZX)
+    cosY = math.cos(y)
 
-    x = atan2(-rotMatrix[9] * cosY, rotMatrix[10] * cosY)
-    z = atan2(-rotMatrix[4] * cosY, rotMatrix[0] * cosY)
+    x = math.atan2(-rotMatrix[9] * cosY, rotMatrix[10] * cosY)
+    z = math.atan2(-rotMatrix[4] * cosY, rotMatrix[0] * cosY)
 
     angles = x, y, z
 
@@ -174,6 +186,20 @@ def toEulerZYX(rotMatrix, degrees=False):
         return map(math.degrees, angles)
 
     return om2.MEulerRotation(angles)
+
+
+def toEulerFactory(rotMatrix, rotateOrder, degrees=False):
+    if rotateOrder == om2.MTransformationMatrix.kXYZ:
+        return toEulerXYZ(rotMatrix, degrees)
+    elif rotateOrder == om2.MTransformationMatrix.kXZY:
+        return toEulerXZY(rotMatrix, degrees)
+    elif rotateOrder == om2.MTransformationMatrix.kYXZ:
+        return toEulerYXZ(rotMatrix, degrees)
+    elif rotateOrder == om2.MTransformationMatrix.kYZX:
+        return toEulerYZX(rotMatrix, degrees)
+    elif rotateOrder == om2.MTransformationMatrix.kZXY:
+        return toEulerZXY(rotMatrix, degrees)
+    return toEulerZYX(rotMatrix, degrees)
 
 
 def mirrorXY(rotationMatrix):
@@ -200,11 +226,10 @@ def mirrorYZ(rotationMatrix):
 
 def mirrorXZ(rotationMatrix):
     rotMat = om2.MMatrix(rotationMatrix)
-    rotMat[1] *= -1
     rotMat[0] *= -1
+    rotMat[1] *= -1
     rotMat[5] *= -1
     rotMat[4] *= -1
     rotMat[9] *= -1
     rotMat[8] *= -1
     return rotMat
-

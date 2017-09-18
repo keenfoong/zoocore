@@ -1,12 +1,15 @@
 """Mostly placeholder code until i get to doing the customisation
 """
-from zoo.libs.pyqt.qt import QtWidgets, QtCore, QtGui
+from qt import QtWidgets, QtCore, QtGui
 from zoo.libs.pyqt.widgets.graphics import graphicitems
 
 
 class BackDrop(QtWidgets.QGraphicsWidget):
     contextRequested = QtCore.Signal(object)
     selectionChanged = QtCore.Signal(object, bool)
+    color = QtGui.QColor(65, 120, 122, 255)
+    selectionPen = QtGui.QPen(color.lighter(150))
+    deselectionPen = QtGui.QPen(color.darker(125))
 
     def __init__(self, title, width=120, height=80):
         super(BackDrop, self).__init__()
@@ -21,9 +24,7 @@ class BackDrop(QtWidgets.QGraphicsWidget):
         self.setMinimumWidth(width)
         self.setMinimumHeight(height)
         self._selected = False
-        self._color = QtGui.QColor(65, 120, 122, 255)
         self.brush = QtGui.QColor(65, 120, 122, 255)
-        self.pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0), 0)
         self.initLayout()
         self.setTitle(title)
 
@@ -43,13 +44,6 @@ class BackDrop(QtWidgets.QGraphicsWidget):
         transform = self.transform()
         size = self.size()
         return QtCore.QPointF(transform.dx() + (size.width() * 0.5), transform.dy() + (size.height() * 0.5)).toTuple()
-
-    def color(self):
-        return self._color.toTuple()
-
-    def setColor(self, color):
-        self._color = color
-        self.update()
 
     @property
     def selected(self):
@@ -102,23 +96,30 @@ class BackDrop(QtWidgets.QGraphicsWidget):
 
     def paint(self, painter, option, widget):
         rect = self.windowFrameRect()
-        painter.setBrush(self.brush)
-        painter.setPen(self.pen)
+        painter.setBrush(self.color)
+
+        painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0, 0), 0))
+
         roundingY = 20.0 / (rect.height() / 80.0)
         roundingX = rect.height() / rect.width() * roundingY
 
         painter.drawRoundRect(rect, roundingX, roundingY, mode=QtCore.Qt.AbsoluteSize)
 
-        tHeight = self.header.size.height() + 5
+        # Title BG
+        titleHeight = self.header.size.height() - 3
 
-        darkerColor = self._color.darker(125)
+        darkerColor = self.color.darker(125)
         darkerColor.setAlpha(255)
         painter.setBrush(darkerColor)
-        roundingYHeader = rect.width() * roundingX / tHeight
-        painter.drawRoundRect(0, 0, rect.width(), tHeight, roundingX, roundingYHeader)
-        painter.drawRect(0, tHeight * 0.5 + 2, rect.width(), tHeight * 0.5)
+        roundingYHeader = rect.width() * roundingX / titleHeight
+        painter.drawRoundRect(0, 0, rect.width(), titleHeight, roundingX, roundingYHeader)
+        painter.drawRect(0, titleHeight * 0.5 + 2, rect.width(), titleHeight * 0.5)
 
         painter.setBrush(QtGui.QColor(0, 0, 0, 0))
-        painter.drawRoundRect(rect, roundingX, roundingY, mode=QtCore.Qt.AbsoluteSize)
+        if self.selected:
+            painter.setPen(self.selectionPen)
+        else:
+            painter.setPen(self.deselectionPen)
 
+        painter.drawRoundRect(rect, roundingX, roundingY, mode=QtCore.Qt.AbsoluteSize)
         super(BackDrop, self).paint(painter, option, widget)

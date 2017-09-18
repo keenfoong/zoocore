@@ -19,7 +19,7 @@ def iterAvailableShapesNames():
 
 
 def shapeNames():
-    return [i for i in iterAvailableShapesNames()]
+    return list(iterAvailableShapesNames())
 
 
 def loadFromLib(shapeName, parent=None):
@@ -51,7 +51,7 @@ def saveToLib(node, name, override=True):
     """Save's the current transform node shapes to the zoo library, used internally for zoo.
 
     :param node:The mobject to the transform that you want to save
-    :type node: MObject
+        :type node: MObject
     :param name: the name of the file to create, if not specified the node name will be used
     :type name: str
     :return: The file path to the newly created shape file

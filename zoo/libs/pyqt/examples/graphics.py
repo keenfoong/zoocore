@@ -1,10 +1,9 @@
 
-from zoo.libs.pyqt.qt import QtWidgets
+from qt import QtWidgets
 from zoo.libs.pyqt.widgets import mainwindow
-
 from zoo.libs.pyqt.widgets.graphics import graphbackdrop
-from zoo.libs.pyqt.widgets.graphics import graphicsview
 from zoo.libs.pyqt.widgets.graphics import graphicsscene
+from zoo.libs.pyqt.widgets.graphics import graphicsview
 
 
 class Window(mainwindow.MainWindow):

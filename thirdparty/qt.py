@@ -604,7 +604,6 @@ _common_members = {
     ]
 }
 
-
 """Misplaced members
 
 These members from the original submodule are misplaced relative PySide2

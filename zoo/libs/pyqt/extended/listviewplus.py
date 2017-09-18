@@ -1,5 +1,5 @@
+from qt import QtWidgets, QtCore
 from zoo.libs import iconlib
-from zoo.libs.pyqt.qt import QtWidgets, QtCore
 
 
 class ListViewPlus(QtWidgets.QFrame):

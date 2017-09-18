@@ -1,7 +1,8 @@
 import os
-from zoo.libs.pyqt.qt import QtGui, QtCore
-from zoo.libs.pyqt.widgets import icon as zooicon
+
+from qt import QtGui, QtCore
 from zoo.libs.maya.utils import env
+from zoo.libs.pyqt.widgets import icon as zooicon
 
 
 class Icon(object):
@@ -72,7 +73,7 @@ class Icon(object):
             icondata = iconData["icon"]
             if icondata and isinstance(icondata, QtGui.QIcon) and not icondata.isNull():
                 return icondata
-            newIcon = zooicon.Icon(iconData["path"])
+            newIcon = QtGui.QIcon(iconData["path"])
             data["sizes"][size]["icon"] = newIcon
             return newIcon
 
