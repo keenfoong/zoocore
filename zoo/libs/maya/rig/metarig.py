@@ -12,6 +12,9 @@ class MetaRig(base.MetaBase):
     _geoPrefix = "GEO"
     _proxyGeoPrefix = "GEO_PROXY"
     _rootPrefix = "ROOT"
+    RIGNAMEATTR = "name"
+    SUPPORTSYSTEMATTR = "supportSystem"
+    SUBSYSTEMATTR = "subSystem"
 
     def _initMeta(self):
         super(MetaRig, self)._initMeta()
@@ -40,6 +43,7 @@ class MetaRig(base.MetaBase):
     def addGeo(self, node, name):
         attrname = "_".join([self._geoPrefix, name])
         return self.connectTo(attrname, node)
+
     def proxyGeo(self, recursive=True):
         return self.findConnectedNodesByAttributeName(self._proxyGeoPrefix, recursive=recursive)
 
@@ -105,12 +109,12 @@ class MetaRig(base.MetaBase):
 
     def addSupportSystem(self, node=None, name=None):
         if node is None:
-            name = "subsystem_#" if not name else "_".join([name, "meta"])
+            name = "{}_#".format(MetaRig.SUPPORTSYSTEMATTR) if not name else "_".join([name, "meta"])
             node = MetaSupportSystem(name=name).object()
         elif isinstance(node, om2.MObject):
             node = MetaSupportSystem(node)
 
-        self.connectTo("supportSystem", node.mobject(), base.MPARENT_ATTR_NAME)
+        self.connectTo(MetaRig.SUPPORTSYSTEMATTR, node.mobject(), base.MPARENT_ATTR_NAME)
 
         return node
 
@@ -120,49 +124,39 @@ class MetaRig(base.MetaBase):
         elif isinstance(node, om2.MObject):
             node = MetaSubSystem(node)
 
-        self.connectTo("subSystem", node.mobject(), base.MPARENT_ATTR_NAME)
+        self.connectTo(MetaRig.SUBSYSTEMATTR, node.mobject(), base.MPARENT_ATTR_NAME)
 
         return node
 
     def supportSystems(self):
         if isinstance(self, MetaSupportSystem):
             return
-        if self._mfn.hasAttribute("supportSystem"):
-            plug = self._mfn.findPlug("supportSystem", False)
-            if plug.isSource:
-                connections = plug.destinations()
-                return [MetaSupportSystem(i.node()) for i in connections]
-        return []
+        return list(self.iterSupportSystems())
 
     def iterSupportSystems(self):
-        if isinstance(self, MetaSubSystem):
+        if isinstance(self, MetaSubSystem) or self._mfn.hasAttribute(MetaRig.SUPPORTSYSTEMATTR):
             return
-        if self._mfn.hasAttribute("supportSystem"):
-            plug = self._mfn.findPlug("supportSystem", False)
-            if plug.isSource:
-                connections = plug.destinations()
-                for i in connections:
-                    yield MetaSupportSystem(i.node())
+        plug = self._mfn.findPlug(MetaRig.SUPPORTSYSTEMATTR, False)
+        if not plug.isSource:
+            return
+        connections = plug.destinations()
+        for i in connections:
+            yield MetaSupportSystem(i.node())
 
     def iterSubSystems(self):
-        if isinstance(self, MetaSubSystem):
+        if isinstance(self, MetaSubSystem) or not self._mfn.hasAttribute(MetaRig.SUBSYSTEMATTR):
             return
-        if self._mfn.hasAttribute("subSystem"):
-            plug = self._mfn.findPlug("subSystem", False)
-            if plug.isSource:
-                connections = plug.destinations()
-                for i in connections:
-                    yield MetaSubSystem(i.node())
+        plug = self._mfn.findPlug(MetaRig.SUBSYSTEMATTR, False)
+        if not plug.isSource:
+            return
+        connections = plug.destinations()
+        for i in connections:
+            yield MetaSubSystem(i.node())
 
     def subSystems(self):
         if isinstance(self, MetaSubSystem):
             return
-        if self._mfn.hasAttribute("subSystem"):
-            plug = self._mfn.findPlug("subSystem", False)
-            if plug.isSource:
-                connections = plug.destinations()
-                return [MetaSubSystem(node=i.node()) for i in connections]
-        return []
+        return list(self.iterSubSystems())
 
 
 class MetaSupportSystem(MetaRig):
@@ -171,5 +165,10 @@ class MetaSupportSystem(MetaRig):
 
 
 class MetaSubSystem(MetaRig):
+    def __init__(self, node=None, name="", initDefaults=True):
+        super(MetaRig, self).__init__(node, name, initDefaults)
+
+
+class MetaFaceRig(MetaRig):
     def __init__(self, node=None, name="", initDefaults=True):
         super(MetaRig, self).__init__(node, name, initDefaults)

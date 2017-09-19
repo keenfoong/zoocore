@@ -130,6 +130,9 @@ class Control(object):
             return True
         return False
 
+    def addShapeFromData(self, shapeData):
+        return curves.createCurveShape(self.dagPath, shapeData)
+
     def setPosition(self, position, cvs=False, space=None, useParent=True):
         """Sets the translation component of this control, if cvs is True then translate the cvs instead
 

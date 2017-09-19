@@ -1,6 +1,6 @@
 """The module deals with meta data in maya scenes by adding attributes to nodes and providing
 quick and easy query features. Everything is built with the maya python 2.0 to make queries and creation
-as fast as possible. Graph Traversal methods work by walking the dependency graph by message attributes.
+as fast as possible. Graph Traversal methods works by walking the dependency graph by message attributes.
 
 @todo may need to create a scene cache with a attach node callback to remove node form the cache
 """
@@ -11,6 +11,7 @@ import uuid
 import re
 
 from maya.api import OpenMaya as om2
+from maya import cmds
 from zoo.libs.utils import modules
 from zoo.libs.utils import zlogging
 from zoo.libs.utils import classtypes
@@ -48,6 +49,7 @@ def lockMetaManager(func):
 
 def findSceneRoots():
     """Finds all meta nodes in the scene that are root meta node
+
     :return:
     :rtype: list()
     """
@@ -156,7 +158,7 @@ class MetaRegistry(object):
 
     @classmethod
     def isInRegistry(cls, typeName):
-        "Checks to see if the type is currently available in the registry"
+        """Checks to see if the type is currently available in the registry"""
         return typeName in cls.types
 
     @classmethod
@@ -237,6 +239,7 @@ class MetaRegistry(object):
     @classmethod
     def registerMetaClass(cls, classObj):
         """Registers a plugin instance to the manager
+
         :param classObj: the metaClass to registry
         :type classObj: Plugin
         """
@@ -352,6 +355,7 @@ class MetaBase(object):
 
     def __eq__(self, other):
         """Checks whether the mobjects are the same
+
         :type other: base.MetaBase instance
         :rtype: bool
         """
@@ -364,6 +368,7 @@ class MetaBase(object):
 
     def mobject(self):
         """ Returns the mobject attached to this meta node
+
         :return: the meta nodes mObject
         :rtype: mobject
         """
@@ -387,6 +392,7 @@ class MetaBase(object):
 
     def fullPathName(self):
         """Returns the fullPath name for the mfn set if the mfn
+
         :rtype: str
         """
         if self._handle.object().hasFn(om2.MFn.kDagNode):
@@ -395,6 +401,7 @@ class MetaBase(object):
 
     def exists(self):
         """Checks the existence of the node
+
         :return: True if still alive else False
         :rtype: bool
         """
@@ -415,6 +422,7 @@ class MetaBase(object):
     @lockMetaManager
     def rename(self, name):
         """Renames the node
+
         :param name: the new name for the name
         :type name: str
         """
@@ -422,6 +430,7 @@ class MetaBase(object):
 
     def lock(self, state):
         """Locks or unlocks the metanode
+
         :param state: True to lock the node else False
         :type state: bool
         """
@@ -429,6 +438,7 @@ class MetaBase(object):
 
     def getAttribute(self, name, networked=False):
         """Finds and returns the MPlug associated with the attribute on meta node if it exists else None
+
         :param name: the attribute name to find
         :type name: str
         :param networked: whether to return the network plug, see autodesk api docs
@@ -520,6 +530,7 @@ class MetaBase(object):
 
     def findPlugsByFilteredName(self, filter=""):
         """Finds all plugs with the given filter with in name
+
         :param filter: the string the search the names by
         :type filter: str
         :return: A seq of MPlugs
@@ -579,6 +590,7 @@ class MetaBase(object):
 
     def connectTo(self, attributeName, node, nodeAttributeName=None):
         """Connects one plug to another by attribute name
+
         :param attributeName: the meta attribute name to connect from, if it doesn't exist it will be created
         :type attributeName: str
         :param node: the destination node
@@ -743,11 +755,7 @@ class MetaBase(object):
         return children
 
     def findChildByType(self, Type):
-        children = []
-        for child in self.iterMetaChildren(depthLimit=1):
-            if child.apiType() == Type:
-                children.append(child)
-        return children
+        return [child for child in self.iterMetaChildren(depthLimit=1) if child.apiType() == Type]
 
     def allChildrenNodes(self, recursive=False):
         children = []
@@ -775,6 +783,7 @@ class MetaBase(object):
 
     def removeChild(self, node):
         """Removes the meta child from this node which should currently be the meta parent
+
         :param node:
         :type node: MObject or MetaBase instance
         :return: True if removed
@@ -791,3 +800,9 @@ class MetaBase(object):
         mod.disconnect(childPlug, destination)
         mod.doIt()
         return True
+
+
+class MetaScene(MetaBase):
+    """Scene level Meta node
+    """
+    icon = "globe"
