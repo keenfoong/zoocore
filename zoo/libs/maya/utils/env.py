@@ -3,7 +3,9 @@ import os
 import platform
 
 from maya.OpenMaya import MGlobal
+from maya.api import OpenMaya as om2
 from zoo.libs.utils import zlogging
+from zoo.libs.maya.api import nodes
 
 logger = zlogging.zooLogger
 
@@ -158,3 +160,21 @@ def apiVersion():
     :rtype: str
     """
     return MGlobal.apiVersion()
+
+
+def globalWidthHeight():
+    fn = om2.MFnDependencyNode(nodes.asMObject("defaultResolution"))
+    width, height = fn.findPlug("width", False).asInt(), fn.findPlug("height", False).asInt()
+    return width, height, float(width) / float(height)
+
+
+def setOverscan(camera, state):
+    fn = om2.MFnDependencyNode(camera)
+    overscan = fn.findPlug("overscan", False)
+    overscan.setFloat(state)
+
+
+def setCameraClipPlanes(camera, nearClip, farClip):
+    fn = om2.MFnDependencyNode(camera)
+    fn.findPlug("nearClipPlane", False).setFloat(nearClip)
+    fn.findPlug("farClipPlane", False).setFloat(farClip)

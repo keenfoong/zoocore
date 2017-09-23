@@ -7,7 +7,6 @@ def show():
     if env.isInMaya():
         from zoo.libs.pyqt.embed import mayaui
         parent = mayaui.getMayaWindow()
-    print parent
     tools = palette.ToolPalette(parent=parent)
     tools.createMenus()
     return tools

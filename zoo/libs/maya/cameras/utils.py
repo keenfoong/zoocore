@@ -40,7 +40,7 @@ def maintainCamera(panel, camera):
     cmds.lookThru(panel, currentCamera.fullPathName())
 
 
-def bakeCameraMetaAnimToClone(camMeta):
+def bakeCameraMeatAnimToClone(camMeta):
     """Given a camera node which has meta data(MetaCamera), create a temporary meta camera which is a clone
     of the camera and bake per frame anim data down. The passed in camera will be renamed so that the camera clone has the
     shot name however we dont not rename the original back to the correct name. The reason for this is so the client

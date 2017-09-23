@@ -10,14 +10,21 @@ from zoo.libs.maya.utils import env
 logger = zlogging.zooLogger
 
 
-def upAxis():
+def mayaUpVector():
     """Gets the current world up vector
 
-    :rtype: zoo.libs.utils.vectors.Vector
+    :rtype: pw.libs.utils.vectors.Vector
     """
     return MGlobal.upAxis()
 
 
+def upAxis():
+    if isYAxisUp():
+        return "y"
+    elif isZAxisUp():
+        return "z"
+    elif isXAxisUp():
+        return "x"
 def isYAxisUp():
     """returns True if y is world up
 

@@ -98,6 +98,12 @@ def toApiObject(node):
     return tmp
 
 
+def asDagPath(node):
+    sel = om2.MSelectionList()
+    sel.add(node)
+    return sel.getDagPath(0)
+
+
 def setNodeColour(node, colour):
     """Set the given node mobject override color can be a mobject representing a transform or shape
 
@@ -138,7 +144,7 @@ def getNodeColourData(node):
             "overrideRGBColors": plugs.getPlugValue(overrideRGBColors)}
 
 
-def createDagNode(name, nodeType, parent=None):
+def createDagNode(name, nodeType, parent=None, modifier=None):
     """Create's a new dag node and if theres a parent specified then parent the new node
 
     :param name: The new name of the created node
@@ -211,7 +217,7 @@ def unlockedAndDisconnectConnectedAttributes(mobject):
     :param mobject: MObject respresenting the DG node
     :type mobject: MObject
     """
-    for thisNodeP, otherNodeP in iterConnections(mobject, source=True, destination=True):
+    for thisNodeP, otherNodeP in iterConnections(mobject, source=False, destination=True):
         plugs.disconnectPlug(thisNodeP)
 
 
@@ -736,6 +742,7 @@ def addAttribute(node, longName, shortName, attrType=attrtypes.kMFnNumericDouble
     :param longName: str, the long name for the attribute
     :param shortName: str, the shortName for the attribute
     :param attrType: attribute Type, attrtypes constants
+    :param apply: if False the attribute will be immediately created on the node else just return the attribute instance
     :rtype: om.MObject
     """
     if hasAttribute(node, longName):

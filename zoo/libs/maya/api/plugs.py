@@ -94,6 +94,22 @@ def disconnectPlug(plug, source=True, destination=True):
     return True
 
 
+def removeUnConnectedEmptyElements(plugArray, mod=None):
+    mod = mod or om2.MDGModifier()
+    for i in xrange(plugArray.evaluateNumElements()):
+        element = plugArray.elementByPhysicalIndex(i)
+        if element.isCompound:
+            for childI in xrange(element.numChildren()):
+                if element.child(childI).isConnected:
+                    break
+            else:
+                mod.removeMultiInstance(element, False)
+        elif not element.isConnected:
+            mod.removeMultiInstance(element, False)
+    mod.doIt()
+    return mod
+
+
 def isValidMPlug(plug):
     """Checks whether the MPlug is valid in the scene
 

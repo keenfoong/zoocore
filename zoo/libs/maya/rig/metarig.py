@@ -15,10 +15,12 @@ class MetaRig(base.MetaBase):
     RIGNAMEATTR = "name"
     SUPPORTSYSTEMATTR = "supportSystem"
     SUBSYSTEMATTR = "subSystem"
+    RIGVERSIONATTR = "rigVersion"
 
     def _initMeta(self):
         super(MetaRig, self)._initMeta()
-        self.addAttribute(name="name", value="", Type=attrtypes.kMFnDataString)
+        self.addAttribute(name=MetaRig.RIGVERSIONATTR, value="1.0.0", Type=attrtypes.kMFnDataString)
+        self.addAttribute(name=MetaRig.RIGNAMEATTR, value="", Type=attrtypes.kMFnDataString)
 
     def addRootNode(self, node, name):
         attrname = "_".join([self._rootPrefix, name])

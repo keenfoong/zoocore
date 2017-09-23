@@ -15,13 +15,13 @@ def exportContext(rootNode):
         plug = dp.findPlug("visibility", False)
         with plugs.setLockedContext(plug):
             if plug.asFloat() != 1.0:
-                plugs.setAttr(plug, 1.0)
+                plugs.setPlugValue(plug, 1.0)
                 changed.append(dp)
     yield
     for i in iter(changed):
         plug = i.findPlug("visibility", False)
         with plugs.setLockedContext(plug):
-            plugs.setAttr(plug, 0.0)
+            plugs.setPlugValue(plug, 0.0)
 
 
 def exportSceneAsFbx(filePath):

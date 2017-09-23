@@ -143,6 +143,19 @@ def deserializeNodes(data, includeConnections=True):
     return createNodes
 
 
+def aimNodes(targetNode, driven, aimVector=None,
+             upVector=None):
+    for i in iter(driven):
+        children = []
+        for child in list(nodes.iterChildren(i, False, om2.MFn.kTransform)):
+            nodes.setParent(child, None, True)
+            children.append(child)
+        mayamath.aimToNode(i, targetNode, aimVector, upVector)
+
+        for child in iter(children):
+            nodes.setParent(child, i, True)
+
+
 def aimSelected(aimVector=None,
                 upVector=None):
     """Aim the the selected nodes to the last selected node.
@@ -158,13 +171,4 @@ def aimSelected(aimVector=None,
     target = selected[-1]  # driver
     toAim = selected[:-1]  # driven
 
-    for i in iter(toAim):
-        children = []
-
-        for child in list(nodes.iterChildren(i, False, om2.MFn.kTransform)):
-            nodes.setParent(child, None, True)
-            children.append(child)
-        mayamath.aimToNode(i, target, aimVector, upVector)
-
-        for child in iter(children):
-            nodes.setParent(child, i, True)
+    aimNodes(target, toAim, aimVector=aimVector, upVector=upVector)

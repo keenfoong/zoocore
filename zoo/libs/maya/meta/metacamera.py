@@ -9,9 +9,22 @@ class MetaCamera(base.MetaBase):
 
     def __init__(self, node=None, name=None, initDefaults=True):
         super(MetaCamera, self).__init__(node, name, initDefaults)
-        child = list(nodes.iterChildren(self.mobject(), False, om2.MFn.kCamera))
-        self.camMfn = om2.MFnCamera(child[0])
+        self.camMfn.findPlug("horizontalFilmAperture", False).isLocked = True
+        self.camMfn.findPlug("verticalFilmAperture", False).isLocked = True
 
+    def _createInScene(self, node, name):
+        if node is None:
+            name = "_".join([name or self.__class__.__name__, "meta"])
+            node= nodes.createDagNode(name, "camera")
+        self._handle = om2.MObjectHandle(node)
+        if node.hasFn(om2.MFn.kDagNode):
+            self._mfn = om2.MFnDagNode(node)
+        else:
+            self._mfn = om2.MFnDependencyNode(node)
+
+        if node.hasFn(om2.MFn.kTransform):
+            node = list(nodes.iterChildren(self.mobject(), False, om2.MFn.kCamera))[0]
+        self.camMfn = om2.MFnCamera(node)
     def _initMeta(self):
         super(MetaCamera, self)._initMeta()
         self.addAttribute("isCamera", True, attrtypes.kMFnNumericBoolean)

@@ -128,6 +128,20 @@ def isConnectedToMeta(node):
     return False
 
 
+def getUpstreamMetaNodeFromNode(node):
+    """Returns the upstream meta node from node expecting the node to have the metaNode attribute
+
+    :param node: the api node to search from
+    :type node: om2.MObject
+    :rtype: MetaBase
+    """
+    for dest, source in nodes.iterConnections(node, False, True):
+        node = source.node()
+        if isMetaNode(node):
+            return dest, MetaBase(node)
+    return None, None
+
+
 def getConnectedMetaNodes(mObj):
     """Returns all the downStream connected meta nodes of 'mObj'
 
@@ -154,7 +168,7 @@ class MetaRegistry(object):
         try:
             self.registryByEnv(MetaRegistry.metaEnv)
         except ValueError:
-            pass
+            logger.error("Failed to registry environment", exc_info=True)
 
     @classmethod
     def isInRegistry(cls, typeName):
@@ -182,6 +196,9 @@ class MetaRegistry(object):
         for p in paths:
             if len(p.split(".")) > 1:
                 importedModule = modules.importModule(p)
+
+                if importedModule is None:
+                    continue
                 p = os.path.realpath(importedModule.__file__)
                 if os.path.basename(p).startswith("__"):
                     p = os.path.dirname(p)
@@ -296,20 +313,22 @@ class MetaBase(object):
             return ""
 
     def __init__(self, node=None, name=None, initDefaults=True):
+        self._createInScene(node, name)
+
+        if initDefaults:
+            self._initMeta()
+        if not self._mfn.isLocked:
+            self.lock(True)
+
+    def _createInScene(self, node, name):
         if node is None:
             name = "_".join([name or self.__class__.__name__, "meta"])
-            node = nodes.createDGNode(name, "network")
-
+            node= nodes.createDGNode(name, "network")
         self._handle = om2.MObjectHandle(node)
-
         if node.hasFn(om2.MFn.kDagNode):
             self._mfn = om2.MFnDagNode(node)
         else:
             self._mfn = om2.MFnDependencyNode(node)
-        if initDefaults and not self._mfn.hasAttribute(MCLASS_ATTR_NAME):
-            self._initMeta()
-        if not self._mfn.isLocked:
-            self.lock(True)
 
     def _initMeta(self):
         """Initializes the standard attributes for the meta nodes
@@ -352,6 +371,8 @@ class MetaBase(object):
                     self.connectTo(key, value)
                 else:
                     self.setAttribute(plug, value)
+        else:
+            super(MetaBase, self).__setattr__(key, value)
 
     def __eq__(self, other):
         """Checks whether the mobjects are the same
@@ -426,7 +447,7 @@ class MetaBase(object):
         :param name: the new name for the name
         :type name: str
         """
-        nodes.rename(self._handle.object(), name)
+        cmds.rename(self.fullPathName(), name)
 
     def lock(self, state):
         """Locks or unlocks the metanode
@@ -434,7 +455,7 @@ class MetaBase(object):
         :param state: True to lock the node else False
         :type state: bool
         """
-        nodes.lockNode(self._handle.object(), state)
+        cmds.lockNode(self.fullPathName(), l=state)
 
     def getAttribute(self, name, networked=False):
         """Finds and returns the MPlug associated with the attribute on meta node if it exists else None
@@ -490,9 +511,7 @@ class MetaBase(object):
             plug = self._mfn.findPlug(name, False)
             if plug.isLocked:
                 plug.isLocked = False
-            mod = om2.MDGModifier()
-            mod.removeAttribute(self._handle.object(), plug.attribute())
-            mod.doIt()
+            cmds.deleteAttr(plug.name())
             return True
         return False
 
@@ -653,19 +672,35 @@ class MetaBase(object):
         return destinationPlug
 
     def disconnectFromNode(self, node):
+        """
 
+        :param node: The destination node to disconnect from this meta node
+        :type node: om2.MObject
+        :return: success value
+        :rtype: bool
+        """
         metaObj = self.mobject()
-        for source, destination in nodes.iterConnections(node, True, False):
+        for source, destination in nodes.iterConnections(node, False, True):
             if source.node() != metaObj:
                 continue
             plugs.disconnectPlug(source, destination)
             if source.isLocked:
                 source.isLocked = False
-            mod = om2.MDGModifier()
-            mod.removeAttribute(self._handle.object(), destination.attribute())
-            mod.doIt()
+            cmds.deleteAttr(destination.name())
             self.removeAttribute(source.name())
             return True
+        return False
+
+    @lockMetaManager
+    def disconnectPlugFromNode(self, source, node):
+        for i in source.destinations():
+            if i.node() == node:
+                mod = om2.MDGModifier()
+                mod.disconnect(source, i)
+                mod.doIt()
+                mod.removeAttribute(i.node(), i.attribute())
+                mod.doIt()
+                return True
         return False
 
     def metaRoot(self):
@@ -711,7 +746,7 @@ class MetaBase(object):
         """
         if depthLimit < 1:
             return
-        for source, destination in nodes.iterConnections(self.mobject(), True, False):
+        for source, destination in nodes.iterConnections(self.mobject(), False, True):
             node = destination.node()
             if isMetaNode(node):
                 m = MetaBase(node)
