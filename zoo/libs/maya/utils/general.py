@@ -25,6 +25,8 @@ def upAxis():
         return "z"
     elif isXAxisUp():
         return "x"
+
+
 def isYAxisUp():
     """returns True if y is world up
 
@@ -122,10 +124,13 @@ def namespaceContext(namespace):
             logger.error("Failed to create namespace: {}, existing namespaces: {}".format(namespace,
                                                                                           existingNamespaces),
                          exc_info=True)
+            om2.MNamespace.setCurrentNamespace(currentNamespace)
             raise
     om2.MNamespace.setCurrentNamespace(namespace)
-    yield
-    om2.MNamespace.setCurrentNamespace(currentNamespace)
+    try:
+        yield
+    finally:
+        om2.MNamespace.setCurrentNamespace(currentNamespace)
 
 
 @contextmanager
