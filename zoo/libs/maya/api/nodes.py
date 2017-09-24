@@ -714,8 +714,8 @@ def addCompoundAttribute(node, longName, shortName, attrMap, isArray=False):
     :type shortName: str
     :param attrMap: [{"name":str, "type": attrtypes.kType, "isArray": bool}]
     :type attrMap: list(dict())
-    :return:
-    :rtype:
+    :return: the MObject attached to the compound attribute
+    :rtype: om2.MObject
     ::example:
     >>>attrMap = [{"name":"something", "type": attrtypes.kMFnMessageAttribute, "isArray": False}]
     >>> print attrMap

@@ -774,9 +774,9 @@ class MetaBase(object):
         with plugs.setLockedContext(parentPlug):
             plugs.connectPlugs(parent.findPlug(MCHILDREN_ATTR_NAME, False), parentPlug)
 
-    def findChildrenByFilter(self, filter, plugName=None):
+    def findChildrenByFilter(self, filter, plugName=None, depthLimit=256):
         children = []
-        for child in self.iterMetaChildren():
+        for child in self.iterMetaChildren(depthLimit):
             if not plugName:
                 grp = re.search(filter, nodes.nameFromMObject(child))
             else:

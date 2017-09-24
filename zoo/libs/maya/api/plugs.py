@@ -110,6 +110,7 @@ def removeUnConnectedEmptyElements(plugArray, mod=None):
     return mod
 
 
+
 def isValidMPlug(plug):
     """Checks whether the MPlug is valid in the scene
 

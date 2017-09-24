@@ -122,16 +122,16 @@ class MatrixConstraint(BaseConstraint):
                                              translateValues=skipTranslate,
                                              scaleValues=skipScale, rotationValues=skipRotate)
         decomposeFn = om2.MFnDependencyNode(decompose)
-
+        multMatrix = None
         if maintainOffset:
             offsetname = "_".join([self.name, "wMtxOffset"])
             offset = nodes.getOffsetMatrix(driver, driven)
-            creation.createMultMatrix(offsetname,
-                                      inputs=(offset, nodes.worldMatrixPlug(driver),
-                                              nodes.parentInverseMatrixPlug(driven)),
-                                      output=decomposeFn.findPlug("inputMatrix", False))
+            multMatrix = creation.createMultMatrix(offsetname,
+                                                   inputs=(offset, nodes.worldMatrixPlug(driver),
+                                                           nodes.parentInverseMatrixPlug(driven)),
+                                                   output=decomposeFn.findPlug("inputMatrix", False))
 
         else:
             plugs.connectPlugs(nodes.worldMatrixPlug(driver), decomposeFn.findPlug("inputMatrix", False))
         self.node = om2.MObjectHandle(decompose)
-        return decompose
+        return decompose, multMatrix
