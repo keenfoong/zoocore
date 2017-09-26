@@ -135,3 +135,99 @@ class MatrixConstraint(BaseConstraint):
             plugs.connectPlugs(nodes.worldMatrixPlug(driver), decomposeFn.findPlug("inputMatrix", False))
         self.node = om2.MObjectHandle(decompose)
         return decompose, multMatrix
+
+
+def hasConstraint(node):
+    """Determines if this node is constrained by another, this is done by checking the constraints compound attribute
+
+    :param node: the node to search for attached constraints
+    :type node: om2.MObject
+    :rtype: bool
+    """
+    # exit early when iterConstraints returns something
+    for i in iterConstraints(node):
+        return True
+    return False
+
+
+def addConstraintAttribute(node):
+    """ Create's and returns the 'constraints' compound attribute, which is used to store all incoming constraints
+    no matter how they are created. If the attribute exist's then that will be returned.
+
+    :param node: The node to have the constraint compound attribute.
+    :type node: om2.MObject
+    :return: Return's the constraint compound attribute.
+    :rtype: om2.MPlug
+    """
+    mfn = om2.MFnDependencyNode(node)
+    if mfn.hasAttribute("constraints"):
+        return mfn.findPlug("constraints", False)
+    attrMap = [{"name": "driver", "type": attrtypes.kMFnMessageAttribute, "isArray": False},
+               {"name": "utilities", "type": attrtypes.kMFnMessageAttribute, "isArray": False}]
+
+    return om2.MPlug(node, nodes.addCompoundAttribute(node, "constraints", "constraints", attrMap,
+                                                      isArray=True))
+
+
+def iterConstraints(node):
+    """Generator function that loops over the attached constraints, this is done
+    by iterating over the compound array attribute `constraints`.
+
+    :param node: The node to iterate, this node should already have the compound attribute
+    :type node: om2.MObject
+    :return: First element is a list a driver transforms, the second is a list of
+    utility nodes used to create the constraint.
+    :rtype: tuple(list(om2.MObject), list(om2.MObject))
+    """
+    mfn = om2.MFnDependencyNode(node)
+    if not mfn.hasAttribute("constraints"):
+        return
+    compoundPlug = mfn.findPlug("constraints", False)
+
+    for i in xrange(compoundPlug.evaluateNumElements()):
+        compElement = compoundPlug.elementByPhysicalIndex(i)
+        driverSource = compElement.child(0).destinations()
+        utilSource = compElement.child(1).destinations()
+        if driverSource or utilSource:
+            yield [i.node() for i in driverSource], [i.node() for i in utilSource]
+
+
+def addConstraintMap(node, drivers, utilities):
+    """Adds a mapping of drivers and utilities to the constraint compound array attribute
+
+    :param node: The node to add or has the constraint map , typically this would be the driven node
+    of the constraint.
+    :type node: om2.MObject
+    :param drivers: a list of driving transform nodes.
+    :type drivers: tuple(om2.MObject)
+    :param utilities: a list of utilities/support nodes that make up the constraint, this could be the
+    constraint node itself or any math node etc.
+    :type utilities: tuple(om2.MObject)
+    """
+    mfn = om2.MFnDependencyNode(node)
+    if not mfn.hasAttribute("constraints"):
+        compoundPlug = addConstraintAttribute(node)
+    else:
+        compoundPlug = mfn.findPlug("constraints", False)
+    count = compoundPlug.evaluateNumElements()
+    if count != 0:
+        availPlug = compoundPlug.elementByLogicalIndex(-1)
+        driverPlug = availPlug.child(0)
+    else:
+        for i in xrange(count):
+            availPlug = compoundPlug.elementByPhysicalIndex(i)
+            driverPlug = availPlug.child(0)
+            if driverPlug.destinations():
+                continue
+            break
+        else:
+            raise ValueError("Something went wrong in finding the next available element plug")
+    # lets add the driver nodes to the 0th of the element compound
+    for driver in iter(drivers):
+        driverFn = om2.MFnDependencyNode(driver)
+        plugs.connectPlugs(driverPlug, driverFn.findPlug("message", False))
+    utilPlug = availPlug.child(1)
+    # add all the utilities to the first index
+    for i in iter(utilities):
+        utilFn = om2.MFnDependencyNode(i)
+        plugs.connectPlugs(utilPlug, utilFn.findPlug("message", False))
