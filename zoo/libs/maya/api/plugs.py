@@ -569,6 +569,12 @@ def getPlugAndType(plug):
 
 
 def getNumericValue(plug):
+    """Returns the maya numeric type and value from the given plug
+
+    :param plug: The plug to get the value from
+    :type plug: om2.MPlug
+    :rtype: attrtypes.kType,
+    """
     obj = plug.attribute()
     nAttr = om2.MFnNumericAttribute(obj)
     dataType = nAttr.numericType()
@@ -636,7 +642,6 @@ def getTypedValue(plug):
     elif dataType == om2.MFnData.kDoubleArray:
         return attrtypes.kMFnDataDoubleArray, om2.MFnDoubleArrayData(plug.asMObject()).array()
     elif dataType == om2.MFnData.kIntArray:
-        print plug, plug.asMObject()
         return attrtypes.kMFnDataIntArray, om2.MFnIntArrayData(plug.asMObject()).array()
     elif dataType == om2.MFnData.kPointArray:
         return attrtypes.kMFnDataPointArray, om2.MFnPointArrayData(plug.asMObject()).array()
@@ -674,7 +679,7 @@ def setPlugValue(plug, value):
         elif ut == om2.MFnUnitAttribute.kTime:
             plug.setMTime(om2.MTime(value))
         elif ut == om2.MFnUnitAttribute.kAngle:
-            plug.setMAngle(value)
+            plug.setMAngle(om2.MAngle(value))
     elif obj.hasFn(om2.MFn.kNumericAttribute):
         attr = om2.MFnNumericAttribute(obj)
         at = attr.numericType()
@@ -720,7 +725,8 @@ def setPlugValue(plug, value):
 
 
 def getPlugFn(obj):
-    """
+    """Returns the MfunctionSet for the MObject
+
     :param obj: MObject that has the MFnAttribute functionset
     :type obj: MObject
     """

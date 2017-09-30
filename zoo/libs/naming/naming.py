@@ -175,7 +175,6 @@ class NameManager(object):
         for possible, tc in iter(possibles):
             if tc == maxPossible:
                 truePossibles.append(possible)
-        print truePossibles
         if len(truePossibles) > 1:
             raise ValueError("Could not Resolve name: {}, due to to many possible expressions".format(name))
         return truePossibles[0]

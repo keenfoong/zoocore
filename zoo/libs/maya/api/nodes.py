@@ -689,11 +689,11 @@ def setRotation(node, rotation, space=om2.MSpace.kTransform):
     trans.setRotation(rotation, space)
 
 
-def getRotation(obj, space):
+def getRotation(obj, space, asQuaternion=False):
     space = space or om2.MSpace.kTransform
     path = om2.MFnDagNode(obj).getPath()
     trans = om2.MFnTransform(path)
-    return trans.rotation(space)
+    return trans.rotation(space, asQuaternion=asQuaternion)
 
 
 def addProxyAttribute(node, sourcePlug, longName, shortName, attrType=attrtypes.kMFnNumericDouble):

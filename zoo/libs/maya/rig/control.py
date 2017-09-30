@@ -116,7 +116,7 @@ class Control(object):
         if position is not None:
             self.setPosition(position, space=om2.MSpace.kWorld)
         if rotation is not None:
-            self.setRotation(rotation, space=om2.MSpace.kWorld)
+            self.setRotation(rotation)
         if scale != (1, 1, 1) and scale:
             self.setScale(scale, space=om2.MSpace.kWorld)
         if color is not None:

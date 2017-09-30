@@ -47,6 +47,22 @@ def loadFromLib(shapeName, parent=None):
     raise ValueError("The shape name '{}' doesn't exist in the library".format(shapeName))
 
 
+def loadAndCreateFromLib(shapeName, parent=None):
+    """Load's and create's the nurbscurve from the shapelib.
+
+    :param shapeName: the shape library name.
+    :type shapeName: str
+    :param parent: the parent for the nurbscurve default is None.
+    :type parent: om2.MObject
+    :return: the create transform for the nurbscurve.
+    :rtype: om2.MObject
+    """
+    newData = loadFromLib(shapeName, parent)
+    if parent is None:
+        return curves.createCurveShape(parent, newData)
+    return newData
+
+
 def saveToLib(node, name, override=True):
     """Save's the current transform node shapes to the zoo library, used internally for zoo.
 
@@ -76,4 +92,4 @@ def saveToLib(node, name, override=True):
     path = os.path.join(lib, name)
     file.saveJson(data, path)
 
-    return data , path
+    return data, path

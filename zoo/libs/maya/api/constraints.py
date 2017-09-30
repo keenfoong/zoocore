@@ -162,7 +162,7 @@ def addConstraintAttribute(node):
     mfn = om2.MFnDependencyNode(node)
     if mfn.hasAttribute("constraints"):
         return mfn.findPlug("constraints", False)
-    attrMap = [{"name": "driver", "type": attrtypes.kMFnMessageAttribute, "isArray": False},
+    attrMap = [{"name": "drivers", "type": attrtypes.kMFnMessageAttribute, "isArray": False},
                {"name": "utilities", "type": attrtypes.kMFnMessageAttribute, "isArray": False}]
 
     return om2.MPlug(node, nodes.addCompoundAttribute(node, "constraints", "constraints", attrMap,
@@ -186,10 +186,10 @@ def iterConstraints(node):
 
     for i in xrange(compoundPlug.evaluateNumElements()):
         compElement = compoundPlug.elementByPhysicalIndex(i)
-        driverSource = compElement.child(0).destinations()
-        utilSource = compElement.child(1).destinations()
-        if driverSource or utilSource:
-            yield [i.node() for i in driverSource], [i.node() for i in utilSource]
+        driverDest = compElement.child(0).destinations()
+        utilDest = compElement.child(1).destinations()
+        if driverDest or utilDest:
+            yield [i.node() for i in driverDest], [i.node() for i in utilDest]
 
 
 def addConstraintMap(node, drivers, utilities):
@@ -210,8 +210,8 @@ def addConstraintMap(node, drivers, utilities):
     else:
         compoundPlug = mfn.findPlug("constraints", False)
     count = compoundPlug.evaluateNumElements()
-    if count != 0:
-        availPlug = compoundPlug.elementByLogicalIndex(-1)
+    if count == 0:
+        availPlug = compoundPlug.elementByLogicalIndex(0)
         driverPlug = availPlug.child(0)
     else:
         for i in xrange(count):
@@ -224,10 +224,29 @@ def addConstraintMap(node, drivers, utilities):
             raise ValueError("Something went wrong in finding the next available element plug")
     # lets add the driver nodes to the 0th of the element compound
     for driver in iter(drivers):
+        if driver is None:
+            continue
         driverFn = om2.MFnDependencyNode(driver)
-        plugs.connectPlugs(driverPlug, driverFn.findPlug("message", False))
+
+        if driverFn.hasAttribute("constraint"):
+            p = driverFn.findPlug("constraint", False)
+            if p.source():
+                continue
+            plugs.connectPlugs(driverPlug, p)
+            continue
+        attr = nodes.addAttribute(driver, "constraint", "constraint", attrtypes.kMFnMessageAttribute)
+        plugs.connectPlugs(driverPlug, om2.MPlug(driver, attr.object()))
     utilPlug = availPlug.child(1)
     # add all the utilities to the first index
     for i in iter(utilities):
+        if i is None:
+            continue
         utilFn = om2.MFnDependencyNode(i)
-        plugs.connectPlugs(utilPlug, utilFn.findPlug("message", False))
+        if utilFn.hasAttribute("constraint"):
+            p = utilFn.findPlug("constraint", False)
+            if p.source():
+                continue
+            plugs.connectPlugs(utilPlug, p)
+            continue
+        attr = nodes.addAttribute(i, "constraint", "constraint", attrtypes.kMFnMessageAttribute)
+        plugs.connectPlugs(utilPlug, om2.MPlug(i, attr.object()))

@@ -4,11 +4,13 @@ from zoo.libs.maya.api import nodes
 from zoo.libs.maya.api import plugs
 
 
-def getCurveData(shape):
+def getCurveData(shape, space=om2.MSpace.kObject):
     """From a given NurbsCurve shape node serialize the cvs positions, knots, degree, form rgb colours
 
     :param shape: MObject that represents the NurbsCurve shape
     :return: dict
+    :param space:
+    :type space: om2.MSpace
 
     Example::
         >>>nurbsCurve = cmds.circle()[1]
@@ -20,7 +22,7 @@ def getCurveData(shape):
     data = nodes.getNodeColourData(shape.node())
     curve = om2.MFnNurbsCurve(shape)
     knots = curve.knots()
-    cvs = curve.cvPositions(om2.MSpace.kObject)
+    cvs = curve.cvPositions(space)
     data["knots"] = [i for i in knots]
     data["cvs"] = [(i.x, i.y, i.z) for i in cvs]
     data["degree"] = curve.degree
@@ -64,7 +66,7 @@ def createCurveShape(parent, data):
     return parent
 
 
-def serializeCurve(node):
+def serializeCurve(node, space=om2.MSpace.kObject):
     """From a given transform serialize the shapes curve data and return a dict
 
     :param node: The MObject that represents the transform above the nurbsCurves
@@ -78,7 +80,7 @@ def serializeCurve(node):
         dag = om2.MFnDagNode(shape.node())
         isIntermediate = dag.isIntermediateObject
         if not isIntermediate:
-            data[om2.MNamespace.stripNamespaceFromName(dag.name())] = getCurveData(shape)
+            data[om2.MNamespace.stripNamespaceFromName(dag.name())] = getCurveData(shape, space=space)
 
     return data
 

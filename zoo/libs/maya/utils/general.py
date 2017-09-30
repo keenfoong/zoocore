@@ -117,7 +117,7 @@ def unLoadMayaPlugins():
 def namespaceContext(namespace):
     currentNamespace = om2.MNamespace.currentNamespace()
     existingNamespaces = om2.MNamespace.getNamespaces(currentNamespace, True)
-    if currentNamespace != namespace and namespace not in existingNamespaces:
+    if currentNamespace != namespace and namespace not in existingNamespaces and namespace != om2.MNamespace.rootNamespace():
         try:
             om2.MNamespace.addNamespace(namespace)
         except RuntimeError:
