@@ -894,3 +894,14 @@ def pythonTypeToMayaType(dataType, value):
     elif dataType == attrtypes.kMFnUnitAttributeTime:
         return om2.MTime(value)
     return value
+
+
+def nextAvailableElementPlug(arrayPlug):
+    count = arrayPlug.evaluateNumElements()
+    if count == 0:
+        return arrayPlug.elementByLogicalIndex(0)
+    for i in xrange(count):
+        availPlug = arrayPlug.elementByPhysicalIndex(i)
+        if availPlug.destinations():
+            continue
+        return availPlug
