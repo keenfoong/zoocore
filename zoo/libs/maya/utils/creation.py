@@ -182,12 +182,12 @@ def conditionVector(firstTerm, secondTerm, colorIfTrue, colorIfFalse, operation,
             plugs.connectPlugs(p, child)
     if isinstance(colorIfFalse, om2.MPlug):
         plugs.connectPlugs(colorIfFalse, condNode.findPlug("colorIfFalse", False))
-    elif isinstance(colorIfTrue, om2.MVector):
+    elif isinstance(colorIfFalse, om2.MVector):
         plugs.setPlugValue(condNode.findPlug("colorIfFalse", False), colorIfFalse)
     else:
         color = condNode.findPlug("colorIfFalse", False)
         # expecting seq of plugs
-        for i, p in enumerate(colorIfTrue):
+        for i, p in enumerate(colorIfFalse):
             child = color.child(i)
             plugs.connectPlugs(p, child)
     return condNode.object()
