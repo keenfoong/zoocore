@@ -291,6 +291,22 @@ class OkCancelButtons(QtWidgets.QWidget):
         self.cancelBtn.clicked.connect(self.CancelBtnPressed.emit)
 
 
+class HRadioButtonGroup(QtWidgets.QWidget):
+    def __init__(self, radioList=[], parent=None):
+        super(HRadioButtonGroup, self).__init__(parent=parent)
+
+        self.radioButtons = []
+
+        hRadioLayout = QtWidgets.QHBoxLayout()
+
+        for radioName in radioList:
+            newRadio = QtWidgets.QRadioButton(radioName,self)
+            hRadioLayout.addWidget(newRadio)
+            self.radioButtons.append(newRadio)
+
+        self.setLayout(hRadioLayout)
+
+
 class labelColorBtn(QtWidgets.QWidget):
     def __init__(self, label="Color:", initialRgbColor=(255, 0, 0), initialRgbColorF=None, parent=None):
         """Creates a label and a color button (with no text) which opens a QT color picker,
