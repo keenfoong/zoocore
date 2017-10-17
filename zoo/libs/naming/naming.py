@@ -104,6 +104,11 @@ class NameManager(object):
             return self.config["tokens"][name]["value"]
         return self.config["tokens"][name]["default"]
 
+    def tokenValues(self, token):
+        ret = self.config["tokens"][token].copy()
+        del ret['default']
+        return ret.keys()
+
     def addRule(self, name, expression, description, asActive=True):
         self.config["rule"].update({name: {"expression": expression,
                                            "description": description}})
