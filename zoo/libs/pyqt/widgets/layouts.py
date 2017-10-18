@@ -113,6 +113,16 @@ class ComboBox(QtWidgets.QWidget):
         """
         return int(self.box.currentIndex())
 
+    def setToText(self, text):
+        """Sets the index based on the text
+
+        :param text: Text to search and switch item to.
+        :return:
+        """
+        index = self.findText(text, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+            self.setCurrentIndex(index)
+
 
 class Vector(QtWidgets.QWidget):
     """Vector base Widget for transformations for n axis
