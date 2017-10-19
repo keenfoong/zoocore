@@ -59,7 +59,7 @@ class StringEdit(QtWidgets.QWidget):
 class ComboBox(QtWidgets.QWidget):
     itemChanged = QtCore.Signal(int, str)
 
-    def __init__(self, label="", items=[], parent=None):
+    def __init__(self, label="", items=(), parent=None):
         """Creates a combo box (drop down menu) with a label
 
         :param label: the label of the combobox
@@ -304,8 +304,10 @@ class OkCancelButtons(QtWidgets.QWidget):
 
 
 class HRadioButtonGroup(QtWidgets.QWidget):
-    def __init__(self, radioList=[], default=0, parent=None):
+    def __init__(self, radioList=None, default=0, parent=None):
         super(HRadioButtonGroup, self).__init__(parent=parent)
+        if radioList is None:
+            radioList = []
 
         self.radioButtons = []
 

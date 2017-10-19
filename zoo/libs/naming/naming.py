@@ -106,6 +106,10 @@ class NameManager(object):
 
     def tokenValues(self, token):
         ret = self.config["tokens"][token].copy()
+
+        if token == "counter":
+            del ret['value']
+
         del ret['default']
         return ret.keys()
 
