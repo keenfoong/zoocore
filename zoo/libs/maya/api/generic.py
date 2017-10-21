@@ -105,7 +105,6 @@ def intToMTransformRotationOrder(rotateOrder):
         return om2.MTransformationMatrix.kXYZ
     elif rotateOrder == 1:
         return om2.MTransformationMatrix.kYZX
-
     elif rotateOrder == 2:
         return om2.MTransformationMatrix.kZXY
     elif rotateOrder == 3:
