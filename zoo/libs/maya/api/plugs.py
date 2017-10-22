@@ -921,6 +921,8 @@ def nextAvailableElementPlug(arrayPlug):
         return arrayPlug.elementByLogicalIndex(0)
     for i in xrange(count):
         availPlug = arrayPlug.elementByPhysicalIndex(i)
-        if availPlug.destinations():
+        if availPlug.isSource:
             continue
         return availPlug
+    else:
+        return arrayPlug.elementByLogicalIndex(count)
