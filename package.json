@@ -1,0 +1,8 @@
+{"environment": {"PYTHONPATH": ["{self}", "{self}/thirdparty"],
+                 "ZOO_BASE": "{self}",
+                  "ZOO_ICON_PATH": "{self}/icons",
+                  "ZOO_COMMAND_LIB":"{self}/zoo/libs/command/library"
+},
+  "version": "1.0.0",
+  "requirements": [],
+"name": "zoocore"}

@@ -59,7 +59,7 @@ class StringEdit(QtWidgets.QWidget):
 class ComboBox(QtWidgets.QWidget):
     itemChanged = QtCore.Signal(int, str)
 
-    def __init__(self, label, items, parent=None):
+    def __init__(self, label="", items=(), parent=None):
         """Creates a combo box (drop down menu) with a label
 
         :param label: the label of the combobox
@@ -74,9 +74,11 @@ class ComboBox(QtWidgets.QWidget):
         layout.setContentsMargins(2, 2, 2, 2)
         layout.setSpacing(2)
         self.box = combobox.ExtendedComboBox(items, parent)
-        self.label = QtWidgets.QLabel(label, parent=self)
 
-        layout.addWidget(self.label)
+        if label != "":
+            self.label = QtWidgets.QLabel(label, parent=self)
+            layout.addWidget(self.label)
+
         layout.addWidget(self.box)
         self.setLayout(layout)
 
@@ -110,6 +112,16 @@ class ComboBox(QtWidgets.QWidget):
         :rtype currentIndex: int
         """
         return int(self.box.currentIndex())
+
+    def setToText(self, text):
+        """Sets the index based on the text
+
+        :param text: Text to search and switch item to.
+        :return:
+        """
+        index = self.findText(text, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+            self.setCurrentIndex(index)
 
 
 class Vector(QtWidgets.QWidget):
@@ -291,6 +303,37 @@ class OkCancelButtons(QtWidgets.QWidget):
         self.cancelBtn.clicked.connect(self.CancelBtnPressed.emit)
 
 
+class HRadioButtonGroup(QtWidgets.QWidget):
+    def __init__(self, radioList=None, default=0, parent=None):
+        super(HRadioButtonGroup, self).__init__(parent=parent)
+        if radioList is None:
+            radioList = []
+
+        self.radioButtons = []
+
+        hRadioLayout = QtWidgets.QHBoxLayout()
+
+        for radioName in radioList:
+            newRadio = QtWidgets.QRadioButton(radioName, self)
+            hRadioLayout.addWidget(newRadio)
+            self.radioButtons.append(newRadio)
+
+        if default is not None and default < len(self.radioButtons):
+            self.radioButtons[default].setChecked(True)
+
+        self.setLayout(hRadioLayout)
+
+    def getChecked(self):
+        """
+        Returns the widget that is checked
+        :return:
+        :type: QtWidgets.QRadioButton()
+        """
+        for r in self.radioButtons:
+            if r.isChecked():
+                return r
+
+
 class labelColorBtn(QtWidgets.QWidget):
     def __init__(self, label="Color:", initialRgbColor=(255, 0, 0), initialRgbColorF=None, parent=None):
         """Creates a label and a color button (with no text) which opens a QT color picker,
@@ -423,6 +466,8 @@ class CollapsableFrameLayout(QtWidgets.QWidget):
         self.horizontalLayout.addWidget(self.iconButton)
         self.horizontalLayout.addWidget(self.titleLabel)
         self.horizontalLayout.addItem(spacerItem)
+        self.titleFrame.setFixedHeight(self.titleFrame.sizeHint().height())
+        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height())
 
     def setFrameColor(self, color):
         self.titleFrame.setStyleSheet("background-color: rgb{0}; "
