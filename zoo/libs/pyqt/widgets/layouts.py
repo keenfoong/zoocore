@@ -520,3 +520,431 @@ class CollapsableFrameLayout(QtWidgets.QWidget):
         """
         self.iconButton.clicked.connect(self.showHideWidget)
         self.titleFrame.mouseReleased.connect(self.showHideWidget)
+
+
+class StackWidget(QtWidgets.QWidget):
+    _expandIcon = iconlib.icon("roundedsquare")
+    _collapseIcon = iconlib.icon("minus")
+
+    def __init__(self,parent):
+        super(StackWidget, self).__init__()
+
+        self.stackTableWgt = StackTableWidget(self)
+        self.stackSearchEdit = QtWidgets.QLineEdit()
+        self.collapseBtn = QtWidgets.QPushButton()
+        self.expandBtn = QtWidgets.QPushButton()
+        self.initUi()
+
+        self.connections()
+
+    def initUi(self):
+
+        compStackToolbar = QtWidgets.QHBoxLayout()
+        compStackToolbar.addWidget(self.stackSearchEdit)
+
+        self.expandBtn.setIcon(self._expandIcon)
+        self.expandBtn.setIconSize(QtCore.QSize(12, 12))
+
+        self.collapseBtn.setIcon(self._collapseIcon)
+        self.collapseBtn.setIconSize(QtCore.QSize(10, 10))
+
+        size = QtCore.QSize(self.collapseBtn.sizeHint().width(), 20) # Temporary size till we get icons here
+        self.collapseBtn.setFixedSize(size)
+        self.expandBtn.setFixedSize(size)
+
+        compStackToolbar.addWidget(self.collapseBtn)
+        compStackToolbar.addWidget(self.expandBtn)
+        compStackToolbar.setStretchFactor(self.stackSearchEdit, 1)
+
+        mainLayout = QtWidgets.QVBoxLayout()
+        mainLayout.addWidget(QtWidgets.QLabel("Installed Components"))
+        mainLayout.addLayout(compStackToolbar)
+        mainLayout.addWidget(self.stackTableWgt)
+
+        self.setLayout(mainLayout)
+
+    def connections(self):
+        self.stackSearchEdit.textChanged.connect(self.onStackSearchChanged)
+
+        self.collapseBtn.clicked.connect(self.collapseClicked)
+        self.expandBtn.clicked.connect(self.expandClicked)
+
+    def collapseClicked(self):
+        self.stackTableWgt.collapseAll()
+
+    def expandClicked(self):
+        self.stackTableWgt.expandAll()
+
+    def onStackSearchChanged(self):
+        text = self.stackTableWgt.text().lower()
+        self.stackTableWgt.filter(text)
+        self.stackTableWgt.updateSize()
+
+    def clearStack(self):
+        self.stackTableWgt.clearStack()
+
+
+class StackTableWidget(QtWidgets.QTableWidget):
+    DEFAULT_MAYA_COLOUR = (68, 68, 68)
+    def __init__(self, parent=None):
+        super(StackTableWidget, self).__init__(parent)
+
+        self.stackItems = []
+        self.initUi()
+        self.setShowGrid(False)
+        self.cellPadding = 5
+
+        style = """
+            QTableView {{
+            background-color: rgb{0};
+            border-size: 0px;
+            }}
+
+            QTableView:item {{
+            padding:{1}px;
+            border-size: 0px;
+            }}
+            """.format(str(self.DEFAULT_MAYA_COLOUR), self.cellPadding)
+
+        self.setStyleSheet(style)
+
+    def initUi(self):
+        self.setRowCount(0)
+        self.setColumnCount(1)
+
+        self.verticalHeader().hide()
+        self.horizontalHeader().hide()
+
+        self.horizontalHeader().setStretchLastSection(True)
+
+        self.setContentsMargins(2, 2, 2, 2)
+
+        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
+        self.setFocusPolicy(QtCore.Qt.NoFocus)
+
+        self.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
+
+    def shiftComponentWidget(self, wgt, dir):
+        # Update componentList
+        self.shiftComponentStack(wgt, dir)
+
+        row = self.getRow(wgt)
+
+        if row == 0 and dir == -1 or \
+                                row == self.rowCount() - 1 and dir == 1:
+            return
+
+        # newRow = row + dir
+        # Have to do this in a funky way because removeRow deletes the object
+        # and swapping cells gives weird results
+        if dir > 0:  # Even then this is ugly lol, need to fix
+            newRow = row + dir + 1
+            remRow = row
+        else:
+            newRow = row + dir
+            remRow = row + 1
+
+        self.insertRow(newRow)
+        self.setCellWidget(newRow, 0, wgt)
+        self.removeRow(remRow)
+        self.updateSize(wgt)
+
+        # Update the back end component
+        self.core.shiftComponent(wgt.component, dir)
+
+    def shiftComponentStack(self, wgt, dir):
+        i = self.stackItems.index(wgt)
+        self.stackItems.remove(wgt)
+        self.stackItems.insert(i + dir, wgt)
+
+    def collapseAll(self):
+        for c in self.stackItems:
+            c.collapse()
+
+    def expandAll(self):
+        for c in self.stackItems:
+            c.expand()
+
+    def deleteComponent(self, wgt):
+        row = self.getRow(wgt)
+        self.removeRow(row)
+        self.stackItems.remove(wgt)
+        self.core.deleteComponent(wgt.component)
+        wgt.deleteLater()
+        self.updateComponentWidgets()
+
+    def addStackItem(self, item):
+        self.componentStack.append(item)
+        self.addRow(item)
+        self.updateSize()
+        self.updateComponentWidgets()
+
+    def addRow(self, componentWgt):
+        rowPos = self.rowCount()
+        self.setRowCount(rowPos + 1)
+        self.setItem(rowPos, 0, QtWidgets.QTableWidgetItem())
+        self.setCellWidget(rowPos, 0, componentWgt)
+        self.updateSize(componentWgt)
+        self.setRowHeight(rowPos, componentWgt.sizeHint().height() + 100)
+
+    def getRow(self, componentWgt):
+        for i in range(self.rowCount()):
+            if componentWgt == self.cellWidget(i, 0):
+                return i
+
+    def filter(self, text):
+        for i in range(self.rowCount()):
+            found = not (text in self.cellWidget(i, 0).component.name().lower())
+            self.setRowHidden(i, found)
+
+    def updateComponentWidgets(self):
+        for c in self.stackItems:
+            c.updateComponents()
+
+    def getStackItems(self):
+        # stackItems = [self.stackLayout.itemAt(i) for i in range(self.stackLayout.count())]
+        return self.stackItems
+
+    def updateSize(self, forceComponent=None):
+
+        if forceComponent is not None:
+            componentWgt = forceComponent
+        else:
+            componentWgt = self.sender()
+
+            if componentWgt is None:
+                return
+
+        newHeight = componentWgt.sizeHint().height() + self.cellPadding * 2
+        self.setRowHeight(self.getRow(componentWgt), newHeight)
+
+    def clearStack(self):
+        self.stackItems = []
+        self.clear()
+        self.setRowCount(0)
+
+    def sceneRefresh(self):
+        self.clearStack()
+
+    def applyRig(self, rig):
+        self.sceneRefresh()
+
+        if rig is not None:
+            for c in rig.components():
+                self.addComponent(c)
+
+
+class ComponentStackItem(CollapsableFrameLayout):
+    _downIcon = iconlib.icon("arrowSingleDown")
+    _upIcon = iconlib.icon("arrowSingleUp")
+    _deleteIcon = iconlib.icon("xMark")
+    _componentIcon = iconlib.icon("fkcomponentsimple")
+    #_componentIcon = iconlib.iconColorized("fkcomponentsimple", color=const.UI_THEMECOLOUR)
+
+    def __init__(self, component, collapsed=False, collapsable=True, parent=None):
+        self.stackWidget = parent
+        self.component = component
+        title = self.component.name()
+        # Init
+        self.componentIcon = QtWidgets.QToolButton()
+        self.shiftDownBtn = QtWidgets.QToolButton()
+        self.shiftUpBtn = QtWidgets.QToolButton()
+        self.deleteBtn = QtWidgets.QToolButton()
+        self.componentNameWgt = QtWidgets.QLineEdit(title)
+        self.mainLayout = QtWidgets.QGridLayout()
+
+        super(ComponentStackItem, self).__init__(title=title, collapsed=collapsed, collapsable=collapsable,
+                                                 parent=parent)
+
+        # self.initUi()
+
+    def initUi(self):
+        super(ComponentStackItem, self).initUi()
+        sideNames = sorted(self.getSideNames())
+        self.parentComboBox = combobox.ExtendedComboBox([""], parent=self)
+        self.sideComboBox = combobox.ExtendedComboBox([""] + sideNames, parent=self)
+
+        self.componentIcon.setIcon(self._componentIcon)
+        self.shiftDownBtn.setIcon(self._downIcon)
+        self.shiftUpBtn.setIcon(self._upIcon)
+        self.deleteBtn.setIcon(self._deleteIcon)
+
+        self.deleteBtn.setIconSize(QtCore.QSize(12, 12))
+        self.shiftUpBtn.setIconSize(QtCore.QSize(12, 12))
+        self.shiftDownBtn.setIconSize(QtCore.QSize(12, 12))
+        # self.componentIcon.setIconSize(QtCore.QSize(24, 24))
+
+        self.horizontalLayout.insertWidget(1, self.componentIcon)
+        self.horizontalLayout.addWidget(self.shiftUpBtn)
+        self.horizontalLayout.addWidget(self.shiftDownBtn)
+        self.horizontalLayout.addWidget(self.deleteBtn)
+
+        # Possibly should tweak layouts.CollapsableFrameLayout (or create a new class) instead of adding then deleting
+        i = self.horizontalLayout.indexOf(self.titleLabel)
+        self.horizontalLayout.takeAt(i)
+        self.titleLabel.deleteLater()
+        self.horizontalLayout.insertWidget(2, self.componentNameWgt)
+        self.horizontalLayout.setStretchFactor(self.componentNameWgt, 4)
+
+        # Main Layout
+        self.mainLayout.setSpacing(0)
+
+        row = 0
+        self.mainLayout.addWidget(QtWidgets.QLabel("Parent:"), row, 0, 1, 1)
+        self.mainLayout.addWidget(self.parentComboBox, row, 1, 1, 1)
+        row += 1
+        self.mainLayout.addWidget(QtWidgets.QLabel("Side:"), row, 0, 1, 1)
+
+        self.mainLayout.addWidget(self.sideComboBox, row, 1, 1, 1)
+        self.mainLayout.setColumnStretch(0, 1)
+        self.mainLayout.setColumnStretch(1, 1)
+        row += 1
+
+        widget = QtWidgets.QWidget()
+        widget.setLayout(self.mainLayout)
+
+        self.hiderLayout.addWidget(widget)
+
+        self.stackConnections()
+        self.updateUi()
+
+    def shiftUp(self):
+        self.stackWidget.shiftComponentWidget(self, -1)
+
+    def shiftDown(self):
+        self.stackWidget.shiftComponentWidget(self, 1)
+
+    def expand(self):
+        self.onExpand()
+
+    def collapse(self):
+        self.onCollapsed()
+
+    def updateUi(self):
+        """
+        Updates Ui based on self.component
+        :return:
+        """
+
+        # self.sideComboBox.setCurrentIndex(2) # Magical
+
+    def setComboToText(self, combobox, text):
+        index = combobox.findText(text, QtCore.Qt.MatchFixedString)
+        combobox.setCurrentIndex(index)
+
+    def deleteEvent(self):
+        # self.delFunc(self)
+        self.stackWidget.deleteComponent(self)
+
+    def stackConnections(self):
+        self.openRequested.connect(self.stackWidget.updateSize)
+        self.closeRequested.connect(self.stackWidget.updateSize)
+
+        self.shiftUpBtn.clicked.connect(self.shiftUp)
+        self.shiftDownBtn.clicked.connect(self.shiftDown)
+        self.deleteBtn.clicked.connect(self.deleteEvent)
+
+        self.componentNameWgt.editingFinished.connect(self.renameComponent)
+        self.componentNameWgt.textChanged.connect(self.componentNameValidate)
+
+        self.parentComboBox.activated.connect(self.parentComboActivated)
+        self.sideComboBox.activated.connect(self.setSide)
+
+    def componentNameValidate(self):
+        """
+        Removes invalid characters and replaces spaces with underscores
+        :return:
+        """
+        nameWgt = self.componentNameWgt
+        text = self.componentNameWgt.text()
+        pos = nameWgt.cursorPosition()
+
+        text = text.replace(" ", "_")
+        nameWgt.blockSignals(True)
+        nameWgt.setText(text)
+        nameWgt.blockSignals(False)
+
+        # set cursor back to original position
+        nameWgt.setCursorPosition(pos)
+
+    def getSideNames(self):
+        sideNames = []
+        side = self.sceneModel.configuration.naming.config["tokens"]["side"]
+        tokens = self.sceneModel.configuration.naming.tokenValues('side')
+
+        for t in tokens:
+            sideNames.append(side[t])
+
+        return sideNames
+
+    def updateSize(self):
+        self.stackWidget.updateSize()
+
+    def renameComponent(self):
+        component = self.component
+        component.rename(self.sender().text())
+
+    def updateComponents(self):
+        # Update parentCombobox widget
+        componentList = [""] + [c.name() for c in self.core.components()]
+        parentBox = self.parentComboBox
+        parentText = parentBox.currentText()
+
+        componentList.remove(self.component.name())
+        parentBox.clear()
+        parentBox.addItems(componentList)
+        try:
+            parentText = self.component.parent().name()
+            print(parentText)
+
+        except AttributeError:
+            pass
+        self.setComboToText(self.parentComboBox, parentText)
+
+        # Part two
+        side = self.component.side()
+
+        # Two
+        self.setComboToText(self.sideComboBox, side)
+
+
+        # self.parentComboBox.setCurrentIndex(1)
+
+    def parentComboActivated(self):
+
+        parentText = self.parentComboBox.currentText()
+
+        parentComponent = None
+        for c in self.core.components():
+            if c.name() == parentText:
+                parentComponent = c
+                break
+
+        if parentComponent is None:
+            componentLayer = self.core.currentRig.getOrCreateComponentLayer()
+            self.component.setParent(componentLayer)
+            return
+
+        self.component.setParent(parentComponent)
+
+    def setSide(self):
+        side = self.sideComboBox.currentText()
+        self.component.setSide(side)
+
+    def setFrameColor(self, color):
+        style = """
+            QFrame, QToolButton
+            {{
+                background-color: rgb{0};
+                border-radius: 3px;
+                border: 1px solid rgb{0};
+
+            }}
+            QLineEdit
+            {{
+                background-color: rgb{1};
+            }}
+            """.format(str(color), str((63, 63, 63)))
+
+        self.titleFrame.setStyleSheet(style)
