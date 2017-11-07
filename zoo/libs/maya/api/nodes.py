@@ -144,7 +144,7 @@ def getNodeColourData(node):
             "overrideRGBColors": plugs.getPlugValue(overrideRGBColors)}
 
 
-def createDagNode(name, nodeType, parent=None, modifier=None):
+def createDagNode(name, nodeType, parent=None):
     """Create's a new dag node and if theres a parent specified then parent the new node
 
     :param name: The new name of the created node
@@ -159,6 +159,7 @@ def createDagNode(name, nodeType, parent=None, modifier=None):
     """
     if parent is None or parent.isNull() or parent.apiType() in (om2.MFn.kInvalid, om2.MFn.kWorld):
         parent = om2.MObject.kNullObj
+
     command = om2.MDagModifier()
     node = command.createNode(nodeType)
     command.renameNode(node, name)

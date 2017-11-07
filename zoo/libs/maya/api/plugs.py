@@ -25,41 +25,61 @@ def asMPlug(name):
         return sel.getPlug(0)
 
 
-def connectPlugs(source, destination, mod=None):
+def connectPlugs(source, destination, mod=None, force=True):
     """Connects to MPlugs together
 
     :type source: MObject
     :type destination: MObject
     :type mod: om2.MDGModifier()
     """
-    mod = mod or om2.MDGModifier()
-    mod.connect(source, destination)
-    mod.doIt()
-    return mod
+
+    _mod = mod or om2.MDGModifier()
+
+    if destination.isDestination:
+        destinationSource = destination.source()
+        if force:
+            _mod.disconnect(destinationSource, destination)
+            _mod.doIt()
+        else:
+            raise ValueError("Plug {} has incoming connection {}".format(destination.name(), destinationSource.name()))
+    _mod.connect(source, destination)
+    if mod is None:
+        _mod.doIt()
+    return _mod
 
 
-def connectVectorPlugs(sourceCompound, destinationCompound, connectionValues):
+def connectVectorPlugs(sourceCompound, destinationCompound, connectionValues, force=True):
     """
 
     :param sourceCompound:
-    :type sourceCompound:
+    :type sourceCompound: om2.MPlug
     :param destinationCompound:
-    :type destinationCompound:
+    :type destinationCompound: om2.MPlug
     :param connectionValues: Bool value for each axis if all axis are tre then just connect the compound
     :type connectionValues: seq(str)
     :return:
     :rtype:
     """
     if all(connectionValues):
-        connectPlugs(sourceCompound, destinationCompound)
+        connectPlugs(sourceCompound, destinationCompound, force=force)
         return
-    childCount = range(destinationCompound.numChildren())
-    sourceCount = range(sourceCompound.numChildren())
-    for i in connectionValues:
-        if i in childCount and i in sourceCount:
-            childSource = sourceCompound.child(i)
-            childDest = destinationCompound.child(i)
-            connectPlugs(childSource, childDest)
+    childCount = destinationCompound.numChildren()
+    sourceCount = sourceCompound.numChildren()
+    requestLength = len(connectionValues)
+    if childCount < requestLength or sourceCount < requestLength:
+        raise ValueError("ConnectionValues arg count is larger then the compound child count")
+
+    mod = om2.MDGModifier()
+    for i in xrange(len(connectionValues)):
+        value = connectionValues[i]
+        childSource = sourceCompound.child(i)
+        childDest = destinationCompound.child(i)
+        if not value:
+            if childDest.isDestination:
+                disconnectPlug(childDest.source(), childDest)
+            continue
+        connectPlugs(childSource, childDest, mod=mod, force=force)
+    mod.doIt()
 
 
 def disconnectPlug(plug, source=True, destination=True):
@@ -108,7 +128,6 @@ def removeUnConnectedEmptyElements(plugArray, mod=None):
             mod.removeMultiInstance(element, False)
     mod.doIt()
     return mod
-
 
 
 def isValidMPlug(plug):
@@ -902,6 +921,8 @@ def nextAvailableElementPlug(arrayPlug):
         return arrayPlug.elementByLogicalIndex(0)
     for i in xrange(count):
         availPlug = arrayPlug.elementByPhysicalIndex(i)
-        if availPlug.destinations():
+        if availPlug.isSource:
             continue
         return availPlug
+    else:
+        return arrayPlug.elementByLogicalIndex(count)

@@ -162,7 +162,7 @@ def addConstraintAttribute(node):
     mfn = om2.MFnDependencyNode(node)
     if mfn.hasAttribute("constraints"):
         return mfn.findPlug("constraints", False)
-    attrMap = [{"name": "drivers", "type": attrtypes.kMFnMessageAttribute, "isArray": False},
+    attrMap = [{"name": "driven", "type": attrtypes.kMFnMessageAttribute, "isArray": False},
                {"name": "utilities", "type": attrtypes.kMFnMessageAttribute, "isArray": False}]
 
     return om2.MPlug(node, nodes.addCompoundAttribute(node, "constraints", "constraints", attrMap,
@@ -175,7 +175,7 @@ def iterConstraints(node):
 
     :param node: The node to iterate, this node should already have the compound attribute
     :type node: om2.MObject
-    :return: First element is a list a driver transforms, the second is a list of
+    :return: First element is a list a driven transforms, the second is a list of
     utility nodes used to create the constraint.
     :rtype: tuple(list(om2.MObject), list(om2.MObject))
     """
@@ -186,20 +186,20 @@ def iterConstraints(node):
 
     for i in xrange(compoundPlug.evaluateNumElements()):
         compElement = compoundPlug.elementByPhysicalIndex(i)
-        driverDest = compElement.child(0).destinations()
+        drivenDest = compElement.child(0).destinations()
         utilDest = compElement.child(1).destinations()
-        if driverDest or utilDest:
-            yield [i.node() for i in driverDest], [i.node() for i in utilDest]
+        if drivenDest or utilDest:
+            yield [i.node() for i in drivenDest], [i.node() for i in utilDest]
 
 
-def addConstraintMap(node, drivers, utilities):
+def addConstraintMap(node, driven, utilities):
     """Adds a mapping of drivers and utilities to the constraint compound array attribute
 
-    :param node: The node to add or has the constraint map , typically this would be the driven node
+    :param node: The node to add or has the constraint map , typically this would be the driver node
     of the constraint.
     :type node: om2.MObject
-    :param drivers: a list of driving transform nodes.
-    :type drivers: tuple(om2.MObject)
+    :param driven: a list of driven transform nodes.
+    :type driven: tuple(om2.MObject)
     :param utilities: a list of utilities/support nodes that make up the constraint, this could be the
     constraint node itself or any math node etc.
     :type utilities: tuple(om2.MObject)
@@ -212,30 +212,30 @@ def addConstraintMap(node, drivers, utilities):
     count = compoundPlug.evaluateNumElements()
     if count == 0:
         availPlug = compoundPlug.elementByLogicalIndex(0)
-        driverPlug = availPlug.child(0)
+        drivenPlug = availPlug.child(0)
     else:
         for i in xrange(count):
             availPlug = compoundPlug.elementByPhysicalIndex(i)
-            driverPlug = availPlug.child(0)
-            if driverPlug.destinations():
+            drivenPlug = availPlug.child(0)
+            if drivenPlug.isSource:
                 continue
             break
         else:
-            raise ValueError("Something went wrong in finding the next available element plug")
-    # lets add the driver nodes to the 0th of the element compound
-    for driver in iter(drivers):
-        if driver is None:
+            availPlug= compoundPlug.elementByLogicalIndex(count)
+            drivenPlug = availPlug.child(0)
+    # lets add the driven nodes to the xth of the element compound
+    for drive in iter(driven):
+        if drive is None:
             continue
-        driverFn = om2.MFnDependencyNode(driver)
+        drivenFn = om2.MFnDependencyNode(drive)
 
-        if driverFn.hasAttribute("constraint"):
-            p = driverFn.findPlug("constraint", False)
-            if p.source():
-                continue
-            plugs.connectPlugs(driverPlug, p)
+        if drivenFn.hasAttribute("constraint"):
+            p = drivenFn.findPlug("constraint", False)
+            elementP = plugs.nextAvailableElementPlug(p)
+            plugs.connectPlugs(drivenPlug, elementP)
             continue
-        attr = nodes.addAttribute(driver, "constraint", "constraint", attrtypes.kMFnMessageAttribute)
-        plugs.connectPlugs(driverPlug, om2.MPlug(driver, attr.object()))
+        attr = nodes.addAttribute(drive, "constraint", "constraint", attrtypes.kMFnMessageAttribute, isArray=True)
+        plugs.connectPlugs(drivenPlug, om2.MPlug(drive, attr.object()))
     utilPlug = availPlug.child(1)
     # add all the utilities to the first index
     for i in iter(utilities):
@@ -244,7 +244,7 @@ def addConstraintMap(node, drivers, utilities):
         utilFn = om2.MFnDependencyNode(i)
         if utilFn.hasAttribute("constraint"):
             p = utilFn.findPlug("constraint", False)
-            if p.source():
+            if p.isDestination:
                 continue
             plugs.connectPlugs(utilPlug, p)
             continue

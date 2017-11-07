@@ -2,7 +2,6 @@ import os
 
 from qt import QtGui, QtCore
 from zoo.libs.maya.utils import env
-from zoo.libs.pyqt.widgets import icon as zooicon
 
 
 class Icon(object):
