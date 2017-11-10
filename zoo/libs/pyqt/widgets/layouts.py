@@ -520,3 +520,4 @@ class CollapsableFrameLayout(QtWidgets.QWidget):
         """
         self.iconButton.clicked.connect(self.showHideWidget)
         self.titleFrame.mouseReleased.connect(self.showHideWidget)
+
