@@ -7,7 +7,7 @@ from zoo.libs.pyqt.widgets.graphics import graphicitems
 class GraphicsView(QtWidgets.QGraphicsView):
     contextMenuRequest = QtCore.Signal(object)
     clearSelectionRequest = QtCore.Signal()
-    gridSize = 30
+    gridSize = 50
     backgroundColor = QtGui.QColor(50, 50, 50)
     gridColor = QtGui.QColor(200, 200, 200)
     gridLineWidth = 1
@@ -26,8 +26,17 @@ class GraphicsView(QtWidgets.QGraphicsView):
         self.setCacheMode(self.CacheBackground)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        self.setRenderHint(QtGui.QPainter.TextAntialiasing, True)
+        self.setRenderHint(QtGui.QPainter.HighQualityAntialiasing, True)
+        self.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, True)
+        self.setRenderHint(QtGui.QPainter.NonCosmeticDefaultPen, True)
+
+        self.setViewportUpdateMode(QtWidgets.QGraphicsView.FullViewportUpdate)
+        self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+
         self.setInteractive(True)
         self.setMouseTracking(True)
         self.setAcceptDrops(True)
@@ -41,15 +50,17 @@ class GraphicsView(QtWidgets.QGraphicsView):
         self.currentSelection = []
 
     def wheelEvent(self, event):
-        self.scaleView(math.pow(2.0, -event.delta() / 240.0))
+        self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
 
-    def scaleView(self, scaleFactor):
-        factor = self.matrix().scale(scaleFactor, scaleFactor).mapRect(QtCore.QRectF(0, 0, 1, 1)).width()
+        inFactor = 1.15
+        outFactor = 1 / inFactor
 
-        if factor < 0.07 or factor > 100:
-            return
+        if event.delta() > 0:
+            zoomFactor = inFactor
+        else:
+            zoomFactor = outFactor
 
-        self.scale(scaleFactor, scaleFactor)
+        self.scale(zoomFactor, zoomFactor)
 
     def centerPosition(self):
         return self.mapToScene(QtCore.QPoint(self.width() * 0.5, self.height() * 0.5))
@@ -95,7 +106,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
             rect.translate(-delta.x(), -delta.y())
             self.setSceneRect(rect)
             self.previousMousePos = self.mapToScene(event.pos()).toPoint()
-            return
+            # return
         if not self.previousMousePos.isNull() and self.rubberBand:
             self.rubberBand.setDragPoint(self.mapToScene(event.pos()))
         super(GraphicsView, self).mouseMoveEvent(event)
@@ -104,7 +115,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
         if self.rubberBand:
             self.rubberBand.close()
             self.scene().removeItem(self.rubberBand)
-        elif self.pan_active:
+        if self.pan_active:
             self.pan_active = False
             self.setCursor(QtCore.Qt.ArrowCursor)
         super(GraphicsView, self).mouseReleaseEvent(event)
@@ -130,10 +141,32 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
         painter.drawLines([xLine, yLine])
 
-    def frameSelectedItems(self, items):
-        # itemsArea = self._getSelectedBoundingbox()
-        # self.fitInView(itemsArea, QtCore.Qt.KeepAspectRatio)
-        pass
+    def frameSelectedItems(self):
+        selection = self.scene().selectedItems()
+        if selection:
+            rect = self._getItemsBoundingBox(selection)
+        else:
+            rect = self.scene().itemsBoundingRect()
+        self.fitInView(rect, QtCore.Qt.KeepAspectRatio)
+
+    def _getItemsBoundingBox(self, items):
+        bbx = set()
+        bby = set()
+
+        for item in items:
+            pos = item.scenePos()
+            rect = item.boundingRect()
+            x, y, = pos.x(), pos.y()
+            bbx.add(x)
+            bby.add(y)
+            bbx.add(x + rect.width())
+            bby.add(y + rect.height())
+
+        bbxMax = max(bbx)
+        bbxMin = min(bbx)
+        bbyMin = min(bby)
+        bbyMax = max(bby)
+        return QtCore.QRectF(QtCore.QRect(bbxMin, bbyMin, bbxMax - bbxMin, bbyMax - bbyMin))
 
     def frameSceneItems(self):
         itemsArea = self.scene().itemsBoundingRect()
