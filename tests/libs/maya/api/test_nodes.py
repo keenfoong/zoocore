@@ -135,7 +135,7 @@ class TestNodes(mayatestutils.BaseMayaTest):
 
     def test_getObjectMatrix(self):
         node = nodes.asMObject(self.node)
-        matrix = nodes.getObjectMatrix(node)
+        matrix = nodes.getMatrix(node)
         self.assertIsInstance(matrix, om2.MMatrix)
         matPl = om2.MFnDagNode(node).findPlug("matrix", False)
         self.assertEquals(matrix, om2.MFnMatrixData(matPl.asMObject()).matrix())

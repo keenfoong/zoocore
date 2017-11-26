@@ -102,3 +102,21 @@ class Icon(object):
         pixmap.fill(color)
         pixmap.setMask(mask)
         return QtGui.QIcon(pixmap)
+
+    @classmethod
+    def grayscaleIcon(cls, iconName, size):
+        """ Returns a grayscale version of a given icon. Returns the original icon
+        if it cannot be converted.
+        :param iconName: The icon name from the library
+        :type iconName: str
+        :param size: the size of the icon to retrieve
+        :type size: int
+        :rtype: QtGui.QIcon
+        """
+        icon = cls.icon(iconName, size)
+        if not icon:
+            return icon  # will return an empty QIcon
+        # Rebuild all sizes of the icon as grayscale
+        for size in icon.availableSizes():
+            icon.addPixmap(icon.pixmap(size, QtGui.QIcon.Disabled))
+        return icon
