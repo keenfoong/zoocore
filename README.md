@@ -3,7 +3,7 @@ zoocore
 
 Core python api for zootools
 
-# Environment Variables
+## Environment Variables
 Zoo adds to the current environment, These variables accept multiple paths just make sure you create them before the
 startup process.
 
@@ -12,9 +12,12 @@ startup process.
 - ZOO_META_PATHS
 - ZOO_COMMAND_LIB
 
-# Zoo Commands
-Description
-==============
+Features
+--------
+
+## Zoo Commands
+###### Description
+
 Python command pattern with undo,redo functionality for standard applications and or DCCs if supported via command executors
 
 Commands follow some strict rules.
@@ -33,8 +36,7 @@ These include :
 
 Any command can have a QAction generate on demand via command.commandAction()
 
-Usage
-=====
+###### Usage
 
 The built command library lives under zoo.libs.command.library but users can add there own path via the environment
 variable 'ZOO_COMMAND_LIB' then running the following
