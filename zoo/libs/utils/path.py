@@ -1,4 +1,5 @@
 import ctypes
+import inspect
 
 import os
 import re
@@ -7,7 +8,9 @@ import stat
 import sys
 
 ENV_REGEX = re.compile("\%[^%]+\%")
-FRAME_REGEX = re.compile("(.*)([._-])(\d+)\.([^.]+)$", re.IGNORECASE)
+UDIM_PATTERN = "u\d+_v\d+"
+PATCH_PATTERN = "\d{4,}"
+VERSION_REGEX = re.compile("(.*)([._-])v(\d+)\.?([^.]+)?$", re.IGNORECASE)
 
 
 class Path(str):
@@ -277,6 +280,10 @@ class Path(str):
             return ''
 
         return endTok[idx + 1:]  # add one to skip the period
+
+    def removeExtensions(self):
+        exts = "." + ".".join(self.getExtensions())
+        return self.__class__(str(self).replace(exts, ""))
 
     def getExtensions(self):
         """
@@ -900,6 +907,78 @@ def resolveAndSplit(path, envDict=None, raiseOnMissing=False):
     return path, pathsToUse, isUNC
 
 
+def getTexturesNames(textures, input="zbrush", output="mari", prefix=None):
+    """Renames given textures.
+
+    :param textures: Textures.
+    :type textures: list
+    :param input: Input format ( "mari", "mudbox", "zbrush" ).
+    :type input: str
+    :param output: Output format ( "mari", "mudbox", "zbrush" ).
+    :type output: str
+    :param prefix: Rename prefix.
+    :type prefix: str
+    :return: Converted textures names.
+    :rtype: list
+    Usage::
+        >>> getTexturesNames(["Diffuse_u0_v0.exr", "Diffuse_u9_v0.exr"])
+        [(u'Diffuse_u0_v0.exr', u'Diffuse_1001.exr'), (u'Diffuse_u9_v0.exr', u'Diffuse_1010.exr')]
+        >>> getTexturesNames(["Diffuse_u0_v0.exr", "Diffuse_u9_v0.exr"], "zbrush", "mudbox")
+        [(u'Diffuse_u9_v0.exr', u'Diffuse_u10_v1.exr'), (u'Diffuse_u0_v0.exr', u'Diffuse_u1_v1.exr')]
+        >>> getTexturesNames(["Diffuse_1001.exr", "Diffuse_1010.exr"], "mari", "zbrush")
+        [(u'Diffuse_1001.exr', u'Diffuse_u0_v0.exr'), (u'Diffuse_1010.exr', u'Diffuse_u9_v0.exr')]
+        >>> getTexturesNames(["Diffuse_1001.exr", "Diffuse_1010.exr"], "mari", "mudbox")
+        [(u'Diffuse_1001.exr', u'Diffuse_u1_v1.exr'), (u'Diffuse_1010.exr', u'Diffuse_u10_v1.exr')]
+        >>> getTexturesNames(["Diffuse_u0_v0.exr", "Diffuse_u9_v0.exr"], prefix="")
+        [(u'Diffuse_u0_v0.exr', u'1001.exr'), (u'Diffuse_u9_v0.exr', u'1010.exr')]
+        >>> getTexturesNames(["Diffuse_u0_v0.exr", "Diffuse_u9_v0.exr"], prefix="Color_")
+        [(u'Diffuse_u0_v0.exr', u'Color_1001.exr'), (u'Diffuse_u9_v0.exr', u'Color_1010.exr')]
+    """
+
+    inputMethod = "udim" if input in ("mudbox", "zbrush") else "patch"
+    outputMethod = "udim" if output in ("mudbox", "zbrush") else "patch"
+    pattern = UDIM_PATTERN if inputMethod == "udim" else PATCH_PATTERN
+
+    offsetUdim = lambda x, y: (x[0] + y, x[1] + y)
+
+    if input == "zbrush" and output == "mudbox":
+        textures = reversed(textures)
+
+    texturesMapping = []
+    for texture in textures:
+        basename = os.path.basename(texture)
+        search = re.search(r"({0})".format(pattern), basename)
+        if not search:
+            print("'{0}' | '{1}' file doesn't match '{2}' pattern!".format(inspect.getmodulename(__file__),
+                                                                           texture,
+                                                                           inputMethod.title()))
+            continue
+
+        if inputMethod == "udim":
+            udim = [int(value[1:]) for value in search.group(0).split("_")]
+        elif inputMethod == "patch":
+            udim = udimFromPatch(int(search.group(0)))
+
+        udim = offsetUdim(udim, -1) if input == "mudbox" else udim
+        udim = offsetUdim(udim, 1) if output == "mudbox" else udim
+
+        if outputMethod == "udim":
+            outputAffix = "u{0}_v{1}".format(*udim)
+        elif outputMethod == "patch":
+            outputAffix = patchFromUdim(udim)
+
+        if prefix is not None:
+            path = os.path.join(os.path.dirname(texture), "{0}{1}{2}".format(prefix,
+                                                                             outputAffix,
+                                                                             os.path.splitext(texture)[-1]))
+        else:
+            path = os.path.join(os.path.dirname(texture), re.sub(r"({0})".format(pattern), str(outputAffix), basename))
+
+        texturesMapping.append((texture, path))
+
+    return texturesMapping
+
+
 def patchFromUdim(udim):
     """Returns the patch from given udim.
 
@@ -918,10 +997,10 @@ def patchFromUdim(udim):
 def udimFromPatch(patch):
     """Returns the udim from given patch.
 
-    :param udim: Patch to convert.
-    :type udim: int
+    :param patch: Patch to convert.
+    :type patch: int
     :return: Udim.
-    :rtype: str
+    :rtype: tuple(int,int)
     Example::
         >>> udimFromPatch(1001)
         (0, 0)
@@ -961,3 +1040,39 @@ def getFrameSequencePath(path, frameSpec=None):
 
     # build the full sequence path
     return os.path.join(os.path.dirname(path), newSeqName)
+
+
+
+def getVersionNumber(path):
+    """
+    Extract a version number from the supplied path.
+
+    :param path: The path to a file, likely one to be published.
+
+    :return: An integer representing the version number in the supplied
+        path. If no version found, ``None`` will be returned.
+    """
+
+    # default if no version number detected
+    version_number = -1
+
+    # if there's a version in the filename, extract it
+    version_pattern_match = re.search(VERSION_REGEX, os.path.basename(path))
+
+    if version_pattern_match:
+        version_number = int(version_pattern_match.group(3))
+
+    return version_number
+
+
+def getVersionNumberAsStr(path):
+    # default if no version number detected
+    version_number = ""
+
+    # if there's a version in the filename, extract it
+    version_pattern_match = re.search(VERSION_REGEX, os.path.basename(path))
+
+    if version_pattern_match:
+        version_number = version_pattern_match.group(3)
+
+    return version_number

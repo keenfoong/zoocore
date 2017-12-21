@@ -248,6 +248,17 @@ def zipwalk(zfilename):
         raise
 
 
+def directoryTreeToDict(path):
+    d = {'name': os.path.basename(path),
+         "path": path}
+    if os.path.isdir(path):
+        d['type'] = "directory"
+        d['children'] = [directoryTreeToDict(os.path.join(path, x)) for x in os.listdir(path)]
+    else:
+        d['type'] = "file"
+    return d
+
+
 if os.name == "nt" and sys.version_info[0] < 3:
     def symlink_ms(source, linkname):
         """Python 2 doesn't have os.symlink on windows so we do it ourselfs
