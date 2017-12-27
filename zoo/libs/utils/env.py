@@ -37,6 +37,20 @@ def application():
 
 
 def machineInfo():
+    """Returns basic information about the current pc that this code is running on
+    :return:
+                {'OSRelease': '7',
+                 'OSVersion': 'Windows-7-6.1.7601-SP1',
+                 'executable': 'C:\\Program Files\\Autodesk\\Maya2018\\bin\\maya.exe',
+                 'machineType': 'AMD64',
+                 'node': 'COMPUTERNAME',
+                 'processor': 'Intel64 Family 6 Model 44 Stepping 2, GenuineIntel',
+                 'pythonVersion': '2.7.11 (default, Jul  1 2016, 02:08:48) [MSC v.1900 64 bit (AMD64)]',
+                 'syspaths': list(str),
+                 'env': dict(os.environ)
+                 }
+    :rtype: dict
+    """
     machineDict = {"pythonVersion": sys.version,
                    "node": platform.node(),
                    "OSRelease": platform.release(),
@@ -44,7 +58,8 @@ def machineInfo():
                    "processor": platform.processor(),
                    "machineType": platform.machine(),
                    "env": os.environ,
-                   "syspaths": sys.path}
+                   "syspaths": sys.path,
+                   "executable": sys.executable}
     return machineDict
 
 

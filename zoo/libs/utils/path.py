@@ -278,6 +278,10 @@ class Path(str):
 
         return endTok[idx + 1:]  # add one to skip the period
 
+    def removeExtensions(self):
+        exts = "." + ".".join(self.getExtensions())
+        return self.__class__(str(self).replace(exts, ""))
+
     def getExtensions(self):
         """
         Returns all extensions

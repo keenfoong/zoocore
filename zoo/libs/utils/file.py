@@ -14,7 +14,7 @@ QTSUPPORTEDIMAGES = ('bmp', 'gif', 'jpg', 'jpeg', 'mng', 'png', 'pbm', 'pgm', 'p
 
 
 def isImage(path):
-    return imghdr.what(path) is not None
+    return imghdr.what(path) is not None or path.split(os.extsep)[-1] in QTSUPPORTEDIMAGES
 
 
 def imageSupportByQt(path):

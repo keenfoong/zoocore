@@ -112,8 +112,35 @@ def copyFile(src, dst, permissions=0666):
     :param permissions: Permissions to use for target file. Default permissions will
                         be readable and writable for all users.
     """
+    dirname = os.path.dirname(dst)
+    if not os.path.isdir(dirname):
+        old_umask = os.umask(0)
+        os.makedirs(dirname, permissions)
+        os.umask(old_umask)
     shutil.copy(src, dst)
-    os.chmod(dst, permissions)
+    # os.chmod(dst, permissions)
+
+
+def batchCopyFiles(paths, permissions=0777):
+    """ Expects the parent folder to have been already created.
+
+    :param paths: source path, destination path
+    :type paths: tuple(tuple(str, str))
+    :param permissions: OS permissions
+    :type permissions: int
+    :return: a list of tuples containing source,destination fails
+    :rtype: list(tuple(str, str)
+    """
+    failed = []
+    for source, destination in paths:
+        try:
+            logger.info("Copying %s --> %s..." % (source, destination))
+            copy_file(source, destination, permissions=permissions)
+        except OSError:
+            raise
+            failed.append((source, destination))
+            continue
+    return failed
 
 
 def copyDirectoy(src, dst, ignorePattern=None):
@@ -272,3 +299,14 @@ if os.name == "nt" and sys.version_info[0] < 3:
 
 
     os.symlink = symlink_ms
+
+
+def directoryTreeToDict(path):
+    d = {'name': os.path.basename(path),
+         "path": path}
+    if os.path.isdir(path):
+        d['type'] = "directory"
+        d['children'] = [directoryTreeToDict(os.path.join(path, x)) for x in os.listdir(path)]
+    else:
+        d['type'] = "file"
+    return d
