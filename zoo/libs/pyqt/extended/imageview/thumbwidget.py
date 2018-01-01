@@ -77,7 +77,6 @@ class ListView(QtWidgets.QListView):
         currentSize.setHeight(newSize)
         self.requestZoom.emit(newSize, self.zoomAmount)
         self.setIconSize(currentSize)
-        print "zoomed", newSize
 
 
 class ThumbnailViewWidget(QtWidgets.QWidget):

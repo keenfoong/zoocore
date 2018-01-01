@@ -44,7 +44,6 @@ class ItemModel(QtGui.QStandardItemModel):
         itemsToFetch = min(reminder, self.chunkCount)
         self.beginInsertRows(QtCore.QModelIndex(), self.loadedCount, self.loadedCount + itemsToFetch-1)
         self.loadedCount += itemsToFetch
-        print self.loadedCount, reminder, len(self.items)
         self.endInsertRows()
 
     def reset(self):

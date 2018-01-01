@@ -65,6 +65,7 @@ class ExampleThumbnailViewerModel(model.ItemModel):
             qitem = self.createItem(item=it)
             workerThread.signals.updated.connect(partial(self.setItemIconFromImage, qitem))
             self.threadpool.start(workerThread)
+
         self.reset()
 
     def setItemIconFromImage(self, item, image):
