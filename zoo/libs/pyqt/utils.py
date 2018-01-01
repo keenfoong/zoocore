@@ -1,6 +1,6 @@
 from functools import partial
 
-from qt import QtWidgets
+from qt import QtWidgets, QtGui
 from zoo.libs.utils import zlogging
 
 
@@ -110,3 +110,15 @@ def recursivelySetActionVisiblity(menu, state):
     if any(action.isVisible() for action in menu.actions()) and menu.isVisible() != state:
         menu.menuAction().setVisible(state)
 
+
+def desktopPixmapFromRect(rect):
+    """Generates a pixmap on the specified QRectangle.
+
+    :param rect: Rectangle to Snap
+    :type rect: :class:`~PySide.QtCore.QRect`
+    :returns: Captured pixmap
+    :rtype: :class:`~PySide.QtGui.QPixmap`
+    """
+    desktop = QtWidgets.QApplication.instance().desktop()
+    return QtGui.QPixmap.grabWindow(desktop.winId(), rect.x(), rect.y(),
+                                        rect.width(), rect.height())

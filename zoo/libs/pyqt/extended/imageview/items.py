@@ -1,14 +1,42 @@
 import os
+
 from qt import QtGui, QtCore, QtWidgets
+from zoo.libs.pyqt import thread
+
+
+class ItemSignals(thread.WorkerSignals):
+    updated = QtCore.Signal(object)
+
+
+class ThreadedIcon(QtCore.QRunnable):
+
+    def __init__(self, iconPath, width=None, height=None, *args, **kwargs):
+        super(ThreadedIcon, self).__init__(*args, **kwargs)
+        self.signals = ItemSignals()
+        # Add the callback to our kwargs
+        kwargs['progress_callback'] = self.signals.progress
+
+        self._path = iconPath
+        self.width = width
+        self.height = height
+        self.placeHolderImage = QtGui.QImage(200, 200, QtGui.QImage.Format_ARGB32)
+        self.placeHolderImage.fill(QtGui.qRgb(255, 0, 0))
+
+    @QtCore.Slot()
+    def run(self):
+        self.signals.updated.emit(self.placeHolderImage)
+        if not self._path:
+            return
+        image = QtGui.QImage(self._path)
+        self.signals.updated.emit(image)
+        self.signals.finished.emit()
+
 
 class BaseItem(object):
-    def __init__(self):
-        self.iconPath = ""
+    def __init__(self, name=None, iconPath=None):
         self.metadata = {}
-        self.name = ""
-
-    def __getattr__(self, item):
-        return self.metadata.get(item, "")
+        self.name = name or ""
+        self.iconPath = iconPath or ""
 
     def tags(self):
         return self.metadata.get("metadata", {}).get("tags", [])
@@ -37,54 +65,35 @@ class BaseItem(object):
                 }
 
 
-
-class ThreadedIcon(QtCore.QThread):
-    updated = QtCore.Signal(object)
-
-    def __init__(self, path, *args, **kwargs):
-        super(ThreadedIcon, self).__init__(*args, **kwargs)
-        self._path = path
-        self.placeHolderImage = QtGui.QImage(200, 200, QtGui.QImage.Format_ARGB32)
-        self.placeHolderImage.fill(QtGui.qRgb(255, 0, 0))
-
-    def run(self):
-        self.updated.emit(self.placeHolderImage)
-        if not self._path:
-            return
-        image = QtGui.QImage(self._path)
-        self.updated.emit(image)
-        self.finished.emit()
-
-
 class TreeItem(QtGui.QStandardItem):
-    backgroundColor = QtGui.QColor(50, 50, 50)
-    backgroundColorSelected = QtGui.QColor(20, 20, 80)
-    backgroundColorHover = QtGui.QColor(20, 20, 50)
+    backgroundColor = QtGui.QColor(70, 70, 80)
+    backgroundColorSelected = QtGui.QColor(50, 180, 240)
+    backgroundColorHover = QtGui.QColor(50, 180, 150)
     textColorSelected = QtGui.QColor(255, 255, 255)
     textColor = QtGui.QColor(255, 255, 255)
+    backgroundBrush = QtGui.QBrush(backgroundColor)
+    backgroundColorSelectedBrush = QtGui.QBrush(backgroundColorSelected)
+    backgroundColorHoverBrush = QtGui.QBrush(backgroundColorHover)
 
     def __init__(self, item, parent=None):
         super(TreeItem, self).__init__(parent=parent)
         self.padding = 2.5
         self.textHeight = 15
-        self.showText = False
-        self._backgroundBrush = QtGui.QBrush(self.backgroundColor)
-        self._backgroundColorSelectedBrush = QtGui.QBrush(self.backgroundColorSelected)
-        self._backgroundColorHoverBrush = QtGui.QBrush(self.backgroundColorHover)
-
+        self.showText = True
         self._item = item
         self._pixmap = QtGui.QPixmap()
         self.iconSize = QtCore.QSize(256, 256)
-
-        self.loaderThread = ThreadedIcon(str(item.iconPath))
-        self.loaderThread.updated.connect(self.applyFromImage)
-        self.loaderThread.start()
+        self.loaderThread = ThreadedIcon(item.iconPath)
 
     def applyFromImage(self, image):
         pixmap = QtGui.QPixmap()
         pixmap = pixmap.fromImage(image)
         self._pixmap = pixmap
         self.model().dataChanged.emit(self.index(), self.index())
+
+    def setIconPath(self, iconPath):
+        self._item.iconPath = iconPath
+        self._pixmap = QtGui.QPixmap(iconPath)
 
     def pixmap(self):
         if not self._pixmap.isNull():
@@ -93,7 +102,7 @@ class TreeItem(QtGui.QStandardItem):
             return QtGui.QPixmap()
         return self._pixmap
 
-    def tooltip(self):
+    def toolTip(self):
         return self._item.description
 
     def isEditable(self, *args, **kwargs):
@@ -103,10 +112,10 @@ class TreeItem(QtGui.QStandardItem):
         return QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter
 
     def sizeHint(self):
-        return self.model().view.iconSize
+        return self.model().view.iconSize()
 
     def font(self, index):
-        return
+        return QtGui.QFont("Courier")
 
     def textAlignment(self, index):
         return QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter
@@ -160,17 +169,19 @@ class TreeItem(QtGui.QStandardItem):
         isMouseOver = option.state & QtWidgets.QStyle.State_MouseOver
         painter.setPen(QtGui.QPen(QtCore.Qt.NoPen))
         if isSelected:
-            brush = self._backgroundColorSelectedBrush
+            brush = self.backgroundColorSelectedBrush
         elif isMouseOver:
-            brush = self._backgroundColorHoverBrush
+            brush = self.backgroundColorHoverBrush
         else:
-            brush = self._backgroundBrush
+            brush = self.backgroundBrush
         painter.setBrush(brush)
         painter.drawRect(option.rect)
 
     def _paintIcon(self, painter, option, index):
         rect = self.iconRect(option)
         pixmap = self.pixmap()
+        if pixmap.isNull():
+            return
         pixmap = pixmap.scaled(
             rect.width(),
             rect.height(),
