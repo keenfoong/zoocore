@@ -1,3 +1,6 @@
+import re
+
+
 def merge(a, b, path=None):
     """Merges two dicts
     http://stackoverflow.com/questions/7204805/dictionaries-of-dictionaries-merge/7205107#7205107
@@ -96,3 +99,26 @@ def getDuplicates(seq):
             dups.append(x)
         seen.add(x)
     return dups
+
+
+def fuzzyFinder(input, collection):
+    """ A poor person fuzzy finder function.
+
+    :param input: A partial string which is typically entered by a user.
+    :type input: str.
+    :param collection: A collection of strings which will be filtered based on the `input`.
+    :type collection: iterable.
+    :returns: A generator object that produces a list of suggestions narrowed down from `collection` using the `input`.
+    :rtype: generator.
+    ::examples
+        >>> list(fuzzyFinder("te", ["gete", "test", "hello", "job", "lbsknasdvte", "3rya8d^&%()te)VHF"]))
+        # result ['test', 'gete', 'lbsknasdvte', '3rya8d^&%()te)VHF']
+    """
+    regex = re.compile('.*?'.join(map(re.escape, input)))
+    suggestions = set()
+    for item in collection:
+        r = regex.search(item)
+        if r:
+            suggestions.add((len(r.group()), r.start(), item))
+
+    return (z[-1] for z in sorted(suggestions))
