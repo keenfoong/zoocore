@@ -1,8 +1,6 @@
-import os, sys
+import os
 from functools import partial
 
-sys.path.append(r"E:\code\python\zootools_pro\zoocore")
-sys.path.append(r"E:\code\python\zootools_pro\zoocore\thirdparty")
 from qt import QtWidgets, QtCore
 from zoo.libs.pyqt.extended.imageview import model, items, thumbwidget
 from zoo.libs.utils import file
