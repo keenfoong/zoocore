@@ -1,6 +1,6 @@
 from functools import partial
 
-from qt import QtWidgets
+from qt import QtWidgets, QtGui
 from zoo.libs.utils import zlogging
 
 
@@ -90,3 +90,35 @@ def vlineEdit(labelName, parent, enabled=True):
     layout.setContentsMargins(2, 2, 2, 2)
     layout.setSpacing(1)
     return label, edit, layout
+
+
+def recursivelySetActionVisiblity(menu, state):
+    """Will recursively set the visible state of the QMenu actions
+
+    :param menu: The QMenu to search
+    :type menu: QMenu
+    :type state: bool
+    """
+    for action in menu.actions():
+        subMenu = action.menu()
+        if subMenu:
+            recursivelySetActionVisiblity(subMenu, state)
+        elif action.isSeparator():
+            continue
+        if action.isVisible() != state:
+            action.setVisible(state)
+    if any(action.isVisible() for action in menu.actions()) and menu.isVisible() != state:
+        menu.menuAction().setVisible(state)
+
+
+def desktopPixmapFromRect(rect):
+    """Generates a pixmap on the specified QRectangle.
+
+    :param rect: Rectangle to Snap
+    :type rect: :class:`~PySide.QtCore.QRect`
+    :returns: Captured pixmap
+    :rtype: :class:`~PySide.QtGui.QPixmap`
+    """
+    desktop = QtWidgets.QApplication.instance().desktop()
+    return QtGui.QPixmap.grabWindow(desktop.winId(), rect.x(), rect.y(),
+                                        rect.width(), rect.height())

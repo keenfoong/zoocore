@@ -1,7 +1,7 @@
 import os
 
 from qt import QtGui, QtCore
-from zoo.libs.maya.utils import env
+from zoo.libs.utils import env
 
 
 class Icon(object):
@@ -9,10 +9,14 @@ class Icon(object):
     """
     iconCollection = {}
     iconPaths = []
-    if not iconCollection:
+
+    @classmethod
+    def reload(cls):
+        cls.iconCollection = {}
+
         # find and store all the found icons with the base zoo paths
-        iconPaths = os.environ["ZOO_ICON_PATH"].split(os.pathsep)
-        for iconPath in iconPaths:
+        cls.iconPaths = os.environ.get("ZOO_ICON_PATH", "").split(os.pathsep)
+        for iconPath in cls.iconPaths:
             if not iconPath or not os.path.exists(iconPath):
                 continue
             for root, dirs, files in os.walk(iconPath):
@@ -25,18 +29,17 @@ class Icon(object):
                         continue
                     name = "_".join(nameSplit[:-1])
                     size = int(nameSplit[-1])
-                    if name in iconCollection:
-                        sizes = iconCollection[name]["sizes"]
+                    if name in cls.iconCollection:
+                        sizes = cls.iconCollection[name]["sizes"]
                         if size in sizes:
                             continue
                         sizes[size] = {"path": os.path.join(root, f),
                                        "icon": None}
 
                     else:
-                        iconCollection[name] = {"sizes": {size: {"path": os.path.join(root, f),
+                        cls.iconCollection[name] = {"sizes": {size: {"path": os.path.join(root, f),
                                                                  'icon': None}},
                                                 "name": name}
-
     @classmethod
     def icon(cls, iconName, size=16):
         """Returns a QtGui.QIcon instance intialized to the icon path for the icon name if the icon name is found within
@@ -120,3 +123,4 @@ class Icon(object):
         for size in icon.availableSizes():
             icon.addPixmap(icon.pixmap(size, QtGui.QIcon.Disabled))
         return icon
+Icon.reload()
