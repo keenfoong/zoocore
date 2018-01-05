@@ -154,7 +154,7 @@ class ZooCommand(CommandInterface):
         return ArgumentParser()
 
     @classmethod
-    def commandAction(cls, uiType, parent=None):
+    def commandAction(cls, uiType, parent=None, optionBox=False):
         # import locally due to avoid qt dependencies by default
         from zoo.libs.command import commandui
 
@@ -162,7 +162,7 @@ class ZooCommand(CommandInterface):
             widget = commandui.CommandAction(cls)
         else:
             widget = commandui.MenuItem(cls)
-        widget.create(parent=parent)
+        widget.create(parent=parent, optionBox=optionBox)
         return widget
 
 

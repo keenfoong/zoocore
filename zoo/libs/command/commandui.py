@@ -11,6 +11,7 @@ class CommandActionBase(QtCore.QObject):
     """CommandUi class deals with encapsulating a command as a widget
     """
     triggered = QtCore.Signal(str)
+    triggeredUi = QtCore.Signal(str)
 
     def __init__(self, command):
         super(CommandActionBase, self).__init__()
@@ -22,11 +23,16 @@ class CommandActionBase(QtCore.QObject):
 
 
 class MenuItem(CommandActionBase):
-    def create(self, parent=None):
+    def create(self, parent=None, optionBox=False):
         from maya import cmds
         uiData = self.command.uiData()
-        self.item = cmds.menuItem(l=uiData["uiData"], bld=uiData.get("bold", False), parent=parent,
-                                  itl=uiData.get("italicized", False), c=partial(self.triggered.emit, self.command.id))
+        self.item = cmds.menuItem(label=uiData["uiData"], bold=uiData.get("bold", False), parent=parent,
+                                  italicized=uiData.get("italicized", False), command=partial(self.triggered.emit,
+                                                                                              self.command.id),
+                                  optionBox=optionBox)
+        if optionBox:
+            cmds.menuItem(parent=parent, optionBox=optionBox, command=partial(self.triggeredUi.emit,
+                                                                              self.command.id))
 
 
 class CommandAction(CommandActionBase):

@@ -1,4 +1,4 @@
-from qt import QtWidgets
+from qt import QtWidgets, QtCore
 
 try:
     from shiboken2 import wrapInstance as wrapinstance
@@ -8,6 +8,30 @@ except:
 import maya.OpenMayaUI as apiUI
 from maya import cmds
 
+MAYA_DPI_SCALE = maya_scale = 1.0 if not hasattr(cmds, "mayaDpiSetting") else cmds.mayaDpiSetting(query=True,
+                                                                                                  realScaleValue=True)
+
+
+def dpiScale(value):
+    """Get the appropriate QSize based on maya's current dpi setting
+    :param value:
+    :type value: int or float
+    :return:
+    :rtype:
+    """
+    return apiUI.MQtUtil.dpiScale(value)
+
+
+def sizeByDpi(size):
+    """Scales the QSize by the current dpi scaling from maya.
+
+    :param size: The QSize to Scale by the dpi setting from maya
+    :type size: QSize
+    :return: The newly scaled QSize
+    :rtype: QSize
+    """
+    return QtCore.QSize(dpiScale(size.width()), dpiScale(size.height()))
+
 
 def getMayaWindow():
     """
@@ -16,6 +40,16 @@ def getMayaWindow():
     ptr = apiUI.MQtUtil.mainWindow()
     if ptr is not None:
         return wrapinstance(long(ptr), QtWidgets.QMainWindow)
+
+
+def mayaViewport():
+    """Returns the currently active maya viewport as a widget
+    :return:
+    :rtype:
+    """
+    widget = apiUI.M3dView.active3dView().widget()
+    widget = wrapinstance(long(widget), QtWidgets.QWidget)
+    return widget
 
 
 def fullName(widget):
