@@ -1,5 +1,3 @@
-import os
-
 from qt import QtGui, QtCore, QtWidgets
 
 
@@ -25,7 +23,7 @@ class ItemModel(QtGui.QStandardItemModel):
         self.rootItem = QtGui.QStandardItem('root')
         # items list , all items to show in the view should be in this one dimensional list
         self.items = []  # ::class:`item.TreeItem`
-        self.loadedCount = self.chunkCount
+        self.loadedCount = 0
 
     def canFetchMore(self, index=QtCore.QModelIndex()):
         """Overridden to handle paginating the data using the len(self.items) > self.loadedCount,

@@ -1,4 +1,5 @@
 from qt import QtWidgets, QtCore
+from zoo.libs.pyqt.models import sortmodel
 from zoo.libs import iconlib
 
 
@@ -45,8 +46,11 @@ class TableViewPlus(QtWidgets.QFrame):
 
     def _setupFilter(self):
         self.searchBoxLabel = QtWidgets.QLabel("Search By: ", parent=self)
-        self.searchHeaderBox = QtWidgets.QComboBox(parent=self)
-
+        self.searchHeaderBox = comboboxplus.ExtendedComboBox(parent=self)
+        self.columnVisibilityBox = comboboxplus.ExtendedComboBox(parent=self)
+        self.columnVisibilityBox.checkStateChanged.connect(self.toggleColumn)
+        self.columnVisibilityBox.setMinimumWidth(100)
+        self.searchHeaderBox.setMinimumWidth(100)
         self.searchFrame = QtWidgets.QFrame(parent=self)
         self.searchFrame.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.searchFrame.setFrameShadow(QtWidgets.QFrame.Plain)
@@ -59,6 +63,7 @@ class TableViewPlus(QtWidgets.QFrame):
         self.searchEdit = QtWidgets.QLineEdit(self)
         self.searchFrame.setLayout(self.searchLayout)
         self.searchLayout.addWidget(self.reloadBtn)
+        self.searchLayout.addWidget(self.columnVisibilityBox)
         self.searchLayout.addWidget(self.searchBoxLabel)
         self.searchLayout.addWidget(self.searchHeaderBox)
         self.searchLayout.addWidget(self.searchLabel)
@@ -78,7 +83,7 @@ class TableViewPlus(QtWidgets.QFrame):
 
         self.mainLayout.addWidget(self.tableview)
 
-        self.proxySearch = QtCore.QSortFilterProxyModel(parent=self)
+        self.proxySearch = sortmodel.TableFilterProxyModel()
         self.proxySearch.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.proxySearch.setFilterKeyColumn(0)
         self.tableview.setModel(self.proxySearch)
@@ -95,7 +100,8 @@ class TableViewPlus(QtWidgets.QFrame):
         self.searchClearBtn.clicked.connect(self.searchEdit.clear)
         self.searchHeaderBox.currentIndexChanged.connect(self.onSearchBoxChanged)
         self.reloadBtn.clicked.connect(self.refresh)
-        self.selectionModel().selectionChanged.connect(self.onSelectionChanged)
+        selModel = self.selectionModel()  # had to assign a var otherwise the c++ object gets deleted in PySide1
+        selModel.selectionChanged.connect(self.onSelectionChanged)
         self.searchEdit.textChanged.connect(self.proxySearch.setFilterRegExp)
 
     def onSelectionChanged(self, current, previous):
@@ -106,24 +112,24 @@ class TableViewPlus(QtWidgets.QFrame):
         index = self.searchHeaderBox.currentIndex()
         self.proxySearch.setFilterKeyColumn(index)
 
+    def model(self):
+        return self.tableview.model()
+
     def setModel(self, model):
         self.proxySearch.setSourceModel(model)
         self.proxySearch.setDynamicSortFilter(True)
-        self.proxySearch.setSortRole(QtCore.Qt.DisplayRole)
-        self.proxySearch.setFilterRole(QtCore.Qt.DisplayRole)
-        self.proxySearch.setFilterKeyColumn(0)
 
         self._model = model
         if self.rowDataSource:
             self.rowDataSource.model = model
         for i in iter(self.columnDataSources):
             i.model = model
-        self.tableview.setModel(self._model)
 
     def refresh(self):
         self.refreshRequested.emit()
         rowDataSource = self._model.rowDataSource
         self.searchHeaderBox.addItem(rowDataSource.headerText(0))
+
         columnDataSources = self._model.columnDataSources
         for i in xrange(len(columnDataSources)):
             self.searchHeaderBox.addItem(columnDataSources[i].headerText(i))
@@ -146,3 +152,18 @@ class TableViewPlus(QtWidgets.QFrame):
 
     def selectedColumns(self):
         return list(set([i.column() for i in self.selectionModel().selectedColumns()]))
+
+    def toggleColumn(self, headerText, state):
+        if headerText == self.rowDataSource.headerText(0):
+            if state == QtCore.Qt.Checked:
+                self.tableview.showColumn(0)
+            else:
+                self.tableview.hideColumn(0)
+        else:
+            for i, source in enumerate(self.columnDataSources):
+                i += 1
+                if source.headerText(i) == headerText:
+                    if state == QtCore.Qt.Checked:
+                        self.tableview.showColumn(i)
+                    else:
+                        self.tableview.hideColumn(i)

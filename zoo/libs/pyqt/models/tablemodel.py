@@ -2,9 +2,6 @@ from qt import QtCore, QtGui
 
 
 class TableModel(QtCore.QAbstractTableModel):
-    sortRole = QtCore.Qt.UserRole
-    filterRole = QtCore.Qt.UserRole + 1
-    userObject = QtCore.Qt.UserRole + 2
 
     def __init__(self, parent=None):
         """first element is the rowDataSource
@@ -87,11 +84,13 @@ class TableModel(QtCore.QAbstractTableModel):
             color = dataSource.foregroundColor(**kwargs)
             if color:
                 return QtGui.QColor(*color)
-        elif role == TableModel.sortRole:
-            return dataSource.data(**kwargs)
-        elif role == TableModel.filterRole:
-            return dataSource.data(**kwargs)
-        elif role == TableModel.userObject:
+        elif role == constants.minValue:
+            return dataSource.minimum(**kwargs)
+        elif role == constants.maxValue:
+            return dataSource.maximum(**kwargs)
+        elif role == constants.enumsRole:
+            return dataSource.enums(**kwargs)
+        elif role == constants.userObject:
             return dataSource.userObject(row)
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
@@ -136,7 +135,7 @@ class TableModel(QtCore.QAbstractTableModel):
             if role == QtCore.Qt.DisplayRole:
                 return dataSource.headerText(section)
             elif role == QtCore.Qt.DecorationRole:
-                icon = dataSource.headerIcon(section)
+                icon = dataSource.headerIcon()
                 if icon.isNull:
                     return
                 return icon.pixmap(icon.availableSizes()[-1])
@@ -189,4 +188,15 @@ class TableModel(QtCore.QAbstractTableModel):
         :return:
         :rtype:
         """
-        return index.data(self.userObject) if index.isValid() else self._rowDataSource.userObject(index.row())
+        return index.data() if index.isValid() else self._rowDataSource.userObject(index.row())
+
+    def sort(self, column, order):
+        """Sort table by given column number.
+        """
+
+        self.layoutAboutToBeChanged.emit()
+        if column == 0:
+            self.rowDataSource.sort(index=column, order=order)
+        else:
+            self.columnDataSources[column-1].sort(rowDataSource=self.rowDataSource, index=column, order=order)
+        self.layoutChanged.emit()

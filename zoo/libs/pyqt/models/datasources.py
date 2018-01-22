@@ -3,11 +3,11 @@ from zoo.libs.pyqt.models import delegates
 
 
 class BaseDataSource(QtCore.QObject):
-    def __init__(self, parent=None):
+    def __init__(self, model=None, parent=None):
         super(BaseDataSource, self).__init__()
         self._parent = parent
         self.children = []
-        self.model = None
+        self.model = model
 
     def userObject(self, index):
         if index in xrange(self.rowCount()):
@@ -49,6 +49,10 @@ class BaseDataSource(QtCore.QObject):
         """
         if index in xrange(self.rowCount()):
             return self.children[index]
+
+    def insertChild(self, index, child):
+        if child not in self.children:
+            self.children.insert(index, child)
 
     def setData(self, index, value):
         """Sets the text value of this node at the specified column
@@ -96,7 +100,7 @@ class BaseDataSource(QtCore.QObject):
         """
         return QtGui.QIcon()
 
-    def headerText(self):
+    def headerText(self, index=0):
         """Returns the column header text
 
         :return: the header value
@@ -288,8 +292,29 @@ class BaseDataSource(QtCore.QObject):
     def contextMenu(self, menu):
         pass
 
+    def sort(self, index=0, order=QtCore.Qt.DescendingOrder):
+        """This sort function purpose is for sorting the data by column.
+
+        :param index: the column index to sort
+        :type index: int
+        :param order: The Qt order
+        :type order: int
+        """
+        pass
+
 
 class ColumnDataSource(BaseDataSource):
+
+    def sort(self, rowDataSource=None, index=0, order=QtCore.Qt.DescendingOrder):
+        """This sort function purpose is for sorting the data by column.
+
+        :param index: the column index to sort
+        :type index: int
+        :param order: The Qt order
+        :type order: int
+        """
+        pass
+
     def setData(self, rowDataSource, index, value):
         """Sets the text value of this node at the specified column.
 

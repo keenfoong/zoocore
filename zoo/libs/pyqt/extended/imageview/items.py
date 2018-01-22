@@ -37,6 +37,8 @@ class BaseItem(object):
         self.metadata = {}
         self.name = name or ""
         self.iconPath = iconPath or ""
+        self.description = ""
+        self.user = ""
 
     def tags(self):
         return self.metadata.get("metadata", {}).get("tags", [])
