@@ -1,8 +1,9 @@
 from qt import QtGui, QtCore, QtWidgets
 from zoo.libs.pyqt.extended.imageview import model
+from zoo.libs.pyqt.widgets import listview
 
 
-class ListView(QtWidgets.QListView):
+class ListView(listview.ListView):
     requestZoom = QtCore.Signal(object, float)
     zoomAmount = 90
     defaultMinIconSize = 50
@@ -20,6 +21,9 @@ class ListView(QtWidgets.QListView):
         self.zoomable = True
         self._iconSize = QtCore.QSize()
         self.setIconSize(self.defaultIconSize)
+
+        self._delegate = model.ThumbnailDelegate(self)
+        self.listView.setItemDelegate(self._delegate)
 
     def setIconSize(self, size):
         self._iconSize = size
@@ -82,8 +86,6 @@ class ListView(QtWidgets.QListView):
 class ThumbnailViewWidget(QtWidgets.QWidget):
     """The main widget for viewing thumbnails, this runs off a custom QStandardItemModel.
     """
-    # emits the selection List as items directly from the model and the QMenu at the mouse position
-    contextMenuRequested = QtCore.Signal(list, object)
 
     def __init__(self, parent=None):
         """
@@ -95,17 +97,12 @@ class ThumbnailViewWidget(QtWidgets.QWidget):
         self.initUi()
 
     def initUi(self):
-
         layout = QtWidgets.QVBoxLayout(self)
         self.setLayout(layout)
         self.listView = ListView(parent=self)
-        self.delegate = model.ThumbnailDelegate(self)
-        self.listView.setItemDelegate(self.delegate)
         layout.addWidget(self.listView)
-
         self.listView.verticalScrollBar().valueChanged.connect(self.paginationLoadNextItems)
         self.listView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.listView.customContextMenuRequested.connect(self.contextMenu)
 
     def setModel(self, model):
         self.listView.setModel(model)
@@ -152,13 +149,13 @@ class ThumbnailViewWidget(QtWidgets.QWidget):
             size = QtCore.QSize(minSize, minSize)
             self.listView.setIconSize(size)
 
-
     def paginationLoadNextItems(self):
         """Simple method to call the models loadData method when the vertical slider hits the max value, useful to load
         the next page of data on the model.
 
         """
-        if self.qModel is None:
+        model = self.listView.model()
+        if model is None:
             return
 
         vbar = self.listView.verticalScrollBar()
@@ -166,13 +163,4 @@ class ThumbnailViewWidget(QtWidgets.QWidget):
         sliderPos = vbar.sliderPosition()
 
         if sliderPos == sliderMax:
-            self.qModel.loadData()
-
-    def contextMenu(self, position):
-        if self.qModel is None:
-            return
-        menu = QtWidgets.QMenu(self)
-        model = self.qModel
-        selection = [model.itemFromIndex(index) for index in self.selectionModel.selectedIndexes()]
-        self.contextMenuRequested.emit(selection, menu)
-        menu.exec_(self.listView.viewport().mapToGlobal(position))
+            model.loadData()

@@ -39,6 +39,13 @@ class ExampleThumbnailViewerModel(model.ItemModel):
         self.currentFilesList = results
 
     def createItem(self, item):
+        """Custom wrapper Method to create a ::class`items.TreeItem`, add it to the model items and class appendRow()
+
+        :param item:
+        :type item: ::class:`baseItem`
+        :return:
+        :rtype: ::class:`items.TreeItem`
+        """
         tItem = items.TreeItem(item=item)
         self.items.append(tItem)
         self.appendRow(tItem)
@@ -46,7 +53,7 @@ class ExampleThumbnailViewerModel(model.ItemModel):
 
     def loadData(self):
         """Overridden to prep the images from load and viewing in the view, you can do anything in here.
-        Lazy loading happens either on first class initiization and any time the vertical bar hits the max value, we than
+        Lazy loading happens either on first class initialization and any time the vertical bar hits the max value, we than
         grab the current the new file chunk by files[self.loadedCount: loadedCount + self.chunkCount] that way we are
         only loading a small amount at a time.
         Since this is an example of how to use the method , you can approach it in any way you wish but for each item you
@@ -69,6 +76,15 @@ class ExampleThumbnailViewerModel(model.ItemModel):
         self.reset()
 
     def setItemIconFromImage(self, item, image):
+        """Custom method that gets called by the thread
+
+        :param item:
+        :type item: ::class:`TreeItem`
+        :param image: The Loaded QImage
+        :type image: QtGui.QImage
+        :return:
+        :rtype:
+        """
         item.applyFromImage(image)
 
 

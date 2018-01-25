@@ -1,5 +1,6 @@
 from qt import QtWidgets, QtCore
 from zoo.libs.pyqt.models import sortmodel
+from zoo.libs.pyqt.extended import combobox
 from zoo.libs import iconlib
 
 
@@ -46,8 +47,8 @@ class TableViewPlus(QtWidgets.QFrame):
 
     def _setupFilter(self):
         self.searchBoxLabel = QtWidgets.QLabel("Search By: ", parent=self)
-        self.searchHeaderBox = comboboxplus.ExtendedComboBox(parent=self)
-        self.columnVisibilityBox = comboboxplus.ExtendedComboBox(parent=self)
+        self.searchHeaderBox = combobox.ExtendedComboBox(parent=self)
+        self.columnVisibilityBox = combobox.ExtendedComboBox(parent=self)
         self.columnVisibilityBox.checkStateChanged.connect(self.toggleColumn)
         self.columnVisibilityBox.setMinimumWidth(100)
         self.searchHeaderBox.setMinimumWidth(100)

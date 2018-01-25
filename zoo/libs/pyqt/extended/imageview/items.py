@@ -33,12 +33,15 @@ class ThreadedIcon(QtCore.QRunnable):
 
 
 class BaseItem(object):
-    def __init__(self, name=None, iconPath=None):
-        self.metadata = {}
+    def __init__(self, name=None, description=None, iconPath=None):
         self.name = name or ""
         self.iconPath = iconPath or ""
-        self.description = ""
+        self._description = description or ""
+        self.metadata = {}
         self.user = ""
+
+    def description(self):
+        return self._description
 
     def tags(self):
         return self.metadata.get("metadata", {}).get("tags", [])
@@ -105,7 +108,7 @@ class TreeItem(QtGui.QStandardItem):
         return self._pixmap
 
     def toolTip(self):
-        return self._item.description
+        return self._item.description()
 
     def isEditable(self, *args, **kwargs):
         return False
