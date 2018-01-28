@@ -66,17 +66,19 @@ class ItemModel(QtGui.QStandardItemModel):
         row = int(index.row())
         item = self.items[row]
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            return item.text(row)
+            return item.text()
         elif role == QtCore.Qt.ToolTipRole:
-            return item.toolTip(row)
+            return item.toolTip()
         elif role == QtCore.Qt.DecorationRole:
-            return item.icon(row)
+            return item.icon()
         elif role == QtCore.Qt.BackgroundRole:
-            color = item.backgroundColor(row)
+            color = item.backgroundColor()
             if color:
                 return QtGui.QColor(*color)
         elif role == QtCore.Qt.ForegroundRole:
-            color = item.foregroundColor(row)
+            color = item.foregroundColor()
             if color:
                 return QtGui.QColor(*color)
         return super(ItemModel, self).data(index, role)
+    def doubleClickEvent(self, modelIndex, item):
+        pass

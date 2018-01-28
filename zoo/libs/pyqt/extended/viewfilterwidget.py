@@ -23,8 +23,8 @@ class ViewSearchWidget(QtWidgets.QWidget):
 
     def __init__(self, showColumnVisBox=True, parent=None):
         super(ViewSearchWidget, self).__init__(parent=parent)
-        searchIcon = QtGui.QPixmap(iconlib.icon("magnifier.png"), 16)
-        closeIcon = QtGui.QPixmap(iconlib.icon("code.png", 16))
+        searchIcon = iconlib.icon("magnifier", 16)
+        closeIcon = iconlib.icon("close", 16)
 
         self.searchFrame = QtWidgets.QFrame(parent=self)
         self.searchFrame.setFrameShape(QtWidgets.QFrame.NoFrame)
@@ -46,7 +46,6 @@ class ViewSearchWidget(QtWidgets.QWidget):
         self.columnVisibilityBox = None
         if showColumnVisBox:
             self.columnVisibilityBox = combobox.ExtendedComboBox(parent=self)
-            self.columnVisibilityBox.checkStateChanged.connect(self.toggleColumn)
             self.columnVisibilityBox.setMinimumWidth(100)
             self.columnVisibilityBox.checkStateChanged.connect(self.onVisibilityChanged)
             self.searchLayout.addWidget(self.columnVisibilityBox)
@@ -54,7 +53,6 @@ class ViewSearchWidget(QtWidgets.QWidget):
         self.searchLayout.addWidget(self.searchBoxLabel)
         self.searchLayout.addWidget(self.searchHeaderBox)
         self.searchLayout.addWidget(self.searchWidget)
-        self.mainLayout.addWidget(self.searchFrame)
 
     def setVisibilityItems(self, items):
         self.columnVisibilityBox.clear()
@@ -64,7 +62,7 @@ class ViewSearchWidget(QtWidgets.QWidget):
     def setHeaderItems(self, items):
         self.searchHeaderBox.clear()
         for i in items:
-            self.searchHeaderBox.addItem(i, isCheckable=True)
+            self.searchHeaderBox.addItem(i, isCheckable=False)
 
     def onVisibilityChanged(self, index):
         self.columnVisibilityIndexChanged.emit(int(index), self.columnVisibilityBox.currentText())

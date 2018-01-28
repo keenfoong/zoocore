@@ -1,9 +1,32 @@
-import os
+import os, sys
 from functools import partial
 
 from qt import QtWidgets, QtCore
 from zoo.libs.pyqt.extended.imageview import model, items, thumbwidget
-from zoo.libs.utils import file
+from zoo.libs.utils import file, env
+
+class ExampleCustomWidget(thumbwidget.ThumbnailViewWidget):
+    def __init__(self, *args,**kwargs):
+        super(ExampleCustomWidget, self).__init__(*args, **kwargs)
+
+    def contextMenu(self, items, menu):
+        """ Example on how to add the context menu
+
+        :param items:
+        :type items: list(Treeitem)
+        :param menu:
+        :type menu: QMenu
+        :return:
+        :rtype:
+        """
+        for i in range(10):
+            menu.addAction(str(i))
+
+
+class ExampleItem(items.BaseItem):
+    def __init__(self, *args, **kwargs):
+        super(ExampleItem, self).__init__(*args, **kwargs)
+        self._description = "\n".join(("name: {}".format(self.name)))
 
 
 class ExampleThumbnailViewerModel(model.ItemModel):
@@ -15,7 +38,7 @@ class ExampleThumbnailViewerModel(model.ItemModel):
         self.view = view
         self.directory = directory
         self.currentFilesList = []
-        self.threadpool = QtCore.QThreadPool()
+        self.threadpool = QtCore.QThreadPool.globalInstance()
 
     def onDirectoryChanged(self, directory):
         # honestly this first stage should be done in the view and on a separate thread
@@ -68,7 +91,7 @@ class ExampleThumbnailViewerModel(model.ItemModel):
         for f in filesToLoad:
             workerThread = items.ThreadedIcon(iconPath=f)
             # create an item for the image type
-            it = items.BaseItem(name=os.path.basename(f).split(os.extsep)[0], iconPath=f)
+            it = ExampleItem(name=os.path.basename(f).split(os.extsep)[0], iconPath=f)
             qitem = self.createItem(item=it)
             workerThread.signals.updated.connect(partial(self.setItemIconFromImage, qitem))
             self.threadpool.start(workerThread)
@@ -87,22 +110,37 @@ class ExampleThumbnailViewerModel(model.ItemModel):
         """
         item.applyFromImage(image)
 
+    def doubleClickEvent(self, modelIndex, item):
+        """Gets called by the listview when an item is doubleclicked
 
-if __name__ == "__main__":
-    import sys
+        :param modelIndex:
+        :type modelIndex: QtCore.QModelIndex
+        :param item:
+        :type item: TreeItem
+        :return:
+        :rtype:
+        """
+        print "called"
 
-    app = QtWidgets.QApplication(sys.argv)
-    wid = thumbwidget.ThumbnailViewWidget()
+def _bind(parent=None):
+    wid = ExampleCustomWidget(parent=parent)
     rootDirectory = r"D:\\reference"
     model = ExampleThumbnailViewerModel(wid, rootDirectory)
-    # set a custom chunk count
-    # model.chunkCount = 50
     wid.setModel(model)
     model.listFiles()
     model.loadData()
     wid.show()
-    # set the icon size
-    wid.setIconSize(QtCore.QSize(1024,1024))
-    # set the min/max icon size, takes a int instead of a width height since images are rescaled to main aspect ratio
-    wid.setIconMinMax((64, 512))
-    sys.exit(app.exec_())
+    return wid
+
+def main():
+    if not env.isInMaya():
+        app = QtWidgets.QApplication(sys.argv)
+        _bind()
+        sys.exit(app.exec_())
+    else:
+        from zoo.libs.pyqt.embed import mayaui
+        return _bind(parent=None)#mayaui.getMayaWindow())
+
+
+if __name__ == "__main__":
+    main()

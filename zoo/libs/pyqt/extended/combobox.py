@@ -4,12 +4,12 @@ from qt import QtWidgets, QtCore
 class ExtendedComboBox(QtWidgets.QComboBox):
     """Extended combobox to also have a filter
     """
+    checkStateChanged = QtCore.Signal(str, int)
 
     def __init__(self, items=None, parent=None):
         super(ExtendedComboBox, self).__init__(parent)
 
         self.setEditable(True)
-        self._isCheckable = False
 
         # add a filter model to filter matching items
         self.pFilterModel = QtCore.QSortFilterProxyModel(self, filterCaseSensitivity=QtCore.Qt.CaseInsensitive)
@@ -27,6 +27,8 @@ class ExtendedComboBox(QtWidgets.QComboBox):
         self.complete.activated.connect(self.onCompleterActivated)
         if items:
             self.addItems(items)
+        self.view().pressed.connect(self.handleItemPressed)
+        self._isCheckable = False
 
     def addItem(self, text, isCheckable=False):
         super(ExtendedComboBox, self).addItem(text)

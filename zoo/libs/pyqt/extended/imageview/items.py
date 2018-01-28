@@ -89,6 +89,7 @@ class TreeItem(QtGui.QStandardItem):
         self._pixmap = QtGui.QPixmap()
         self.iconSize = QtCore.QSize(256, 256)
         self.loaderThread = ThreadedIcon(item.iconPath)
+        self.setEditable(False)
 
     def applyFromImage(self, image):
         pixmap = QtGui.QPixmap()

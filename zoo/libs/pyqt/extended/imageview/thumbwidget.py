@@ -5,6 +5,8 @@ from zoo.libs.pyqt.widgets import listview
 
 class ListView(listview.ListView):
     requestZoom = QtCore.Signal(object, float)
+    # QModelIndex, Treeitem
+    requestDoubleClick = QtCore.Signal(object, object)
     zoomAmount = 90
     defaultMinIconSize = 50
     defaultMaxIconSize = 512
@@ -23,7 +25,7 @@ class ListView(listview.ListView):
         self.setIconSize(self.defaultIconSize)
 
         self._delegate = model.ThumbnailDelegate(self)
-        self.listView.setItemDelegate(self._delegate)
+        self.setItemDelegate(self._delegate)
 
     def setIconSize(self, size):
         self._iconSize = size
@@ -82,6 +84,15 @@ class ListView(listview.ListView):
         self.requestZoom.emit(newSize, self.zoomAmount)
         self.setIconSize(currentSize)
 
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton:
+            index = self.currentIndex()
+            model = self.model()
+            if model is not None:
+                item = model.itemFromIndex(index)
+                model.doubleClickEvent(index, item)
+                self.requestDoubleClick.emit(index, item)
+
 
 class ThumbnailViewWidget(QtWidgets.QWidget):
     """The main widget for viewing thumbnails, this runs off a custom QStandardItemModel.
@@ -92,7 +103,7 @@ class ThumbnailViewWidget(QtWidgets.QWidget):
         :param parent: the parent widget
         :type parent: QtWidgets.QWidget
         """
-        super(ThumbnailViewWidget, self).__init__(parent)
+        super(ThumbnailViewWidget, self).__init__(parent=parent)
         self.qModel = None
         self.initUi()
 
@@ -102,7 +113,7 @@ class ThumbnailViewWidget(QtWidgets.QWidget):
         self.listView = ListView(parent=self)
         layout.addWidget(self.listView)
         self.listView.verticalScrollBar().valueChanged.connect(self.paginationLoadNextItems)
-        self.listView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.listView.contextMenuRequested.connect(self.contextMenu)
 
     def setModel(self, model):
         self.listView.setModel(model)
@@ -164,3 +175,6 @@ class ThumbnailViewWidget(QtWidgets.QWidget):
 
         if sliderPos == sliderMax:
             model.loadData()
+
+    def contextMenu(self, items, menu):
+        print items, menu

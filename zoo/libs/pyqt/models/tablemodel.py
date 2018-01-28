@@ -1,5 +1,5 @@
 from qt import QtCore, QtGui
-
+from zoo.libs.pyqt.models import constants
 
 class TableModel(QtCore.QAbstractTableModel):
 

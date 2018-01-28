@@ -1,4 +1,6 @@
-from qt import QtWidgets
+from functools import partial
+
+from qt import QtWidgets, QtCore
 from zoo.libs import iconlib
 from zoo.libs.pyqt.extended import tableviewplus
 from zoo.libs.pyqt.models import datasources
@@ -9,7 +11,6 @@ from zoo.libs.pyqt.widgets import dialog
 class TableViewExample(dialog.Dialog):
     def __init__(self, title="Tableview example", width=600, height=800, icon="", parent=None, showOnInitialize=True):
         super(TableViewExample, self).__init__(title, width, height, icon, parent, showOnInitialize)
-
         self.mainLayout = QtWidgets.QVBoxLayout(self)
         self.view = tableviewplus.TableViewPlus(True, parent=self)
         self.mainLayout.addWidget(self.view)
@@ -23,7 +24,6 @@ class TableViewExample(dialog.Dialog):
         self.qmodel.reload()
         self.view.refresh()
 
-
 class Node(object):
     def __init__(self, label):
         self.label = label
@@ -33,7 +33,43 @@ class Node(object):
         self.currentIndex = 0
 
 
-class ExampleRowDataSource(datasources.BaseDataSource):
+class DataSourceMixin(QtCore.QObject):
+    def __init__(self, *args, **kwargs):
+        super(DataSourceMixin, self).__init__()
+
+    def sort(self, rowDataSource=None, index=0, order=QtCore.Qt.DescendingOrder):
+        """This sort function purpose is for sorting the data by column.
+
+        :param index: the column index to sort
+        :type index: int
+        :param order: The Qt order
+        :type order: int
+        """
+
+        def element(cameraIndex, column, elem):
+            for cam, row in cameraIndex:
+                if cam == elem:
+                    break
+            if column == 0:
+                return self.data(row)
+            return self.data(rowDataSource, row)
+
+        if index == 0:
+            n = self.nodes
+        else:
+            n = rowDataSource.nodes
+        tempList = [(currentN, i) for i, currentN in enumerate(n)]
+        if order == QtCore.Qt.DescendingOrder:
+            sortedNodes = sorted(n, key=partial(element, tempList, index), reverse=True)
+        else:
+            sortedNodes= sorted(n, key=partial(element, tempList, index))
+
+        if index == 0:
+            self.nodes = sortedNodes
+        else:
+            rowDataSource.nodes = sortedNodes
+
+class ExampleRowDataSource(DataSourceMixin, datasources.BaseDataSource):
     def __init__(self, nodes):
         super(ExampleRowDataSource, self).__init__()
         self.nodes = nodes
@@ -63,7 +99,7 @@ class ExampleRowDataSource(datasources.BaseDataSource):
             return self.nodes[index]
 
 
-class ExampleColumnIntDataSource(datasources.BaseDataSource):
+class ExampleColumnIntDataSource(DataSourceMixin, datasources.ColumnIntNumericDataSource):
     def headerText(self, index):
         """see base class for doc
         """
@@ -89,7 +125,7 @@ class ExampleColumnIntDataSource(datasources.BaseDataSource):
         return True
 
 
-class ExampleColumnEnumerationDataSource(datasources.ColumnEnumerationDataSource):
+class ExampleColumnEnumerationDataSource(DataSourceMixin, datasources.ColumnEnumerationDataSource):
     def __init__(self):
         super(ExampleColumnEnumerationDataSource, self).__init__()
 

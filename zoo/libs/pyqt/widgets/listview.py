@@ -6,7 +6,7 @@ class ListView(QtWidgets.QListView):
     contextMenuRequested = QtCore.Signal(list, object)
 
     def __init__(self, parent=None):
-        super(self.__class__, self).__init__(parent=parent)
+        super(ListView, self).__init__(parent=parent)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._contextMenu)
 
@@ -15,6 +15,7 @@ class ListView(QtWidgets.QListView):
         if model is None:
             return
         menu = QtWidgets.QMenu(self)
-        selection = [model.itemFromIndex(index) for index in self.selectionModel.selectedIndexes()]
+        selectionModel = self.selectionModel()
+        selection = [model.itemFromIndex(index) for index in selectionModel.selectedIndexes()]
         self.contextMenuRequested.emit(selection, menu)
-        menu.exec_(self.listView.viewport().mapToGlobal(position))
+        menu.exec_(self.viewport().mapToGlobal(position))

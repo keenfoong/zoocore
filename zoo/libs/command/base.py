@@ -15,6 +15,7 @@ class ExecutorBase(object):
         self.commands = {}
         self.undoStack = deque()
         self.redoStack = deque()
+        self.registerEnv("ZOO_COMMAND_LIB")
 
     def execute(self, name, *args, **kwargs):
         command = self.findCommand(name)

@@ -12,7 +12,6 @@ class SearchLineEdit(QtWidgets.QLineEdit):
 
         self.clearButton = QtWidgets.QToolButton(self)
         self.clearButton.setIcon(QtGui.QIcon(clearPixmap))
-        self.clearButton.setIconSize(clearPixmap.size())
         self.clearButton.setCursor(QtCore.Qt.ArrowCursor)
         self.clearButton.setStyleSheet("QToolButton { border: none; padding: 0px; }")
         self.clearButton.hide()
@@ -21,11 +20,10 @@ class SearchLineEdit(QtWidgets.QLineEdit):
 
         self.searchButton = QtWidgets.QToolButton(self)
         self.searchButton.setIcon(QtGui.QIcon(searchPixmap))
-        self.searchButton.setIconSize(searchPixmap.size())
         self.searchButton.setStyleSheet("QToolButton { border: none; padding: 0px; }")
 
         frameWidth = self.style().pixelMetric(QtWidgets.QStyle.PM_DefaultFrameWidth)
-        self.setStyleSheet("QLineEdit { padding-left: {}px; padding-right: {}px; } ".format(
+        self.setStyleSheet("QLineEdit { padding-left: %dpx; padding-right: %dpx; } "%(
             self.searchButton.sizeHint().width() + frameWidth + 1,
             self.clearButton.sizeHint().width() + frameWidth + 1))
         msz = self.minimumSizeHint()
@@ -52,8 +50,8 @@ class SearchLineEdit(QtWidgets.QLineEdit):
 
 if __name__ == "__name__":
     app = QtWidgets.QApplication([])
-    searchIcon = QtGui.QPixmap(iconlib.icon("magnifier.png"), 16)
-    closeIcon = QtGui.QPixmap(iconlib.icon("code.png", 16))
+    searchIcon = QtGui.QPixmap(iconlib.icon("magnifier"), 16)
+    closeIcon = QtGui.QPixmap(iconlib.icon("code", 16))
     w = SearchLineEdit(searchIcon, closeIcon)
     w.show()
     app.exec_()
