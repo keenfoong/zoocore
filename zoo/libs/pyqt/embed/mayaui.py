@@ -1,19 +1,19 @@
+import uuid
+
 from qt import QtWidgets, QtCore
 
 try:
     from shiboken2 import wrapInstance as wrapinstance
 except:
     from shiboken import wrapInstance as wrapinstance
-
+from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 import maya.OpenMayaUI as apiUI
 from maya import cmds
-
-MAYA_DPI_SCALE = maya_scale = 1.0 if not hasattr(cmds, "mayaDpiSetting") else cmds.mayaDpiSetting(query=True,
-                                                                                                  realScaleValue=True)
 
 
 def dpiScale(value):
     """Get the appropriate QSize based on maya's current dpi setting
+
     :param value:
     :type value: int or float
     :return:
@@ -127,3 +127,108 @@ def setChannelShowType(channelBox, value):
     """
     cmds.optionVar(stringValue=("cbShowType", value))
     cmds.channelBox(channelBox, edit=True, update=True)
+
+
+# global to store the bootstrap maya widgets, {widgetuuid: ::class:`BootStapWidget`}
+BOOT_STRAPPED_WIDGETS = {}
+
+
+def rebuild(objectName):
+    """If the bootstrap widget exists then we reapply it to mayas layout
+
+    :param objectName: the bootStrap objectName
+    :type objectName: str
+    """
+    global BOOT_STRAPPED_WIDGETS
+    wid = BOOT_STRAPPED_WIDGETS.get(objectName)
+    if wid is None:
+        return False
+    parent = apiUI.MQtUtil.getCurrentParent()
+    mixinPtr = apiUI.MQtUtil.findControl(wid.objectName())
+    apiUI.MQtUtil.addWidgetToMayaLayout(long(mixinPtr), long(parent))
+    return True
+
+
+def bootstrapDestroyWindow(objectName):
+    global BOOT_STRAPPED_WIDGETS
+    wid = BOOT_STRAPPED_WIDGETS.get(objectName)
+    if wid is not None:
+        wid.close()
+        del BOOT_STRAPPED_WIDGETS[objectName]
+        return True
+    return False
+
+
+class BootStrapWidget(MayaQWidgetDockableMixin, QtWidgets.QWidget):
+    """
+    customWidget = QtWidget()
+    boostrap = BootStrapWidget(customWidget, "customWidget")
+    boostrap.show(dockable=True, retain=False, width=size.width(), widthSizingProperty='preferred', minWidth=minSize.width(), height=size.height(), x=250, y=200, plugins='renderSetup.py', uiScript='import maya.app.renderSetup.views.renderSetup as renderSetup\nrenderSetup.createUI(restore=True)', closeCallback='import maya.app.renderSetup.views.renderSetup as renderSetup\nrenderSetup.renderSetupWindowClosed()')
+
+    """
+    width = (cmds.optionVar(query='workspacesWidePanelInitialWidth')) * 0.75
+    INITIAL_SIZE = QtCore.QSize(width, 600)
+    PREFERRED_SIZE = QtCore.QSize(width, 420)
+    MINIMUM_SIZE = QtCore.QSize((width * 0.95), 220)
+
+    def __init__(self, widget, title, parent=None):
+
+        # maya internals workouts the parent if None
+        super(BootStrapWidget, self).__init__(parent=parent)
+        self.preferredSize = self.PREFERRED_SIZE
+        # bind this instance globally so the maya callback can talk to it
+        global BOOT_STRAPPED_WIDGETS
+        uid = "_".join([uuid.uuid4(), title])
+        self.setObjectName(uid)
+        BOOT_STRAPPED_WIDGETS[uid] = self
+
+        self.setWindowTitle(title)
+        self.resize(dpiScale(self.INITIAL_SIZE))
+
+        # create a QMainWindow frame that other windows can dock into.
+        self.dockingFrame = QtWidgets.QMainWindow(self)
+        self.dockingFrame.layout().setContentsMargins(0, 0, 0, 0)
+        self.dockingFrame.setWindowFlags(QtCore.Qt.Widget)
+        self.dockingFrame.setDockOptions(QtWidgets.QMainWindow.AnimatedDocks)
+
+        self.centralWidget = widget
+        widLayout = self.centralWidget.layout()
+        if widLayout:
+            widLayout.setContentsMargins(0, 0, 0, 0)
+        self.dockingFrame.setCentralWidget(self.centralWidget)
+
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(self.dockingFrame, 0)
+        self.setLayout(layout)
+
+    def setSizeHint(self, size):
+        self.preferredSize = size
+
+    def sizeHint(self):
+        return self.preferredSize
+
+    def minimumSizeHint(self):
+        return self.MINIMUM_SIZE
+
+    def close(self, *args, **kwargs):
+        """Overridden to call the bootstrap user widget.close()
+        """
+        self.centralWidget.close()
+        super(BootStrapWidget, self).close(*args, **kwargs)
+
+    def show(self, **kwargs):
+        sizeHint = self.sizeHint
+        if "width" not in kwargs:
+            kwargs["width"] = sizeHint.width()
+        if "widthSizingProperty" not in kwargs:
+            kwargs["widthSizingProperty"] = 'preferred'
+        if "minWidth" not in kwargs:
+            kwargs["minWidth"] = self.minimumSizeHint().width()
+        if "height" not in kwargs:
+            height = sizeHint.height()
+        kwargs["uiScript"] = 'import zoo.libs.pyqt.embed.mayaui as zoomayaui\nzoomayaui.rebuild("{}")'.format(
+            self.objectName()),
+        kwargs[
+            "closeCallback"] = 'import zoo.libs.pyqt.embed.mayaui as zoomayaui\nzoomayaui.bootstrapDestroyWindow("{}")'.format(
+            self.objectName())
+        super(BootStrapWidget, self).show(**kwargs)
