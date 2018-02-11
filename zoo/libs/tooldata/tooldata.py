@@ -1,6 +1,4 @@
 import os
-import tempfile
-import unittest
 import logging
 
 from zoo.libs.utils import filesystem
@@ -13,6 +11,11 @@ ROOT_LOCATION_ENV = "ZOO_TOOLDATA_ROOT"
 
 
 def getRoot():
+    """Returns the root path of the tool data files
+
+    :return: the environment variable path
+    :rtype: str
+    """
     return os.environ.get(ROOT_LOCATION_ENV, "")
 
 

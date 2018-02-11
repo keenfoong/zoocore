@@ -1,4 +1,5 @@
 from qt import QtWidgets
+__all__ = ("TaggedAction", )
 
 
 class TaggedAction(QtWidgets.QAction):
