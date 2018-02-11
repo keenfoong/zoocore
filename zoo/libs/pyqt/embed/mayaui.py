@@ -225,7 +225,7 @@ class BootStrapWidget(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         if "minWidth" not in kwargs:
             kwargs["minWidth"] = self.minimumSizeHint().width()
         if "height" not in kwargs:
-            height = sizeHint.height()
+            kwargs["height"] = sizeHint.height()
         kwargs["uiScript"] = 'import zoo.libs.pyqt.embed.mayaui as zoomayaui\nzoomayaui.rebuild("{}")'.format(
             self.objectName()),
         kwargs[
