@@ -4,7 +4,14 @@ from zoo.libs.utils import env
 
 
 class Plugin(object):
-    """Base plugin class that all plugins inherent from.
+    """Base plugin class that all plugins inherent from. The client should subclass this to provide a standard
+    interface when needed.
+    ::example
+        Class CustomPlugin(Plugin):
+            id = "CustomPlugin.example"
+            def execute(self):
+                print "executed plugin: {}".format(self.id)
+
     """
     id = ""
 
