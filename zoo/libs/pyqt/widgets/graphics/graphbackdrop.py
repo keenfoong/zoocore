@@ -17,7 +17,6 @@ class BackDrop(QtWidgets.QGraphicsWidget):
         self._title = title
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, True)
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
-        # self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
 
         # backdrops always appear behind all scene items
         self.setZValue(-10)
@@ -95,31 +94,40 @@ class BackDrop(QtWidgets.QGraphicsWidget):
         return c
 
     def paint(self, painter, option, widget):
+        if self.selected:
+            standardPen = self.selectionPen
+        else:
+            standardPen = self.deselectionPen
         rect = self.windowFrameRect()
-        painter.setBrush(self.color)
-
-        painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0, 0), 0))
-
-        roundingY = 20.0 / (rect.height() / 80.0)
+        rounded_rect = QtGui.QPainterPath()
+        rounded_rect.addRoundRect(rect,
+                                  int(150.0 * self.cornerRounding / rect.width()),
+                                  int(150.0 * self.cornerRounding / rect.height()))
+        painter.strokePath(rounded_rect, standardPen)
+        # horizontal line
+        labelRect = QtCore.QRectF(rect.left(), rect.top(), rect.width(), 20)
+        # node background
+        painter.setBrush(self.backgroundColour)
+        roundingY = self.cornerRounding
         roundingX = rect.height() / rect.width() * roundingY
 
-        painter.drawRoundRect(rect, roundingX, roundingY, mode=QtCore.Qt.AbsoluteSize)
+        painter.drawRoundRect(rect, roundingX, roundingY)
+        painter.setPen(standardPen)
+        painter.drawLine(labelRect.bottomLeft(), labelRect.bottomRight())
 
-        # Title BG
-        titleHeight = self.header.size.height() - 3
-
-        darkerColor = self.color.darker(125)
-        darkerColor.setAlpha(255)
-        painter.setBrush(darkerColor)
-        roundingYHeader = rect.width() * roundingX / titleHeight
-        painter.drawRoundRect(0, 0, rect.width(), titleHeight, roundingX, roundingYHeader)
-        painter.drawRect(0, titleHeight * 0.5 + 2, rect.width(), titleHeight * 0.5)
-
-        painter.setBrush(QtGui.QColor(0, 0, 0, 0))
-        if self.selected:
-            painter.setPen(self.selectionPen)
-        else:
-            painter.setPen(self.deselectionPen)
-
-        painter.drawRoundRect(rect, roundingX, roundingY, mode=QtCore.Qt.AbsoluteSize)
         super(BackDrop, self).paint(painter, option, widget)
+
+    def getCorner(self, pos):
+        topLeft = self.mapFromItem(self, self.boundingRect().topLeft())
+        bottomRight = self.mapFromItem(self, self.boundingRect().bottomRight())
+        rect = QtCore.QRectF(topLeft, bottomRight)
+
+        if (rect.topLeft() - pos).manhattanLength() < 30:
+            return 0
+        elif (rect.topRight() - pos).manhattanLength() < 30:
+            return 1
+        elif (rect.bottomLeft() - pos).manhattanLength() < 30:
+            return 2
+        elif (rect.bottomRight() - pos).manhattanLength() < 30:
+            return 3
+        return -1

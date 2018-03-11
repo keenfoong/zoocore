@@ -1,8 +1,8 @@
 import os
 
-from tests import unittestBase
+import unittestBase
 from zoo.libs.command import commandregistry
-from tests.testdata.commanddata import testcommands
+from testdata.commanddata import testcommands
 
 
 class TestCommandRegistry(unittestBase.BaseUnitest):
