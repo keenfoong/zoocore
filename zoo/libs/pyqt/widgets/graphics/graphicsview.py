@@ -116,7 +116,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
     def keyPressEvent(self, event):
         key = event.key()
         if key == QtCore.Qt.Key_Tab and event.modifiers() == QtCore.Qt.ControlModifier:
-            self.tabPress.emit(self.mapToGlobal(QtGui.QCursor.pos()))
+            self.tabPress.emit(QtGui.QCursor.pos())
         elif key == QtCore.Qt.Key_Delete:
             self.deletePress.emit()
         super(GraphicsView, self).keyPressEvent(event)
