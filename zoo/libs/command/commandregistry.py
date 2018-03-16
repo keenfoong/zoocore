@@ -18,21 +18,22 @@ def registerCommands(paths):
     for p in paths:
         if p.endswith(".pyc"):
             continue
-        if len(p.split(".")) > 1:
+        elif os.path.isdir(p):
+            commands.extend(registerByPackage(p))
+            continue
+        elif os.path.isfile(p):
+            importedModule = modules.importModule(p)
+            if importedModule:
+                commands.extend(registerByModule(importedModule))
+                continue
+        # case where the user pass the python path like so , zoo.libs.somelib
+        elif len(p.split(".")) > 1:
             importedModule = modules.importModule(p)
             p = os.path.realpath(importedModule.__file__)
             if os.path.basename(p).startswith("__"):
                 p = os.path.dirname(p)
             elif p.endswith(".pyc"):
                 p = p[:-1]
-        if os.path.isdir(p):
-            commands.extend(registerByPackage(p))
-            continue
-        if os.path.isfile(p):
-            importedModule = modules.importModule(p)
-            if importedModule:
-                commands.extend(registerByModule(importedModule))
-                continue
     return commands
 
 

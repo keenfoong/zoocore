@@ -17,6 +17,8 @@ from qt import QtWidgets
 from zoo.libs.pyqt.extended.searchablemenu import action as taggedAction
 from zoo.libs.pyqt import utils
 
+__all__ = ("SearchableMenu",)
+
 
 class SearchableMenu(QtWidgets.QMenu):
     """Extended the standard QMenu to make it searchable, first action is always a lineedit used to

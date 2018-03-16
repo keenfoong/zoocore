@@ -1,3 +1,5 @@
+import uuid
+
 from qt import QtWidgets, QtCore
 
 try:
@@ -240,6 +242,10 @@ class BootStrapWidget(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         if "height" not in kwargs:
             kwargs["height"] = sizeHint.height()
         kwargs["retain"] = False
-        kwargs["uiScript"] = "import zoo.libs.pyqt.embed.mayaui as zoomayaui\nzoomayaui.rebuild({})".format(self.objectName())
-        kwargs["closeCallback"] = 'import zoo.libs.pyqt.embed.mayaui as zoomayaui\nzoomayaui.bootstrapDestroyWindow("{}")'.format(self.objectName())
+        kwargs["uiScript"] = "import zoo.libs.pyqt.embed.mayaui as zoomayaui\nzoomayaui.rebuild({})".format(
+            self.objectName())
+        kwargs[
+            "closeCallback"] = 'import zoo.libs.pyqt.embed.mayaui as zoomayaui\nzoomayaui.bootstrapDestroyWindow("{}")'.format(
+            self.objectName())
         super(BootStrapWidget, self).show(**kwargs)
+

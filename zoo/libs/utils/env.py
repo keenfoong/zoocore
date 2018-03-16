@@ -5,25 +5,63 @@ import sys
 
 
 def isInMaya():
-    return "maya" in sys.executable.lower()
+    """Determines if the current running executable is maya.exe
+
+    :return: True if running maya.exe
+    :rtype: bool
+    """
+    return "maya.exe" in sys.executable.lower()
 
 
 def isMayapy():
+    """Determines if the current running executable is mayapy.exe
+
+    :return: True if running mayapy.exe
+    :rtype: bool
+    """
     return "mayapy.exe" in sys.executable.lower()
 
+
 def isIn3dsmax():
+    """Determines if the current running executable is 3dsmax.exe
+
+    :return: True if running 3dsmax.exe
+    :rtype: bool
+    """
     return "3dsmax" in sys.executable.lower()
 
 
 def isInMotionBuilder():
+    """Determines if the current running executable is motionbuilder.exe
+
+    :return: True if running motionbuilder.exe
+    :rtype: bool
+    """
+
     return "motionbuilder" in sys.executable.lower()
 
 
 def isInHoudini():
+    """Determines if the current running executable is houdini.exe
+
+    :return: True if running houdini.exe
+    :rtype: bool
+    """
+
     return "houdini" in sys.executable.lower()
 
 
 def application():
+    """Returns the currently running application
+
+    :return: returns one of the following:
+            maya
+            3dsmax
+            motionbuilder
+            houdini
+            standalone
+    :rtype: str
+    """
     if isInMaya():
         return "maya"
     elif isIn3dsmax():
@@ -38,6 +76,7 @@ def application():
 
 def machineInfo():
     """Returns basic information about the current pc that this code is running on
+
     :return:
                 {'OSRelease': '7',
                  'OSVersion': 'Windows-7-6.1.7601-SP1',
@@ -63,11 +102,15 @@ def machineInfo():
     return machineDict
 
 
-def user():
-    """
+def user(lower=True):
+    """Returns the current user name
+
+    :param lower: if the username should be returned as lowercase
+    :type lower: bool
     :rtype: str
     """
-    return getpass.getuser().lower()
+    username = getpass.getuser()
+    return username.lower() if lower else username
 
 
 def isMac():
