@@ -36,6 +36,7 @@ class ItemContainer(QtWidgets.QGraphicsWidget):
 
 class TextContainer(QtWidgets.QGraphicsWidget):
     textChanged = QtCore.Signal(str)
+
     def __init__(self, text, *args, **kwargs):
         super(TextContainer, self).__init__(*args, **kwargs)
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))

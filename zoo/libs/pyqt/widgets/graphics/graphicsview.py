@@ -4,11 +4,10 @@ from zoo.libs.pyqt.widgets.graphics import graphicitems
 
 class GraphicsView(QtWidgets.QGraphicsView):
     contextMenuRequest = QtCore.Signal(object)
-    clearSelectionRequest = QtCore.Signal()
     # emitted whenever an event happens that requires the view to update
     updateRequested = QtCore.Signal()
     tabPress = QtCore.Signal(object)
-    deletePress = QtCore.Signal()
+    deletePress = QtCore.Signal(list)
 
     def __init__(self, config, parent=None, setAntialiasing=True):
         super(GraphicsView, self).__init__(parent)
@@ -34,25 +33,19 @@ class GraphicsView(QtWidgets.QGraphicsView):
         self.setInteractive(True)
         self.setMouseTracking(True)
         self.setAcceptDrops(True)
-
+        self.setDragMode(self.RubberBandDrag)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._contextMenu)
         self.config = config
         self.pan_active = False
         self.previousMousePos = QtCore.QPointF()
-        self.rubberBand = None
-        self.currentSelection = []
 
     def wheelEvent(self, event):
         self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
 
         inFactor = self.config.zoomFactor
         outFactor = 1 / inFactor
-
-        if event.delta() > 0:
-            zoomFactor = inFactor
-        else:
-            zoomFactor = outFactor
+        zoomFactor = inFactor if event.delta() > 0 else outFactor
         self.scale(zoomFactor, zoomFactor)
         self.updateRequested.emit()
 
@@ -72,17 +65,14 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
     def mousePressEvent(self, event):
         button = event.buttons()
+
         if button == QtCore.Qt.LeftButton:
             item = self.itemAt(event.pos())
             if item:
-                item.selected = True
-                self.currentSelection = [item]
-            else:
-                for i in self.currentSelection:
-                    i.selected = False
-                self.rubberBand = graphicitems.SelectionRect(self.mapToScene(event.pos()))
-                scene = self.scene()
-                scene.addItem(self.rubberBand)
+                # # if we have the ctrl key pressed then add the selection
+                if event.modifiers() == QtCore.Qt.ControlModifier:
+                    if not item.isSelected():
+                        item.selected = True
             self.previousMousePos = event.pos()
         elif event.button() == QtCore.Qt.MiddleButton:
             self.pan_active = True
@@ -99,15 +89,10 @@ class GraphicsView(QtWidgets.QGraphicsView):
             rect.translate(-delta.x(), -delta.y())
             self.setSceneRect(rect)
             self.previousMousePos = self.mapToScene(event.pos()).toPoint()
-            # return
-        if not self.previousMousePos.isNull() and self.rubberBand:
-            self.rubberBand.setDragPoint(self.mapToScene(event.pos()))
+            return
         super(GraphicsView, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        if self.rubberBand:
-            self.rubberBand.close()
-            self.scene().removeItem(self.rubberBand)
         if self.pan_active:
             self.pan_active = False
             self.setCursor(QtCore.Qt.ArrowCursor)
@@ -118,7 +103,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
         if key == QtCore.Qt.Key_Tab and event.modifiers() == QtCore.Qt.ControlModifier:
             self.tabPress.emit(QtGui.QCursor.pos())
         elif key == QtCore.Qt.Key_Delete:
-            self.deletePress.emit()
+            self.deletePress.emit(self.scene().selectedItems())
         super(GraphicsView, self).keyPressEvent(event)
 
     def frameSelectedItems(self):
@@ -168,7 +153,8 @@ class GraphicsView(QtWidgets.QGraphicsView):
             return super(GraphicsView, self).drawBackground(painter, rect)
         self._drawSubdivisionGrid(painter, rect)
         # main axis
-        self._drawMainAxis(painter, rect)
+        if self.config.drawMainGridAxis:
+            self._drawMainAxis(painter, rect)
         return super(GraphicsView, self).drawBackground(painter, rect)
 
     def _drawSubdivisionGrid(self, painter, rect):

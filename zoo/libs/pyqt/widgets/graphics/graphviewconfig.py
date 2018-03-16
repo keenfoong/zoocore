@@ -8,6 +8,7 @@ class Config(QtCore.QObject):
         self.zoomFactor = 1.15
         self.gridLineWidth = 1
         self.drawGrid = True
+        self.drawMainGridAxis = True
         self.graphBackgroundColor = QtGui.QColor(50, 50, 50)
         self.gridColor = QtGui.QColor(200, 200, 200)
         self.overlayAxisPen = QtGui.QPen(QtGui.QColor(255, 50, 50, 255), self.gridLineWidth)
@@ -25,6 +26,7 @@ class Config(QtCore.QObject):
                 "zoomFactor": self.zoomFactor,
                 "gridLineWidth": self.gridLineWidth,
                 "drawGrid": self.drawGrid,
+                "drawMainGridAxis": self.drawMainGridAxis,
                 "graphBackgroundColor": (self.graphBackgroundColor.red, self.graphBackgroundColor.green,
                                          self.graphBackgroundColor.blue),
                 "gridColor": (self.gridColor.red, self.gridColor.green,
