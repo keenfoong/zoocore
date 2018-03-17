@@ -172,7 +172,9 @@ class BootStrapWidget(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     """ Class to wrap mayas workspace dockable mixin into something useful,
     customWidget = QtWidget()
     boostrap = BootStrapWidget(customWidget, "customWidget")
-    boostrap.show(dockable=True, retain=False, width=size.width(), widthSizingProperty='preferred', minWidth=minSize.width(), height=size.height(), x=250, y=200, plugins='renderSetup.py', uiScript='import maya.app.renderSetup.views.renderSetup as renderSetup\nrenderSetup.createUI(restore=True)', closeCallback='import maya.app.renderSetup.views.renderSetup as renderSetup\nrenderSetup.renderSetupWindowClosed()')
+    boostrap.show(dockable=True, retain=False, width=size.width(), widthSizingProperty='preferred',
+                 minWidth=minSize.width(),
+                 height=size.height(), x=250, y=200)
 
     """
     width = (cmds.optionVar(query='workspacesWidePanelInitialWidth')) * 0.75
