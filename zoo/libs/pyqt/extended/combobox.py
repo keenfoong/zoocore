@@ -4,6 +4,7 @@ from qt import QtWidgets, QtCore
 class ExtendedComboBox(QtWidgets.QComboBox):
     """Extended combobox to also have a filter
     """
+    itemSelected = QtCore.Signal(str)
     checkStateChanged = QtCore.Signal(str, int)
 
     def __init__(self, items=None, parent=None):
@@ -37,6 +38,16 @@ class ExtendedComboBox(QtWidgets.QComboBox):
         if item and isCheckable:
             self._isCheckable = isCheckable
             item.setCheckState(QtCore.Qt.Checked)
+
+    def keyPressEvent(self, event):
+        super(ExtendedComboBox, self).keyPressEvent(event)
+        if event.key() == QtCore.Qt.Key_Escape:
+            self.close()
+            self.parent().setFocus()
+        elif event.key() in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
+            self.itemSelected.emit(self.currentText())
+            self.close()
+            self.parent().setFocus()
 
     def onCompleterActivated(self, text):
         """On selection of an item from the completer, this method will select the item from the combobox

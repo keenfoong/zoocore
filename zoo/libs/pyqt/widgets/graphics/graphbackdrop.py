@@ -1,133 +1,215 @@
 """Mostly placeholder code until i get to doing the customisation
 """
 from qt import QtWidgets, QtCore, QtGui
-from zoo.libs.pyqt.widgets.graphics import graphicitems
 
 
-class BackDrop(QtWidgets.QGraphicsWidget):
-    contextRequested = QtCore.Signal(object)
-    selectionChanged = QtCore.Signal(object, bool)
-    color = QtGui.QColor(65, 120, 122, 255)
-    selectionPen = QtGui.QPen(color.lighter(150))
-    deselectionPen = QtGui.QPen(color.darker(125))
+#:todo include title and comment text
+class BackDrop(QtWidgets.QGraphicsRectItem):
+    handleTopLeft = 1
+    handleTopRight = 2
+    handleBottomLeft = 3
+    handleBottomRight = 4
 
-    def __init__(self, title, width=120, height=80):
-        super(BackDrop, self).__init__()
+    handleSize = +8.0
+    handleSpace = -4.0
+
+    handleCursors = {
+        handleTopLeft: QtCore.Qt.SizeFDiagCursor,
+        handleTopRight: QtCore.Qt.SizeBDiagCursor,
+        handleBottomLeft: QtCore.Qt.SizeBDiagCursor,
+        handleBottomRight: QtCore.Qt.SizeFDiagCursor,
+    }
+    selectedColor = QtGui.QColor(255, 0, 0, 255)
+    unSelectedColor = QtGui.QColor(255, 0, 0, 255)
+    edgeColor = QtGui.QColor(0, 0, 0, 255)
+    handleColor = QtGui.QColor(255, 0, 0, 255)
+
+    def __init__(self, x=0, y=0, width=120, height=60):
+        """
+        Initialize the shape.
+        """
+        super(BackDrop, self).__init__(x, y, width, height)
+        self.handles = {}
+        self.handleSelected = None
+        self.mousePressPos = None
+        self.mousePressRect = None
+        self.hovering = False
         self.setAcceptHoverEvents(True)
-        self._title = title
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, True)
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges, True)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsFocusable, True)
+        self.setZValue(-100)
+        self.updateHandlesPos()
 
-        # backdrops always appear behind all scene items
-        self.setZValue(-10)
-        self.setMinimumWidth(width)
-        self.setMinimumHeight(height)
-        self._selected = False
-        self.brush = QtGui.QColor(65, 120, 122, 255)
-        self.initLayout()
-        self.setTitle(title)
+    def handleAt(self, point):
+        """
+        Returns the resize handle below the given point.
+        """
+        for k, v, in self.handles.items():
+            if v.contains(point):
+                return k
+        return None
 
-    def contextMenuEvent(self, event):
-        menu = QtWidgets.QMenu(self)
-        self.contextRequested.emit(menu)
-        menu.exec_(event.scenePos())
-        event.setAccepted(True)
+    def hoverEnterEvent(self, event):
+        super(BackDrop, self).hoverEnterEvent(event)
+        self.hovering = True
 
-    def title(self):
-        return str(self.header.text())
+    def hoverMoveEvent(self, moveEvent):
+        """
+        Executed when the mouse moves over the shape (NOT PRESSED).
+        """
 
-    def setTitle(self, title):
-        self.header.text = title
+        if self.isSelected():
+            handle = self.handleAt(moveEvent.pos())
+            cursor = QtCore.Qt.ArrowCursor if handle is None else self.handleCursors[handle]
+            self.setCursor(cursor)
 
-    def position(self):
-        transform = self.transform()
-        size = self.size()
-        return QtCore.QPointF(transform.dx() + (size.width() * 0.5), transform.dy() + (size.height() * 0.5)).toTuple()
+        super(BackDrop, self).hoverMoveEvent(moveEvent)
 
-    @property
-    def selected(self):
-        return self._selected
+    def hoverLeaveEvent(self, moveEvent):
+        """
+        Executed when the mouse leaves the shape (NOT PRESSED).
+        """
+        self.hovering = False
+        self.setCursor(QtCore.Qt.ArrowCursor)
+        super(BackDrop, self).hoverLeaveEvent(moveEvent)
 
-    @selected.setter
-    def selected(self, selected=True):
-        self._selected = selected
-        self.update()
-        self.selectionChanged.emit(self, selected)
+    def mousePressEvent(self, mouseEvent):
+        """
+        Executed when the mouse is pressed on the item.
+        """
+        self.handleSelected = self.handleAt(mouseEvent.pos())
+        if self.handleSelected:
+            self.mousePressPos = mouseEvent.pos()
+            self.mousePressRect = self.boundingRect()
+        super(BackDrop, self).mousePressEvent(mouseEvent)
 
-    def initLayout(self):
-        layout = QtWidgets.QGraphicsLinearLayout()
-        layout.setContentsMargins(2, 2, 2, 2)
-        layout.setSpacing(5)
-        layout.setOrientation(QtCore.Qt.Vertical)
-        self.setLayout(layout)
-
-        # add the header title
-        self.header = graphicitems.GraphicsText(self._title, parent=self)
-        layout.addItem(self.header)
-        layout.setAlignment(self.header, QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
-        layout.addStretch(1)
-
-    def mouseMoveEvent(self, event):
-        # event.accept()
-        if self.selected:
-            self.setPos(self.pos() + self.mapToParent(event.pos()) - self.mapToParent(event.lastPos()))
-        super(BackDrop, self).mousePressEvent(event)
-
-    def mousePressEvent(self, event):
-        if event.button() == QtCore.Qt.LeftButton:
-            self.selected = True
-        super(BackDrop, self).mousePressEvent(event)
-
-    def serialize(self):
-        return {
-            'name': self.name,
-            'position': self.position,
-            'size': self.size().toTuple(),
-            'color': self.color
-        }
-
-    @classmethod
-    def deserialize(cls, data):
-        size = data["position"]
-        c = cls(data["name"], width=size[0], height=size[1])
-        c.setColor(QtGui.QColor(data["color"]))
-        return c
-
-    def paint(self, painter, option, widget):
-        if self.selected:
-            standardPen = self.selectionPen
+    def mouseMoveEvent(self, mouseEvent):
+        """
+        Executed when the mouse is being moved over the item while being pressed.
+        """
+        if self.handleSelected is not None:
+            self.interactiveResize(mouseEvent.pos())
         else:
-            standardPen = self.deselectionPen
-        rect = self.windowFrameRect()
-        rounded_rect = QtGui.QPainterPath()
-        rounded_rect.addRoundRect(rect,
-                                  int(150.0 * self.cornerRounding / rect.width()),
-                                  int(150.0 * self.cornerRounding / rect.height()))
-        painter.strokePath(rounded_rect, standardPen)
-        # horizontal line
-        labelRect = QtCore.QRectF(rect.left(), rect.top(), rect.width(), 20)
-        # node background
-        painter.setBrush(self.backgroundColour)
-        roundingY = self.cornerRounding
-        roundingX = rect.height() / rect.width() * roundingY
+            super(BackDrop, self).mouseMoveEvent(mouseEvent)
 
-        painter.drawRoundRect(rect, roundingX, roundingY)
-        painter.setPen(standardPen)
-        painter.drawLine(labelRect.bottomLeft(), labelRect.bottomRight())
+    def mouseReleaseEvent(self, mouseEvent):
+        """
+        Executed when the mouse is released from the item.
+        """
+        super(BackDrop, self).mouseReleaseEvent(mouseEvent)
+        self.handleSelected = None
+        self.mousePressPos = None
+        self.mousePressRect = None
+        self.update()
 
-        super(BackDrop, self).paint(painter, option, widget)
+    def boundingRect(self):
+        """
+        Returns the bounding rect of the shape (including the resize handles).
+        """
+        o = self.handleSize + self.handleSpace
+        return self.rect().adjusted(-o, -o, o, o)
 
-    def getCorner(self, pos):
-        topLeft = self.mapFromItem(self, self.boundingRect().topLeft())
-        bottomRight = self.mapFromItem(self, self.boundingRect().bottomRight())
-        rect = QtCore.QRectF(topLeft, bottomRight)
+    def updateHandlesPos(self):
+        """
+        Update current resize handles according to the shape size and position.
+        """
+        s = self.handleSize
+        b = self.boundingRect()
+        self.handles[self.handleTopLeft] = QtCore.QRectF(b.left(), b.top(), s, s)
+        self.handles[self.handleTopRight] = QtCore.QRectF(b.right() - s, b.top(), s, s)
+        self.handles[self.handleBottomLeft] = QtCore.QRectF(b.left(), b.bottom() - s, s, s)
+        self.handles[self.handleBottomRight] = QtCore.QRectF(b.right() - s, b.bottom() - s, s, s)
 
-        if (rect.topLeft() - pos).manhattanLength() < 30:
-            return 0
-        elif (rect.topRight() - pos).manhattanLength() < 30:
-            return 1
-        elif (rect.bottomLeft() - pos).manhattanLength() < 30:
-            return 2
-        elif (rect.bottomRight() - pos).manhattanLength() < 30:
-            return 3
-        return -1
+    def interactiveResize(self, mousePos):
+        """
+        Perform shape interactive resize.
+        """
+        offset = self.handleSize + self.handleSpace
+        boundingRect = self.boundingRect()
+        rect = self.rect()
+        diff = QtCore.QPointF(0, 0)
+
+        self.prepareGeometryChange()
+
+        if self.handleSelected == self.handleTopLeft:
+
+            fromX = self.mousePressRect.left()
+            fromY = self.mousePressRect.top()
+            toX = fromX + mousePos.x() - self.mousePressPos.x()
+            toY = fromY + mousePos.y() - self.mousePressPos.y()
+            diff.setX(toX - fromX)
+            diff.setY(toY - fromY)
+            boundingRect.setLeft(toX)
+            boundingRect.setTop(toY)
+            rect.setLeft(boundingRect.left() + offset)
+            rect.setTop(boundingRect.top() + offset)
+            rect.setX(mousePos.x())
+            rect.setY(mousePos.y())
+            self.setRect(rect)
+
+        elif self.handleSelected == self.handleTopRight:
+
+            fromX = self.mousePressRect.right()
+            fromY = self.mousePressRect.top()
+            toX = fromX + mousePos.x() - self.mousePressPos.x()
+            toY = fromY + mousePos.y() - self.mousePressPos.y()
+            diff.setX(toX - fromX)
+            diff.setY(toY - fromY)
+            boundingRect.setRight(toX)
+            boundingRect.setTop(toY)
+            rect.setRight(boundingRect.right() - offset)
+            rect.setTop(boundingRect.top() + offset)
+            self.setRect(rect)
+
+        elif self.handleSelected == self.handleBottomLeft:
+
+            fromX = self.mousePressRect.left()
+            fromY = self.mousePressRect.bottom()
+            toX = fromX + mousePos.x() - self.mousePressPos.x()
+            toY = fromY + mousePos.y() - self.mousePressPos.y()
+            diff.setX(toX - fromX)
+            diff.setY(toY - fromY)
+            boundingRect.setLeft(toX)
+            boundingRect.setBottom(toY)
+            rect.setLeft(boundingRect.left() + offset)
+            rect.setBottom(boundingRect.bottom() - offset)
+            self.setRect(rect)
+
+        elif self.handleSelected == self.handleBottomRight:
+
+            fromX = self.mousePressRect.right()
+            fromY = self.mousePressRect.bottom()
+            toX = fromX + mousePos.x() - self.mousePressPos.x()
+            toY = fromY + mousePos.y() - self.mousePressPos.y()
+            diff.setX(toX - fromX)
+            diff.setY(toY - fromY)
+            boundingRect.setRight(toX)
+            boundingRect.setBottom(toY)
+            rect.setRight(boundingRect.right() - offset)
+            rect.setBottom(boundingRect.bottom() - offset)
+            self.setRect(rect)
+
+        self.updateHandlesPos()
+
+    def paint(self, painter, option, widget=None):
+        """
+        Paint the node in the graphic view.
+        """
+        if self.isSelected():
+            color = self.selectedColor
+        else:
+            color = self.unSelectedColor
+        painter.setBrush(QtGui.QBrush(color))
+        painter.setPen(QtGui.QPen(self.edgeColor, 1.0, QtCore.Qt.SolidLine))
+        painter.drawRect(self.rect())
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
+        if self.hovering:
+            painter.setBrush(QtGui.QBrush(self.handleColor))
+            painter.setPen(
+                QtGui.QPen(self.edgeColor, 1.0, QtCore.Qt.SolidLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin))
+            for handle, rect in self.handles.items():
+                if self.handleSelected is None or handle == self.handleSelected:
+                    painter.drawEllipse(rect)

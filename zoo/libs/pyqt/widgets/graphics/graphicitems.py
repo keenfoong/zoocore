@@ -6,7 +6,7 @@ class ItemContainer(QtWidgets.QGraphicsWidget):
         super(ItemContainer, self).__init__(parent=parent)
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
         layout = QtWidgets.QGraphicsLinearLayout()
-        layout.setSpacing(1)
+        layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setOrientation(orientation)
         self.setLayout(layout)

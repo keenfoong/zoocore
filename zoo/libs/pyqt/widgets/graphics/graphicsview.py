@@ -39,15 +39,23 @@ class GraphicsView(QtWidgets.QGraphicsView):
         self.config = config
         self.pan_active = False
         self.previousMousePos = QtCore.QPointF()
+        self._currentZoomFactor = self.config.zoomFactor
 
     def wheelEvent(self, event):
         self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
 
         inFactor = self.config.zoomFactor
-        outFactor = 1 / inFactor
+        outFactor = 1.0 / inFactor
         zoomFactor = inFactor if event.delta() > 0 else outFactor
+        self._currentZoomFactor *= zoomFactor
+        if self._currentZoomFactor > self.config.maxZoom:
+            self._currentZoomFactor = self.config.maxZoom
+            return
+        elif self._currentZoomFactor < self.config.minZoom:
+            self._currentZoomFactor = self.config.minZoom
+            return
+
         self.scale(zoomFactor, zoomFactor)
-        self.updateRequested.emit()
 
     def centerPosition(self):
         return self.mapToScene(QtCore.QPoint(self.width() * 0.5, self.height() * 0.5))

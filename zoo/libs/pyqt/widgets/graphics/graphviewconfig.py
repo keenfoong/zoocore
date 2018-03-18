@@ -6,6 +6,8 @@ class Config(QtCore.QObject):
         super(Config, self).__init__()
         self.gridSize = 50
         self.zoomFactor = 1.15
+        self.maxZoom = 6
+        self.minZoom = 0.4
         self.gridLineWidth = 1
         self.drawGrid = True
         self.drawMainGridAxis = True
@@ -24,6 +26,8 @@ class Config(QtCore.QObject):
 
         return {"gridSize": self.gridSize,
                 "zoomFactor": self.zoomFactor,
+                "maxZoom": self.minZoom,
+                "minZoom": self.maxZoom,
                 "gridLineWidth": self.gridLineWidth,
                 "drawGrid": self.drawGrid,
                 "drawMainGridAxis": self.drawMainGridAxis,
