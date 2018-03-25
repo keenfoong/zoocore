@@ -19,10 +19,10 @@ class BackDrop(QtWidgets.QGraphicsRectItem):
         handleBottomLeft: QtCore.Qt.SizeBDiagCursor,
         handleBottomRight: QtCore.Qt.SizeFDiagCursor,
     }
-    selectedColor = QtGui.QColor(255, 0, 0, 255)
-    unSelectedColor = QtGui.QColor(255, 0, 0, 255)
-    edgeColor = QtGui.QColor(0, 0, 0, 255)
-    handleColor = QtGui.QColor(255, 0, 0, 255)
+    selectedColor = QtGui.QColor(255, 0, 0, 90)
+    unSelectedColor = QtGui.QColor(255, 0, 0, 90)
+    edgeColor = QtGui.QColor(0, 0, 0, 90)
+    handleColor = QtGui.QColor(255, 0, 0, 90)
 
     def __init__(self, x=0, y=0, width=120, height=60):
         """

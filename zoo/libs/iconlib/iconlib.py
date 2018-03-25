@@ -38,8 +38,9 @@ class Icon(object):
 
                     else:
                         cls.iconCollection[name] = {"sizes": {size: {"path": os.path.join(root, f),
-                                                                 'icon': None}},
-                                                "name": name}
+                                                                     'icon': None}},
+                                                    "name": name}
+
     @classmethod
     def icon(cls, iconName, size=16):
         """Returns a QtGui.QIcon instance intialized to the icon path for the icon name if the icon name is found within
@@ -51,7 +52,16 @@ class Icon(object):
         """
         if env.isMayapy():
             return
+        iconData = cls.iconDataForName(iconName, size)
+        icon = iconData.get("icon")
+        if icon and isinstance(icon, QtGui.QIcon) and not icon.isNull():
+            return icon
+        newIcon = QtGui.QIcon(iconData.get("path", ""))
+        iconData["icon"] = newIcon
+        return newIcon
 
+    @classmethod
+    def iconDataForName(cls, iconName, size=16):
         if "_" in iconName:
             splitter = iconName.split("_")
             if splitter[-1].isdigit():
@@ -61,7 +71,7 @@ class Icon(object):
         else:
             size = str(size)
         if iconName not in cls.iconCollection:
-            return QtGui.QIcon()
+            return {}
 
         for name, data in iter(cls.iconCollection.items()):
             if name != iconName:
@@ -72,14 +82,12 @@ class Icon(object):
                 iconData = sizes[size]
             else:
                 iconData = data["sizes"][size]
-            icondata = iconData["icon"]
-            if icondata and isinstance(icondata, QtGui.QIcon) and not icondata.isNull():
-                return icondata
-            newIcon = QtGui.QIcon(iconData["path"])
-            data["sizes"][size]["icon"] = newIcon
-            return newIcon
+            return iconData
+        return {}
 
-        return QtGui.QIcon()
+    @classmethod
+    def iconPathForName(cls, iconName, size=16):
+        return cls.iconDataForName(iconName, size).get("path", "")
 
     @classmethod
     def iconColorized(cls, iconName, size=16, color=(255, 255, 255)):
@@ -123,4 +131,6 @@ class Icon(object):
         for size in icon.availableSizes():
             icon.addPixmap(icon.pixmap(size, QtGui.QIcon.Disabled))
         return icon
+
+
 Icon.reload()
