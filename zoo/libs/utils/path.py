@@ -464,7 +464,7 @@ class Path(str):
         """
         WindowsError is raised if the file cannot be deleted
         """
-        if self.isfile():
+        if self.isFile():
             selfStr = str(self)
             try:
                 os.remove(selfStr)
@@ -488,7 +488,7 @@ class Path(str):
         if nameIsLeaf:
             newPath = self.up() / newName
 
-        if self.isfile():
+        if self.isFile():
             if newPath != self and newPath.exists():
                 newPath.delete()
             # now perform the rename
@@ -502,7 +502,7 @@ class Path(str):
         """
         same as rename - except for copying.  returns the new target name
         """
-        if self.isfile():
+        if self.isFile():
             target = Path(target)
             if nameIsLeaf:
                 target = self.up() / target
