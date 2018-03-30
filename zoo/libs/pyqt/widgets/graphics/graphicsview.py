@@ -1,9 +1,8 @@
 from qt import QtWidgets, QtCore, QtGui
-from zoo.libs.pyqt.widgets.graphics import graphicitems
 
 
 class GraphicsView(QtWidgets.QGraphicsView):
-    contextMenuRequest = QtCore.Signal(object)
+    contextMenuRequest = QtCore.Signal(object, object)
     # emitted whenever an event happens that requires the view to update
     updateRequested = QtCore.Signal()
     tabPress = QtCore.Signal(object)
@@ -81,6 +80,10 @@ class GraphicsView(QtWidgets.QGraphicsView):
                 if event.modifiers() == QtCore.Qt.ControlModifier:
                     if not item.isSelected():
                         item.selected = True
+                else:
+                    if not item.isSelected:
+                        self.scene().clearSelection()
+                        item.selected = True
             self.previousMousePos = event.pos()
         elif event.button() == QtCore.Qt.MiddleButton:
             self.pan_active = True
@@ -152,7 +155,10 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
     def _contextMenu(self, pos):
         menu = QtWidgets.QMenu()
-        self.contextMenuRequest.emit(menu)
+        item = self.itemAt(pos)
+        self.contextMenuRequest.emit(menu, item)
+        if menu.isEmpty():
+            return
         menu.exec_(self.mapToGlobal(pos))
 
     def drawBackground(self, painter, rect):
