@@ -299,8 +299,8 @@ class SelectionRect(QtWidgets.QGraphicsWidget):
 
 
 class GraphicsText(QtWidgets.QGraphicsWidget):
-    _font = QtGui.QFont('Helvetica', 8)
-    _font.setLetterSpacing(QtGui.QFont.PercentageSpacing, 120)
+    _font = QtGui.QFont("Roboto-Bold.ttf", 8)
+    _font.setLetterSpacing(QtGui.QFont.PercentageSpacing, 110)
     _fontMetrics = QtGui.QFontMetrics(_font)
 
     _color = QtGui.QColor(200, 200, 200)
@@ -319,6 +319,7 @@ class GraphicsText(QtWidgets.QGraphicsWidget):
         self._item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
 
         option = self._item.document().defaultTextOption()
+        option.setWrapMode(QtGui.QTextOption.NoWrap)
         self._item.document().setDefaultTextOption(option)
         self.adjustSize()
         self.setPreferredSize(self.size)
@@ -330,6 +331,14 @@ class GraphicsText(QtWidgets.QGraphicsWidget):
 
     def setTextFlags(self, flags):
         self._item.setFlags(flags)
+
+    @property
+    def font(self):
+        return self._item.font()
+
+    @font.setter
+    def font(self, value):
+        return self._item.setFont(value)
 
     @property
     def text(self):
