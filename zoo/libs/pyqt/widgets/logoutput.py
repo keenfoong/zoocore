@@ -1,8 +1,8 @@
-import logging
 from qt import QtGui, QtWidgets, QtCore
+import logging
 
 
-class OutputLogDialog(QtWidgets.QWidget):
+class OutputLogDialog(QtWidgets.QPlainTextEdit):
     """Output dialog
 
     ::example:
@@ -17,10 +17,10 @@ class OutputLogDialog(QtWidgets.QWidget):
     """
     infoColor = QtGui.QColor(QtCore.Qt.white)
     debugColor = QtGui.QColor("#EEE97B")
-    warningColor =QtGui.QColor("#D89614")
+    warningColor = QtGui.QColor("#D89614")
     errorColor = QtGui.QColor("#CC0000")
     criticalColor = QtGui.QColor("#CC0000")
-    html = """<p style="font-weight:300;color:{};"<span><br>{}<br/></span></p>"""
+    html = """<p style="font-weight:300;color:{};"<span>{}</span></p>"""
 
     def __init__(self, title, parent=None):
         super(OutputLogDialog, self).__init__(parent)
@@ -33,24 +33,14 @@ class OutputLogDialog(QtWidgets.QWidget):
     def createLayout(self):
         """Sets up the layout for the dialog."""
 
-        self.textWidget = QtWidgets.QTextEdit(self)
-        self.textWidget.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
-        self.textWidget.setReadOnly(True)
-        self.textWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-
-        self.outputLogLayout = QtWidgets.QVBoxLayout(self)
-        self.outputLogLayout.addWidget(self.textWidget)
-
-        self.setLayout(self.outputLogLayout)
-
-        self.textWidget.customContextMenuRequested.connect(self._onContextMenu)
+        self.setWordWrapMode(QtGui.QTextOption.NoWrap)
+        self.setReadOnly(True)
 
     def logInfo(self, msg):
         self._write(msg, self.infoColor)
 
     def logDebug(self, msg):
-        if self.outputType == logging.DEBUG:
-            self._write(msg, self.debugColor)
+        self._write(msg, self.debugColor)
 
     def logWarning(self, msg):
         self._write(msg, self.warningColor)
@@ -63,25 +53,78 @@ class OutputLogDialog(QtWidgets.QWidget):
 
     def _write(self, msg, color):
         html = self.html.format(color.name(), msg)
-        self.textWidget.append(html)
+        self.appendHtml(html)
 
-    def _onContextMenu(self):
-        self.contextMenu = QtWidgets.QMenu(self)
-        selectAllAction = self.contextMenu.addAction("Select All")
-        copyAction = self.contextMenu.addAction("Copy")
-        clearAction = self.contextMenu.addAction("Clear")
-        self.contextMenu.addSeparator()
-        selectAllAction.triggered.connect(self.contextSelectAll)
-        copyAction.triggered.connect(self.contextCopy)
-        clearAction.triggered.connect(self.textWidget.clear)
-        self.onContextMenu(self.contextMenu)
-        self.contextMenu.exec_(QtGui.QCursor.pos())
+    def factoryLog(self, msg, level):
+        if level == logging.INFO:
+            self.logInfo(msg)
+        elif level == logging.DEBUG:
+            self.logDebug(msg)
+        elif level == logging.WARNING:
+            self.logWarning(msg)
+        elif level == logging.ERROR:
+            self.logError(msg)
+        elif level == logging.CRITICAL:
+            self.logCritical(msg)
 
-    def onContextMenu(self, menu):
-        pass
+    def wheelEvent(self, event):
+        """
+        Handles zoom in/out of the text.
+        """
+        if event.modifiers() & QtCore.Qt.ControlModifier:
+            delta = event.delta()
+            if delta < 0:
+                self.zoom(-1)
+            elif delta > 0:
+                self.zoom(1)
+            return True
+        return super(OutputLogDialog, self).wheelEvent(event)
 
-    def contextSelectAll(self):
-        self.textWidget.selectAll()
+    def zoom(self, direction):
+        """
+        Zoom in on the text.
+        """
 
-    def contextCopy(self):
-        self.textWidget.copy()
+        font = self.font()
+        size = font.pointSize()
+        if size == -1:
+            size = font.pixelSize()
+
+        size += direction
+
+        if size < 7:
+            size = 7
+        if size > 50:
+            return
+
+        style = """
+        QWidget {
+            font-size: %spt;
+        }
+        """ % (size,)
+        self.setStyleSheet(style)
+
+
+class QWidgetHandler(logging.Handler):
+    """Custom Qt Logging Handler for Sending Messages to child Widgets"""
+
+    def __init__(self):
+        super(QWidgetHandler, self).__init__()
+        self._widgets = []
+
+    def addWidget(self, widget):
+        if widget not in self._widgets:
+            self._widgets.append(widget)
+
+    def removeWidget(self, widget):
+        if widget in self._widgets:
+            self._widgets.remove(widget)
+
+    def clearWidgets(self):
+        self._widgets = []
+
+    def emit(self, record):
+        msg = self.format(record)
+
+        for widget in self._widgets:
+            widget.factoryLog(msg, record.levelno)
