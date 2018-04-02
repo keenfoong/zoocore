@@ -6,10 +6,7 @@ root
                 |-settingOne.json
                 |SettingTwoFolder
                             |-setting.json
-t = ToolSet(getRoot())
-tool = t.find(toolName)
-settingOne = tool.get("settingOne")
-settingTwo = tool.get("settingTwoFolder/setting")
+
 
 """
 import os
@@ -38,53 +35,59 @@ class InvalidRootError(Exception):
     pass
 
 
-
-
-
 class ToolSet(object):
     """
     Example::
         Create some roots
         >>> tset = ToolSet()
         # the order you add roots is important
-        >>> tset.addRoot(os.expanduser("~/Documents/maya/2018/scripts/zootools_preferences"), "userPreferences")
+        >>> tset.addRoot(os.path.expanduser("~/Documents/maya/2018/scripts/zootools_preferences"), "userPreferences")
         # create a settings instance, if one exists already within one of the roots that setting will be used unless you
         # specify the root to use, in which the associated settingsObject for the root will be returned
         >>> newSetting = tset.createSetting(relative="tools/tests/helloworld",
         ...                                root="userPreferences",
-        ...                                data=**{"someData": "hello"})
+        ...                                data={"someData": "hello"})
         >>> print os.path.exists(newSetting.path())
         >>> print newSetting.path()
         # lets open a setting
         >>> foundSetting = tset.findSetting(relative="tools/tests/helloworld", root="userPreferences")
 
     """
+
     def addRoot(self, fullPath, name):
         if name in ROOTS:
             raise RootAlreadyExistsError("Root already exists: {}".format(name))
         ROOTS[name] = path.Path(fullPath)
 
-    def findSetting(self, relativepath, root=None):
+    def findSetting(self, relativePath, root=None):
         """ finds a settings object by searching the roots in reverse order.
 
         The first path to exist will be the one to be resolved. If a root is specified
         and the root+relativePath exists then that will be returned instead
 
-        :param relativepath:
-        :type relativepath:
+        :param relativePath:
+        :type relativePath:
         :param root:
         :type root:
         :return:
         :rtype:
         """
-        for name, path in ROOTS.items():
-            # we're working with an ordered dict
-            fullpath = path / relativepath
-            if not fullpath.exists():
-                continue
-            return SettingObject.open(path, relativepath)
+        if root is not None:
+            rootPath = ROOTS.get(root)
+            if rootPath is not None:
+                fullpath = rootPath / relativePath
+                if not fullpath.exists():
+                    return SettingObject(root, relativePath)
+                return SettingObject.open(root, relativePath)
+        else:
+            for name, path in reversed(ROOTS.items()):
+                # we're working with an ordered dict
+                fullpath = path / relativePath
+                if not fullpath.exists():
+                    continue
+                return SettingObject.open(name, relativePath)
 
-        return SettingObject(root, relativepath)
+        return SettingObject(root, relativePath)
 
     def createSetting(self, relative, root, data):
         setting = self.findSetting(relative, root)
