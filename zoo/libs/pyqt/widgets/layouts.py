@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from functools import partial
 
 from qt import QtWidgets, QtCore, QtGui
 from zoo.libs import iconlib
