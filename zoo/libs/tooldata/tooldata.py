@@ -17,10 +17,8 @@ from collections import OrderedDict
 from zoo.libs.utils import filesystem
 from zoo.libs.utils import file, path
 
+
 logger = logging.getLogger(__name__)
-# global storage of root paths which store tooldata
-# {"name": path}
-ROOTS = OrderedDict()
 
 
 class RootAlreadyExistsError(Exception):
@@ -54,10 +52,13 @@ class ToolSet(object):
 
     """
 
+    def __init__(self):
+        self.roots = OrderedDict()
+
     def addRoot(self, fullPath, name):
-        if name in ROOTS:
+        if name in self.roots:
             raise RootAlreadyExistsError("Root already exists: {}".format(name))
-        ROOTS[name] = path.Path(fullPath)
+        self.roots[name] = path.Path(fullPath)
 
     def findSetting(self, relativePath, root=None):
         """ finds a settings object by searching the roots in reverse order.
@@ -73,27 +74,34 @@ class ToolSet(object):
         :rtype:
         """
         if root is not None:
-            rootPath = ROOTS.get(root)
+            rootPath = self.roots.get(root)
             if rootPath is not None:
                 fullpath = rootPath / relativePath
                 if not fullpath.exists():
-                    return SettingObject(root, relativePath)
-                return SettingObject.open(root, relativePath)
+                    return SettingObject(rootPath, relativePath)
+                return self.open(rootPath, relativePath)
         else:
-            for name, path in reversed(ROOTS.items()):
+            for name, path in reversed(self.roots.items()):
                 # we're working with an ordered dict
                 fullpath = path / relativePath
                 if not fullpath.exists():
                     continue
-                return SettingObject.open(name, relativePath)
+                return self.open(path, relativePath)
 
-        return SettingObject(root, relativePath)
+        return SettingObject("", relativePath)
 
     def createSetting(self, relative, root, data):
         setting = self.findSetting(relative, root)
         setting.update(data)
         setting.save()
         return setting
+
+    def open(self, root, relativePath):
+        fullPath = os.path.join(root, relativePath)
+        if not os.path.exists(fullPath):
+            raise InvalidSettingsPath(fullPath)
+        data = file.loadJson(fullPath)
+        return SettingObject(root, relativePath, **data)
 
 
 class SettingObject(dict):
@@ -106,22 +114,22 @@ class SettingObject(dict):
         super(SettingObject, self).__init__(**kwargs)
 
     def rootPath(self):
-        if self.root and self.root in ROOTS:
-            return ROOTS[self.root]
+        if self.root:
+            return self.root
         return path.Path()
 
     def path(self):
-        return self.rootPath() / self["relativePath"]
+        return self.root / self["relativePath"]
 
     def isValid(self):
         if self.root is None:
             return False
-        elif (self.rootPath() / self.relativePath).exists():
+        elif (self.root / self.relativePath).exists():
             return True
         return False
 
     def __repr__(self):
-        return "<{}> root: {}, path: {}".format(self.__class__.__name__, self.rootPath(), self.relativePath)
+        return "<{}> root: {}, path: {}".format(self.__class__.__name__, self.root, self.relativePath)
 
     def __cmp__(self, other):
         return self.name == other and self.version == other.version
@@ -136,7 +144,7 @@ class SettingObject(dict):
         self[key] = value
 
     def save(self):
-        root = self.rootPath()
+        root = self.root
 
         if not root:
             return path.Path()
@@ -150,12 +158,3 @@ class SettingObject(dict):
             fullPath.setExtension("json", True)
         file.saveJson(output, str(fullPath))
         return self.path()
-
-    @classmethod
-    def open(cls, root, relativePath):
-        rootPath = str(ROOTS[root])
-        fullPath = os.path.join(rootPath, relativePath)
-        if not os.path.exists(fullPath):
-            raise InvalidSettingsPath(fullPath)
-        data = file.loadJson(fullPath)
-        return cls(root, relativePath, **data)
