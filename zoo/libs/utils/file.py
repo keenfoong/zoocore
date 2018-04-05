@@ -5,16 +5,16 @@ import json
 import zipfile
 import zlogging
 
-
-from zoo.libs.utils import commandline
-
 logger = zlogging.zooLogger
 
 QTSUPPORTEDIMAGES = ('bmp', 'gif', 'jpg', 'jpeg', 'mng', 'png', 'pbm', 'pgm', 'ppm', 'tiff', 'xbm', 'xpm', 'svg', 'tga')
 
 
 def isImage(path):
-    return imghdr.what(path) is not None
+    try:
+        return imghdr.what(path) is not None or path.split(os.extsep)[-1] in QTSUPPORTEDIMAGES
+    except IOError:
+        return False
 
 
 def imageSupportByQt(path):
@@ -22,6 +22,7 @@ def imageSupportByQt(path):
     if imageType is not None:
         return imageType.lower() in QTSUPPORTEDIMAGES
     return False
+
 
 def loadJson(filePath):
     """

@@ -4,12 +4,19 @@ from qt import QtWidgets, QtGui, QtCore
 class ItemContainer(QtWidgets.QGraphicsWidget):
     def __init__(self, orientation=QtCore.Qt.Vertical, parent=None):
         super(ItemContainer, self).__init__(parent=parent)
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
         layout = QtWidgets.QGraphicsLinearLayout()
+        layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setOrientation(orientation)
         self.setLayout(layout)
 
-    def setItem(self, item, alignment=None):
+    def items(self):
+        layout = self.layout()
+        for i in range(layout.count()):
+            yield layout.itemAt(i)
+
+    def addItem(self, item, alignment=None):
         """Adds a QWidget to the container layout
         :param item:
         """
@@ -17,8 +24,19 @@ class ItemContainer(QtWidgets.QGraphicsWidget):
         if alignment:
             self.layout().setAlignment(item, alignment)
 
+    def removeItemAtIndex(self, index):
+        """Adds a QWidget to the container layout
+
+        """
+        self.prepareGeometryChange()
+        layout = self.layout()
+        if index in range(self.layout().count()):
+            layout.removeAt(index)
+
 
 class TextContainer(QtWidgets.QGraphicsWidget):
+    textChanged = QtCore.Signal(str)
+
     def __init__(self, text, *args, **kwargs):
         super(TextContainer, self).__init__(*args, **kwargs)
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
@@ -41,17 +59,21 @@ class TextContainer(QtWidgets.QGraphicsWidget):
         self.title.text = title
 
 
-class CubicPath(QtWidgets.QGraphicsPathItem):
+class ConnectionEdge(QtWidgets.QGraphicsPathItem):
     contextMenuRequested = QtCore.Signal(object)
     defaultColor = QtGui.QColor(138, 200, 0)
     selectedColor = QtGui.QColor(255, 255, 255)
     hoverColor = QtGui.QColor(255, 255, 255)
+    CUBIC = 0
+    LINEAR = 1
 
-    def __init__(self, sourcePoint, destinationPoint=None):
-        super(CubicPath, self).__init__()
-
-        self.sourcePoint = sourcePoint
-        self.destinationPoint = destinationPoint
+    def __init__(self, source, destination=None, curveType=CUBIC):
+        super(ConnectionEdge, self).__init__()
+        self.curveType = curveType
+        self._sourcePlug = source
+        self._destinationPlug = destination
+        self._sourcePoint = source.center()
+        self._destinationPoint = destination.center() if destination is not None else None
         self.defaultPen = QtGui.QPen(self.defaultColor, 1.25, style=QtCore.Qt.DashLine)
         self.defaultPen.setDashPattern([1, 2, 2, 1])
         self.selectedPen = QtGui.QPen(self.selectedColor, 1.7, style=QtCore.Qt.DashLine)
@@ -64,17 +86,34 @@ class CubicPath(QtWidgets.QGraphicsPathItem):
         self.setPen(self.defaultPen)
         self.setZValue(-1)
         self.setFlags(self.ItemIsFocusable | self.ItemIsSelectable | self.ItemIsMovable)
-        if self._sourcePort and self._destinationPort:
+        if self._sourcePlug and self._destinationPlug:
             self.updatePath()
         self.update()
 
+    def setAsLinearPath(self):
+        path = QtGui.QPainterPath()
+        path.moveTo(self._sourcePoint)
+        path.lineTo(self._destinationPoint)
+        self.setPath(path)
+
+    def setAsCubicPath(self):
+        path = QtGui.QPainterPath()
+
+        path.moveTo(self._sourcePoint)
+        dx = self._destinationPoint.x() - self._sourcePoint.x()
+        dy = self._destinationPoint.y() - self._sourcePoint.y()
+        ctrl1 = QtCore.QPointF(self._sourcePoint.x() + dx * 0.50, self._sourcePoint.y() + dy * 0.1)
+        ctrl2 = QtCore.QPointF(self._sourcePoint.x() + dx * 0.50, self._sourcePoint.y() + dy * 0.9)
+        path.cubicTo(ctrl1, ctrl2, self._destinationPoint)
+        self.setPath(path)
+
     def hoverLeaveEvent(self, event):
-        super(CubicPath, self).hoverEnterEvent(event)
+        super(ConnectionEdge, self).hoverEnterEvent(event)
         self.hovering = False
         self.update()
 
     def hoverEnterEvent(self, event):
-        super(CubicPath, self).hoverEnterEvent(event)
+        super(ConnectionEdge, self).hoverEnterEvent(event)
         self.hovering = True
         self.update()
 
@@ -87,21 +126,106 @@ class CubicPath(QtWidgets.QGraphicsPathItem):
             painter.setPen(self.defaultPen)
         painter.drawPath(self.path())
 
+    def updatePosition(self):
+        """Update the position of the start and end of the edge
+        """
+        self._destinationPoint = self.destinationPlug.center()
+        self._sourcePoint = self.sourcePlug.center()
+        self.update()
+
     def updatePath(self):
+        if self.curveType == ConnectionEdge.CUBIC:
+            self.setAsCubicPath()
+        else:
+            self.setAsLinearPath()
 
-        path = QtGui.QPainterPath()
-        path.moveTo(self.sourcePoint)
-        ctrl1 = QtCore.QPointF(self.sourcePoint.x(), self.sourcePoint.y())
-        path.cubicTo(ctrl1, ctrl1, self.destinationPoint)
-        self.setPath(path)
+    def connect(self, src, dest):
+        """Create a connection between the src plug and the destination plug
+        :param src: Plug
+        :param dest: Plug
+        :return: None
+        """
+        if not src and dest:
+            return
+        self.sourcePlug = src
+        self.destinationPlug = dest
+        src.addConnection(self)
+        dest.addConnection(self)
 
-    def setSourcePoint(self, point):
-        self.sourcePoint = point
+    def disconnect(self):
+        """Remove the connection between the source and destination plug
+        """
+        self._sourcePlug.removeConnection(self)
+        self._sourcePlug.removeConnection(self)
+        self._sourcePlug = None
+        self._destinationPlug = None
+
+    @property
+    def sourcePoint(self):
+        """Return the source point
+        :return: QtCore.QPointF()
+        """
+        return self._sourcePoint
+
+    @sourcePoint.setter
+    def sourcePoint(self, point):
+        """Sets the source point and updates the path
+        :param point: QtCore.QPointF
+        """
+        self._sourcePoint = point
         self.updatePath()
 
-    def setDestinationPoint(self, point):
-        self.destinationPoint = point
+    @property
+    def destinationPoint(self):
+        """return the destination point
+        :return: QtCore.QPointF
+        """
+        return self._destinationPoint
+
+    @destinationPoint.setter
+    def destinationPoint(self, point):
+        """Sets the destination point and updates the path
+        :param point: QtCore.QPointF
+        """
+        self._destinationPoint = point
         self.updatePath()
+
+    @property
+    def sourcePlug(self):
+        """Return the source plug
+        :return: Plug
+        """
+        return self._sourcePlug
+
+    @sourcePlug.setter
+    def sourcePlug(self, plug):
+        """Sets the source plug and update the path
+        :param plug: Plug
+        """
+        self._sourcePlug = plug
+        self._sourcePoint = plug.center()
+        if self._destinationPoint:
+            self.updatePath()
+
+    @property
+    def destinationPlug(self):
+        """Returns the destination plug
+        :return: Plug
+        """
+        return self._destinationPlug
+
+    @destinationPlug.setter
+    def destinationPlug(self, plug):
+        self._destinationPlug = plug
+        self._destinationPoint = plug.center()
+        if self._sourcePoint:
+            self.updatePath()
+
+    def close(self):
+        """
+        """
+        if self.scene() is not None:
+            self.scene().removeItem(self)
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
@@ -112,10 +236,10 @@ class CubicPath(QtWidgets.QGraphicsPathItem):
                 self.setSelected(True)
 
             self.update()
-        self.destinationPoint = event.pos()
+        self._destinationPoint = event.pos()
 
     def mouseMoveEvent(self, event):
-        self.destinationPoint = event.pos()
+        self._destinationPoint = self.mapToScene(event.pos())
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Delete or event.key() == QtCore.Qt.Key_Backspace:
@@ -198,6 +322,14 @@ class GraphicsText(QtWidgets.QGraphicsWidget):
         self._item.document().setDefaultTextOption(option)
         self.adjustSize()
         self.setPreferredSize(self.size)
+        self.allowHoverHighlight = False
+
+        self.setAcceptHoverEvents(True)
+        self.setTextFlags(QtWidgets.QGraphicsItem.ItemIsSelectable | QtWidgets.QGraphicsItem.ItemIsFocusable |
+                          QtWidgets.QGraphicsItem.ItemIsMovable)
+
+    def setTextFlags(self, flags):
+        self._item.setFlags(flags)
 
     @property
     def text(self):
@@ -226,3 +358,29 @@ class GraphicsText(QtWidgets.QGraphicsWidget):
     @property
     def height(self):
         return self._item.document().documentLayout().documentSize().height() + 2
+
+    @property
+    def color(self):
+        return self._item.defaultTextColor()
+
+    @color.setter
+    def color(self, color):
+        self._item.setDefaultTextColor(color)
+        self.update()
+
+    def highlight(self):
+        highlightColor = self.color.lighter(150)
+        self.color = highlightColor
+
+    def unhighlight(self):
+        self.color = self._color
+
+    def hoverEnterEvent(self, event):
+        if self.allowHoverHighlight:
+            self.highlight()
+        super(GraphicsText, self).hoverEnterEvent(event)
+
+    def hoverLeaveEvent(self, event):
+        if self.allowHoverHighlight:
+            self.unhighlight()
+        super(GraphicsText, self).hoverLeaveEvent(event)

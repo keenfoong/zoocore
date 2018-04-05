@@ -1,7 +1,7 @@
 import os
 
 from qt import QtGui, QtCore
-from zoo.libs.maya.utils import env
+from zoo.libs.utils import env
 
 
 class Icon(object):
@@ -9,10 +9,14 @@ class Icon(object):
     """
     iconCollection = {}
     iconPaths = []
-    if not iconCollection:
+
+    @classmethod
+    def reload(cls):
+        cls.iconCollection = {}
+
         # find and store all the found icons with the base zoo paths
-        iconPaths = os.environ["ZOO_ICON_PATH"].split(os.pathsep)
-        for iconPath in iconPaths:
+        cls.iconPaths = os.environ.get("ZOO_ICON_PATH", "").split(os.pathsep)
+        for iconPath in cls.iconPaths:
             if not iconPath or not os.path.exists(iconPath):
                 continue
             for root, dirs, files in os.walk(iconPath):
@@ -25,17 +29,17 @@ class Icon(object):
                         continue
                     name = "_".join(nameSplit[:-1])
                     size = int(nameSplit[-1])
-                    if name in iconCollection:
-                        sizes = iconCollection[name]["sizes"]
+                    if name in cls.iconCollection:
+                        sizes = cls.iconCollection[name]["sizes"]
                         if size in sizes:
                             continue
                         sizes[size] = {"path": os.path.join(root, f),
                                        "icon": None}
 
                     else:
-                        iconCollection[name] = {"sizes": {size: {"path": os.path.join(root, f),
-                                                                 'icon': None}},
-                                                "name": name}
+                        cls.iconCollection[name] = {"sizes": {size: {"path": os.path.join(root, f),
+                                                                     'icon': None}},
+                                                    "name": name}
 
     @classmethod
     def icon(cls, iconName, size=16):
@@ -48,7 +52,16 @@ class Icon(object):
         """
         if env.isMayapy():
             return
+        iconData = cls.iconDataForName(iconName, size)
+        icon = iconData.get("icon")
+        if icon and isinstance(icon, QtGui.QIcon) and not icon.isNull():
+            return icon
+        newIcon = QtGui.QIcon(iconData.get("path", ""))
+        iconData["icon"] = newIcon
+        return newIcon
 
+    @classmethod
+    def iconDataForName(cls, iconName, size=16):
         if "_" in iconName:
             splitter = iconName.split("_")
             if splitter[-1].isdigit():
@@ -58,7 +71,7 @@ class Icon(object):
         else:
             size = str(size)
         if iconName not in cls.iconCollection:
-            return QtGui.QIcon()
+            return {}
 
         for name, data in iter(cls.iconCollection.items()):
             if name != iconName:
@@ -69,14 +82,12 @@ class Icon(object):
                 iconData = sizes[size]
             else:
                 iconData = data["sizes"][size]
-            icondata = iconData["icon"]
-            if icondata and isinstance(icondata, QtGui.QIcon) and not icondata.isNull():
-                return icondata
-            newIcon = QtGui.QIcon(iconData["path"])
-            data["sizes"][size]["icon"] = newIcon
-            return newIcon
+            return iconData
+        return {}
 
-        return QtGui.QIcon()
+    @classmethod
+    def iconPathForName(cls, iconName, size=16):
+        return cls.iconDataForName(iconName, size).get("path", "")
 
     @classmethod
     def iconColorized(cls, iconName, size=16, color=(255, 255, 255)):
@@ -102,3 +113,24 @@ class Icon(object):
         pixmap.fill(color)
         pixmap.setMask(mask)
         return QtGui.QIcon(pixmap)
+
+    @classmethod
+    def grayscaleIcon(cls, iconName, size):
+        """ Returns a grayscale version of a given icon. Returns the original icon
+        if it cannot be converted.
+        :param iconName: The icon name from the library
+        :type iconName: str
+        :param size: the size of the icon to retrieve
+        :type size: int
+        :rtype: QtGui.QIcon
+        """
+        icon = cls.icon(iconName, size)
+        if not icon:
+            return icon  # will return an empty QIcon
+        # Rebuild all sizes of the icon as grayscale
+        for size in icon.availableSizes():
+            icon.addPixmap(icon.pixmap(size, QtGui.QIcon.Disabled))
+        return icon
+
+
+Icon.reload()

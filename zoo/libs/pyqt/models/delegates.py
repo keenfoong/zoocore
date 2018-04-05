@@ -1,5 +1,6 @@
 from qt import QtWidgets, QtCore
 from zoo.libs.pyqt.extended import combobox
+from zoo.libs.pyqt.models import constants
 
 
 class NumericDoubleDelegate(QtWidgets.QItemDelegate):
@@ -8,18 +9,9 @@ class NumericDoubleDelegate(QtWidgets.QItemDelegate):
 
     def createEditor(self, parent, option, index):
         model = index.model()
-        column = index.column()
-        dataSource = model.rowDataSource
-        if column == 0:
-            dataSource = model.rowDataSource
-            kwargs = {"index": index.row()}
-        else:
-            kwargs = {"rowDataSource": dataSource,
-                      "index": index.row()}
-            dataSource = model.columnDataSource(column)
         widget = QtWidgets.QDoubleSpinBox(parent=parent)
-        widget.setMinimum(dataSource.min(**kwargs))
-        widget.setMaximum(dataSource.max(**kwargs))
+        widget.setMinimum(model.data(index, constants.minValue))
+        widget.setMaximum(constants.maxValue)
         return widget
 
     def setEditorData(self, widget, index):
@@ -40,18 +32,9 @@ class NumericIntDelegate(QtWidgets.QItemDelegate):
 
     def createEditor(self, parent, option, index):
         model = index.model()
-        column = index.column()
-        dataSource = model.rowDataSource
-        if column == 0:
-            dataSource = model.rowDataSource
-            kwargs = {"index": index.row()}
-        else:
-            kwargs = {"rowDataSource": dataSource,
-                      "index": index.row()}
-            dataSource = model.columnDataSource(column)
         widget = QtWidgets.QDoubleSpinBox(parent=parent)
-        widget.setMinimum(dataSource.minimum(**kwargs))
-        widget.setMaximum(dataSource.maximum(**kwargs))
+        widget.setMinimum(model.data(index,constants.minValue))
+        widget.setMaximum(model.data(index,constants.maxValue))
         return widget
 
     def setEditorData(self, widget, index):
@@ -72,21 +55,15 @@ class EnumerationDelegate(QtWidgets.QItemDelegate):
 
     def createEditor(self, parent, option, index):
         model = index.model()
-        column = index.column()
-        dataSource = model.rowDataSource
-        if column == 0:
-            dataSource = model.rowDataSource
-            kwargs = {"index": index.row()}
-        else:
-            kwargs = {"rowDataSource": dataSource,
-                      "index": index.row()}
-            dataSource = model.columnDataSource(column)
-        combo = combobox.ExtendedComboBox(dataSource.enums(**kwargs), parent)
+        combo = combobox.ExtendedComboBox(model.data(index, constants.enumsRole), parent)
         return combo
 
     def setEditorData(self, editor, index):
         editor.blockSignals(True)
-        editor.setCurrentText(index.model().data(index, QtCore.Qt.DisplayRole))
+        text = index.model().data(index, QtCore.Qt.DisplayRole)
+        index = editor.findText(text, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+            editor.setCurrentIndex(index)
         editor.blockSignals(False)
 
     def setModelData(self, editor, model, index):
@@ -100,16 +77,8 @@ class ButtonDelegate(QtWidgets.QItemDelegate):
 
     def createEditor(self, parent, option, index):
         model = index.model()
-        column = index.column()
-        dataSource = model.rowDataSource
-        if column == 0:
-            dataSource = model.rowDataSource
-            kwargs = {"index": index.row()}
-        else:
-            kwargs = {"rowDataSource": dataSource,
-                      "index": index.row()}
-            dataSource = model.columnDataSource(column)
-        widget = QtWidgets.QPushButton(dataSource.text(**kwargs), parent=parent)
+
+        widget = QtWidgets.QPushButton(model.data(QtCore.Qt.DisplayRole), parent=parent)
         widget.clicked.connect(self.onClicked)
         return widget
 
@@ -132,18 +101,9 @@ class CheckBoxDelegate(QtWidgets.QItemDelegate):
 
     def createEditor(self, parent, option, index):
         model = index.model()
-        column = index.column()
-        dataSource = model.rowDataSource
-        if column == 0:
-            dataSource = model.rowDataSource
-            kwargs = {"index": index.row()}
-        else:
-            kwargs = {"rowDataSource": dataSource,
-                      "index": index.row()}
-            dataSource = model.columnDataSource(column)
         widget = QtWidgets.QCheckBox(parent=parent)
         widget.clicked.connect(self.onClicked)
-        widget.setChecked(dataSource.data(**kwargs))
+        widget.setChecked(model.data(index, QtCore.Qt.DisplayRole))
         return widget
 
     def onClicked(self):

@@ -1263,7 +1263,6 @@ Qt.QtCompat._convert = _convert
 if __name__ == "__main__":
     _cli(sys.argv[1:])
 
-
 # The MIT License (MIT)
 #
 # Copyright (c) 2016-2017 Marcus Ottosson

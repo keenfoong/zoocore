@@ -4,7 +4,10 @@ from qt import QtWidgets, QtCore
 class ExtendedComboBox(QtWidgets.QComboBox):
     """Extended combobox to also have a filter
     """
-    def __init__(self, items, parent=None):
+    itemSelected = QtCore.Signal(str)
+    checkStateChanged = QtCore.Signal(str, int)
+
+    def __init__(self, items=None, parent=None):
         super(ExtendedComboBox, self).__init__(parent)
 
         self.setEditable(True)
@@ -23,7 +26,28 @@ class ExtendedComboBox(QtWidgets.QComboBox):
         # connect signals
         self.lineEdit().textEdited.connect(self.pFilterModel.setFilterFixedString)
         self.complete.activated.connect(self.onCompleterActivated)
-        self.addItems(items)
+        if items:
+            self.addItems(items)
+        self.view().pressed.connect(self.handleItemPressed)
+        self._isCheckable = False
+
+    def addItem(self, text, isCheckable=False):
+        super(ExtendedComboBox, self).addItem(text)
+        model = self.model()
+        item = model.item(model.rowCount() - 1, 0)
+        if item and isCheckable:
+            self._isCheckable = isCheckable
+            item.setCheckState(QtCore.Qt.Checked)
+
+    def keyPressEvent(self, event):
+        super(ExtendedComboBox, self).keyPressEvent(event)
+        if event.key() == QtCore.Qt.Key_Escape:
+            self.close()
+            self.parent().setFocus()
+        elif event.key() in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
+            self.itemSelected.emit(self.currentText())
+            self.close()
+            self.parent().setFocus()
 
     def onCompleterActivated(self, text):
         """On selection of an item from the completer, this method will select the item from the combobox
@@ -46,3 +70,32 @@ class ExtendedComboBox(QtWidgets.QComboBox):
         self.complete.setCompletionColumn(column)
         self.pFilterModel.setFilterKeyColumn(column)
         super(ExtendedComboBox, self).setModelColumn(column)
+
+    def handleItemPressed(self, index):
+        if not self._isCheckable:
+            return
+        item = self.model().itemFromIndex(index)
+        if item.checkState() == QtCore.Qt.Checked:
+            state = QtCore.Qt.Unchecked
+        else:
+            state = QtCore.Qt.Checked
+        item.setCheckState(state)
+        self.checkStateChanged.emit(item.text(), state)
+
+    def stateList(self):
+        model = self.model()
+        items = []
+        for index in range(model.rowCount()):
+            item = model.itemFromIndex(index)
+            if item.isValid():
+                items.append(item)
+        return items
+
+    def checkedItems(self):
+        model = self.model()
+        items = []
+        for index in range(model.rowCount()):
+            item = model.itemFromIndex(index)
+            if item.isValid():
+                items.append(item)
+        return items

@@ -15,6 +15,7 @@ class ExecutorBase(object):
         self.commands = {}
         self.undoStack = deque()
         self.redoStack = deque()
+        self.registerEnv("ZOO_COMMAND_LIB")
 
     def execute(self, name, *args, **kwargs):
         command = self.findCommand(name)
@@ -130,6 +131,17 @@ class ExecutorBase(object):
 
     def cancel(self, msg):
         raise errors.UserCancel(msg)
+
+    def commandHelp(self, commandId):
+        command = self.findCommand(commandId)
+        clsHelp = inspect.getdoc(command)
+        doItHelp = inspect.getdoc(command.doIt)
+        return """
+        Class: {}
+        {}
+        Func doIt:
+        {}
+        """.format(command.__name__, clsHelp, doItHelp)
 
     def groups(self):
         groups = {}
