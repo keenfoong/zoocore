@@ -393,7 +393,7 @@ class StackItem(QtWidgets.QWidget):
 
     def setArrowsVisible(self, visible):
         """
-
+        Set the shift arrows to be visible or not. These arrows allow the StackItem to be shifted upwards or downwards.
         :param visible:
         :return:
         """
@@ -425,33 +425,11 @@ class StackItem(QtWidgets.QWidget):
         self.deleteBtn.setIconSize(QtCore.QSize(12, 12))
         self.shiftUpBtn.setIconSize(QtCore.QSize(12, 12))
         self.shiftDownBtn.setIconSize(QtCore.QSize(12, 12))
-        # self.itemIcon.setIconSize(QtCore.QSize(24, 24))
-
-        self.horizontalLayout.insertWidget(1, self.itemIcon)
-        self.horizontalLayout.addWidget(self.stackTitleWgt)
-        self.horizontalLayout.addLayout(self.titleExtrasLayout)
-        self.horizontalLayout.addWidget(self.shiftUpBtn)
-        self.horizontalLayout.addWidget(self.shiftDownBtn)
-        self.horizontalLayout.addWidget(self.deleteBtn)
-
-        # Possibly should tweak layouts.CollapsableFrameLayout (or create a new class) instead of adding then deleting
-        i = self.horizontalLayout.indexOf(self.titleLabel)
-        self.horizontalLayout.takeAt(i)
-        self.titleLabel.deleteLater()
-
-
-
-
-
-        self.horizontalLayout.setStretchFactor(self.stackTitleWgt, 4)
-
 
     def buildTitleFrame(self):
         """Builds the title part of the layout with a QFrame widget
         """
-        #TODO: From layouts
         # main dark grey qframe
-        self.titleFrame = frame.QFrame(parent=self)
         self.setFrameColor(self.color)
         self.titleFrame.setContentsMargins(4, 0, 4, 0)
 
@@ -465,25 +443,29 @@ class StackItem(QtWidgets.QWidget):
             self.iconButton.setIcon(self._collapsedIcon)
         else:
             self.iconButton.setIcon(self._expandIcon)
-        self.titleLabel = QtWidgets.QLabel(self.title, parent=self)
-        self.titleLabel.setStyleSheet("font: bold;")
-        self.titleLabel.setContentsMargins(0, 0, 0, 0)
+
         spacerItem = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
 
         # add to horizontal layout
         self.horizontalLayout.addWidget(self.iconButton)
-        self.horizontalLayout.addWidget(self.titleLabel)
+        self.horizontalLayout.addWidget(self.itemIcon)
         self.horizontalLayout.addItem(spacerItem)
         self.titleFrame.setFixedHeight(self.titleFrame.sizeHint().height())
         self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height())
 
+        self.horizontalLayout.addWidget(self.stackTitleWgt)
+        self.horizontalLayout.addLayout(self.titleExtrasLayout)
+        self.horizontalLayout.addWidget(self.shiftUpBtn)
+        self.horizontalLayout.addWidget(self.shiftDownBtn)
+        self.horizontalLayout.addWidget(self.deleteBtn)
+
+        self.horizontalLayout.setStretchFactor(self.stackTitleWgt, 4)
+
     def shiftUp(self):
-        #self.stackWidget.shiftItem(self, -1)
         self.shiftUpPressed.emit()
 
 
     def shiftDown(self):
-        #self.stackWidget.shiftItem(self, 1)
         self.shiftDownPressed.emit()
 
     def addWidget(self, widget):
