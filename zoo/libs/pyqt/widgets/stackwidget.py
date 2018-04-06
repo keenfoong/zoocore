@@ -1,16 +1,16 @@
-
 from qt import QtWidgets, QtCore, QtGui
 from zoo.libs import iconlib
-from zoo.libs.pyqt.widgets import layouts
 from zoo.libs.pyqt import uiconstants
 from zoo.libs.pyqt.widgets import frame
-
 
 
 class StackWidget(QtWidgets.QWidget):
     """
     The overall layout widget. The table underneath (self.stackTableWgt) holds all the stack items.
-    TODO: StackItem has been changed to use QSignals for ShiftUp, shiftDown, updateSize, delete. This needs to reflect that
+    TODO: StackItem has been changed to use QSignals for ShiftUp, shiftDown, updateSize, delete. This needs to reflect
+    that.
+
+    StackWidget is the overall view, StackTableWidget is the actual widget that holds the StackItems themselves.
     """
     _expandIcon = iconlib.icon("roundedsquare")
     _collapseIcon = iconlib.icon("minus")
@@ -46,6 +46,7 @@ class StackWidget(QtWidgets.QWidget):
         compStackToolbarLayout = QtWidgets.QHBoxLayout()
         compStackToolbarLayout.addWidget(self.stackSearchEdit)
 
+        # Toolbar buttons
         self.expandBtn.setIcon(self._expandIcon)
         self.expandBtn.setIconSize(QtCore.QSize(12, 12))
 
@@ -56,6 +57,7 @@ class StackWidget(QtWidgets.QWidget):
         self.collapseBtn.setFixedSize(size)
         self.expandBtn.setFixedSize(size)
 
+        # Add buttons and search to toolbar
         compStackToolbarLayout.addSpacing(5)
         compStackToolbarLayout.addWidget(self.collapseBtn)
         compStackToolbarLayout.addWidget(self.expandBtn)
@@ -82,42 +84,86 @@ class StackWidget(QtWidgets.QWidget):
         self.setLayout(mainLayout)
 
     def connections(self):
+        """
+        Connections for the buttons and the search edit
+        :return:
+        """
         self.stackSearchEdit.textChanged.connect(self.onStackSearchChanged)
-
         self.collapseBtn.clicked.connect(self.collapseClicked)
         self.expandBtn.clicked.connect(self.expandClicked)
 
     def collapseClicked(self):
+        """
+        Collapse all the StackItems in the Table
+        :return:
+        """
         self.stackTableWgt.collapseAll()
 
     def expandClicked(self):
+        """
+        Expand all the StackItems in the Table
+        :return:
+        """
         self.stackTableWgt.expandAll()
 
     def onStackSearchChanged(self):
+        """
+        Filter the results based on the text inputted into the search bar
+        :return:
+        """
 
         text = self.stackSearchEdit.text().lower()
         self.stackTableWgt.filter(text)
         self.stackTableWgt.updateSize()
 
     def clearStack(self):
+        """
+        Clear all the items in the stack
+        :return:
+        """
         self.stackTableWgt.clearStack()
 
     def addStackItem(self, item):
+        """
+        Add item to the StackTableWidget
+        :param item: StackItem to add to the table
+        :return:
+        """
         item.setArrowsVisible(self.showArrows)
         self.stackTableWgt.addStackItem(item)
 
     def replaceStackItems(self, items):
+        """
+        Clear all items and replace it with the items
+        :param items: List of items to add to the stack table
+        :return:
+        """
         self.clearStack()
         for i in items:
             self.stackTableWgt.addStackItem(i)
 
     def clearSearchEdit(self):
+        """
+        Clear the search bar
+        :return:
+        """
         self.stackSearchEdit.setText("")
 
     def shiftItem(self, wgt, dir):
+        """
+        Shift the item up or down in the table
+        :param wgt: The StackItem to shift
+        :param dir: The direction to shift -1 is upwards, 1 is downwards
+        :return:
+        """
         self.stackTableWgt.shiftTableItem(wgt, dir)
 
     def deleteItem(self, wgt):
+        """
+        Delete the stack item from the table
+        :param wgt:
+        :return:
+        """
         self.stackTableWgt.deleteTableItem(wgt)
 
 
@@ -126,7 +172,7 @@ class StackTableWidget(QtWidgets.QTableWidget):
     The Table with the actual stack and items. Maybe should merge with StackWidget
     """
 
-    def __init__(self, showArrows=True, showClose=True, parent=None, itemTint=tuple([60,60,60])):
+    def __init__(self, showArrows=True, showClose=True, parent=None, itemTint=tuple([60, 60, 60])):
         super(StackTableWidget, self).__init__(parent)
         self.cellPadding = 5
         self.stackItems = []
@@ -149,7 +195,6 @@ class StackTableWidget(QtWidgets.QTableWidget):
 
         self.setStyleSheet(style)
 
-
     def initUi(self):
         self.setRowCount(0)
         self.setColumnCount(1)
@@ -162,33 +207,10 @@ class StackTableWidget(QtWidgets.QTableWidget):
         self.setContentsMargins(2, 2, 2, 2)
 
         self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        #self.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setFocusPolicy(QtCore.Qt.NoFocus)
 
         self.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
-
-        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.contextMenu)
-
-
-    def contextMenu(self, pos):
-        #print('column(%d)' % self.table.horizontalHeader().logicalIndexAt(pos))
-        print ("Context menu")
-        """
-        selectionModel = self.selectionModel()
-        selection = [model.itemFromIndex(index) for index in selectionModel.selectedIndexes()]
-        """
-
-        menu = QtWidgets.QMenu()
-        menu.addAction('Component Settings')
-        menu.addSeparator()
-        menu.addAction('Group')
-        menu.addSeparator()
-        menu.addAction('Cut')
-        menu.addAction('Copy')
-        menu.addAction('Paste')
-        menu.exec_(QtGui.QCursor.pos())
 
     def shiftTableItem(self, wgt, dir):
         # Update componentList
@@ -231,22 +253,16 @@ class StackTableWidget(QtWidgets.QTableWidget):
         wgt.deleteLater()
 
     def addStackItem(self, item):
-
         self.stackItems.append(item)
         self.addRow(item)
 
         self.updateSize(item)
-        #item.show()
 
     def addRow(self, stackItem):
         rowPos = self.rowCount()
         self.setRowCount(rowPos + 1)
         self.setItem(rowPos, 0, QtWidgets.QTableWidgetItem())
         self.setCellWidget(rowPos, 0, stackItem)
-
-        #self.updateSize(stackItem)
-
-        #self.setRowHeight(rowPos, stackItem.sizeHint().height())
 
     def getRow(self, stackItem):
         for i in range(self.rowCount()):
@@ -286,7 +302,6 @@ class StackTableWidget(QtWidgets.QTableWidget):
 
         self.setRowHeight(self.getRow(stackItem), newHeight)
 
-
     def clearStack(self):
         self.stackItems = []
         self.clear()
@@ -305,6 +320,8 @@ class StackItem(QtWidgets.QWidget):
     _upIcon = iconlib.icon("arrowSingleUp")
     _deleteIcon = iconlib.icon("xMark")
     _itemIcon = iconlib.icon("stream")
+    _collapsedIcon = iconlib.icon("sortClosed")
+    _expandIcon = iconlib.icon("sortDown")
 
     closeRequested = QtCore.Signal()
     openRequested = QtCore.Signal()
@@ -312,12 +329,9 @@ class StackItem(QtWidgets.QWidget):
     shiftDownPressed = QtCore.Signal()
     deletePressed = QtCore.Signal()
     updateRequested = QtCore.Signal()
-    
-    _collapsedIcon = iconlib.icon("sortClosed")
-    _expandIcon = iconlib.icon("sortDown")
 
     def __init__(self, title, parent, collapsed=False, collapsable=True, icon=None, startHidden=False,
-                 itemTint=tuple([60,60,60]), shiftArrowsEnabled=True, deleteButtonEnabled=True):
+                 itemTint=tuple([60, 60, 60]), shiftArrowsEnabled=True, deleteButtonEnabled=True, titleEditable=True):
         super(StackItem, self).__init__(parent=parent)
 
         if startHidden:
@@ -335,25 +349,23 @@ class StackItem(QtWidgets.QWidget):
         self.deleteBtn = QtWidgets.QToolButton(parent=self)
         self.stackTitleWgt = QtWidgets.QLineEdit(title)
         self.titleExtrasLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
 
         self.spacesToUnderscore = True
 
-        ### TODO: From layouts.py. Should be cleaned up
-        contentMargins = uiconstants.MARGINS
-        contentSpacing = uiconstants.SPACING
-        color = uiconstants.DARKBGCOLOR
-
         self.layout = QtWidgets.QVBoxLayout()
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.setSpacing(0)
-        self.titleExtrasLayout.setContentsMargins(0,0,0,0)
-        self.titleExtrasLayout.setSpacing(0)
         self.title = title
-        self.color = color
-        self.contentMargins = contentMargins
-        self.contentSpacing = contentSpacing
+        self.color = uiconstants.DARKBGCOLOR
+        self.contentMargins = uiconstants.MARGINS
+        self.contentSpacing = uiconstants.SPACING
         self.collapsable = collapsable
         self.collapsed = collapsed
+        self.titleFrame = frame.QFrame(parent=self)
+        self.iconButton = QtWidgets.QToolButton(parent=self)
+
+        # Title Frame
+        self.widgetHider = QtWidgets.QFrame()
+        self.hiderLayout = QtWidgets.QVBoxLayout(self.widgetHider)
 
         if not shiftArrowsEnabled:
             self.shiftDownBtn.hide()
@@ -362,10 +374,7 @@ class StackItem(QtWidgets.QWidget):
         if not deleteButtonEnabled:
             self.deleteBtn.hide()
 
-        if hasattr(self.stackWidget, 'showClose') and  not self.stackWidget.showClose:
-            self.deleteBtn.hide()
-
-        if hasattr(self.stackWidget, 'titleEditable') and not self.stackWidget.titleEditable:
+        if not titleEditable:
             self.stackTitleWgt.setReadOnly(True)
 
         self.initUi()
@@ -383,6 +392,11 @@ class StackItem(QtWidgets.QWidget):
             self.expand()
 
     def setArrowsVisible(self, visible):
+        """
+
+        :param visible:
+        :return:
+        """
         if visible:
             self.shiftDownBtn.show()
             self.shiftUpBtn.show()
@@ -390,16 +404,18 @@ class StackItem(QtWidgets.QWidget):
             self.shiftDownBtn.hide()
             self.shiftUpBtn.hide()
 
-
     def initUi(self):
 
-        ### TODO: From Layouts
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(0)
+
+        self.titleExtrasLayout.setContentsMargins(0, 0, 0, 0)
+        self.titleExtrasLayout.setSpacing(0)
+
         self.buildTitleFrame()
         self.buildHiderWidget()
         self.layout.addWidget(self.titleFrame)
         self.layout.addWidget(self.widgetHider)
-        ###
-
 
         self.itemIcon.setIcon(self._itemIcon)
         self.shiftDownBtn.setIcon(self._downIcon)
@@ -480,23 +496,28 @@ class StackItem(QtWidgets.QWidget):
         """Builds widget that is collapsable
         Widget can be toggled so it's a container for the layout
         """
-        # TODO: From layouts
-        self.widgetHider = QtWidgets.QFrame()
         self.widgetHider.setContentsMargins(0, 0, 0, 0)
-        self.hiderLayout = QtWidgets.QVBoxLayout(self.widgetHider)
+
         self.hiderLayout.setContentsMargins(*self.contentMargins)
         self.hiderLayout.setSpacing(self.contentSpacing)
         self.widgetHider.setHidden(self.collapsed)
         self.widgetHider.setStyleSheet("QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
 
-
     def onCollapsed(self):
+        """
+        Collapse and hide the item contents
+        :return:
+        """
         self.widgetHider.setHidden(True)
         self.iconButton.setIcon(self._collapsedIcon)
         self.closeRequested.emit()
         self.collapsed = 1
 
     def onExpand(self):
+        """
+        Expand the contents and show all the widget data
+        :return:
+        """
         self.widgetHider.setHidden(False)
         self.iconButton.setIcon(self._expandIcon)
         self.openRequested.emit()
@@ -510,49 +531,60 @@ class StackItem(QtWidgets.QWidget):
         """ Extra Code for convenience """
         self.onCollapsed()
 
-    def showHideWidget(self, *args):
+    def showHideWidget(self):
         """Shows and hides the widget `self.widgetHider` this contains the layout `self.hiderLayout`
         which will hold the custom contents that the user specifies
         """
-
-        # TODO: From layouts
         if not self.collapsable:
             return
+
         # If we're already collapsed then expand the layout
         if self.collapsed:
             self.expand()
             self.updateSize(self)
             return
+
         self.onCollapsed()
         self.updateSize(self)
 
-
-    def addMainWidget(self, widget):
-        self.hiderLayout.addWidget(widget)
-        QtWidgets.QApplication.processEvents()
-
     def setComboToText(self, combobox, text):
+        """
+        Find the text in the combobox and sets it to active.
+        :param combobox:
+        :param text:
+        :return:
+        """
         index = combobox.findText(text, QtCore.Qt.MatchFixedString)
         combobox.setCurrentIndex(index)
 
     def deleteEvent(self):
+        """
+        Delete Button Pressed
+        :return:
+        """
         self.deletePressed.emit()
-        #self.stackWidget.deleteItem(self)
-        
 
-    def updateSize(self, wgt=None):
-        if wgt is None:
-            wgt = self
-
+    def updateSize(self):
+        """
+        Update the size of the widget. Usually called by collapse or expand for when the widget contents are hidden
+        or shown.
+        :return:
+        """
         self.updateRequested.emit()
-        #if self.stackTableWgt is not None:
-        #    self.stackTableWgt.updateSize(wgt)
-
 
     def getTitle(self):
+        """
+        Get method for the title text
+        :return:
+        """
         return self.stackTitleWgt.text()
 
     def setTitle(self, text):
+        """
+        Set method to get the title text
+        :param text:
+        :return:
+        """
         self.stackTitleWgt.setText(text)
 
     def titleValidate(self):
@@ -604,34 +636,12 @@ class StackItem(QtWidgets.QWidget):
             }}
             """.format(str(color), str((63, 63, 63)))
 
-
-
         self.titleFrame.setStyleSheet(style)
 
-    def test(self):
-        print("test")
-        menu = QtWidgets.QMenu()
-        menu.addAction("Test")
-        menu.addAction("Test")
-        menu.addAction("Test")
-        #menu.show()
-        #menu.popup(QtCore.QPoint(0,0))
-        menu.exec_(QtCore.QPoint(50,50))
-
-
-
-
-
     def connections(self):
-        """toggle widgetHider vis
-        """
-
-        """ Connections for the stack items"""
-        #self.openRequested.connect(self.stackTableWgt.updateSize)
-        #self.closeRequested.connect(self.stackTableWgt.updateSize)
+        """ Connections for stack items"""
 
         self.iconButton.clicked.connect(self.showHideWidget)
-        self.itemIcon.clicked.connect(self.test)
 
         self.titleFrame.mouseReleased.connect(self.showHideWidget)
 
