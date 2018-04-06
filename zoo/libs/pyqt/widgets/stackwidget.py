@@ -523,11 +523,11 @@ class StackItem(QtWidgets.QWidget):
         # If we're already collapsed then expand the layout
         if self.collapsed:
             self.expand()
-            self.updateSize(self)
+            self.updateSize()
             return
 
         self.onCollapsed()
-        self.updateSize(self)
+        self.updateSize()
 
     def setComboToText(self, combobox, text):
         """
