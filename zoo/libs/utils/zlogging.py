@@ -2,6 +2,8 @@ import logging
 import os
 from zoo.libs.utils import classtypes
 
+CENTRAL_LOGGER_NAME = "zoocore"
+
 
 class CentralLogManager(object):
     """This class is a singleton object that globally handles logging, any log added will managed by the class
@@ -69,4 +71,8 @@ def reloadLoggerHierarchy():
             log.parent.children = [log]
 
 
-zooLogger = getLogger("zoocore")
+zooLogger = getLogger(CENTRAL_LOGGER_NAME)
+zooLogger.propagate = False
+zooLogger.setLevel(logging.DEBUG)
+
+zooLogger.addHandler(logging.NullHandler())
