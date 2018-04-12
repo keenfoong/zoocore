@@ -215,9 +215,7 @@ class StackTableWidget(QtWidgets.QTableWidget):
     def shiftTableItem(self, wgt, dir):
         # Update componentList
         # self.shiftComponentStack(wgt, dir)
-
         row = self.getRow(wgt)
-
         if row == 0 and dir == -1 or row == self.rowCount() - 1 and dir == 1:
             return
 
@@ -341,6 +339,7 @@ class StackItem(QtWidgets.QWidget):
 
         self._itemIcon = icon or self._itemIcon
         self.stackWidget = parent
+        self.hide()
 
         # Init
         self.itemIcon = QtWidgets.QToolButton(parent=self)
@@ -361,7 +360,7 @@ class StackItem(QtWidgets.QWidget):
         self.collapsable = collapsable
         self.collapsed = collapsed
         self.titleFrame = frame.QFrame(parent=self)
-        self.iconButton = QtWidgets.QToolButton(parent=self)
+        self.iconButton = QtWidgets.QToolButton()
 
         # Title Frame
         self.widgetHider = QtWidgets.QFrame()
@@ -378,6 +377,7 @@ class StackItem(QtWidgets.QWidget):
             self.stackTitleWgt.setReadOnly(True)
 
         self.initUi()
+
         self.setLayout(self.layout)
 
         self.connections()
@@ -405,7 +405,6 @@ class StackItem(QtWidgets.QWidget):
             self.shiftUpBtn.hide()
 
     def initUi(self):
-
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(0)
 
@@ -413,7 +412,9 @@ class StackItem(QtWidgets.QWidget):
         self.titleExtrasLayout.setSpacing(0)
 
         self.buildTitleFrame()
+
         self.buildHiderWidget()
+
         self.layout.addWidget(self.titleFrame)
         self.layout.addWidget(self.widgetHider)
 
@@ -429,6 +430,7 @@ class StackItem(QtWidgets.QWidget):
     def buildTitleFrame(self):
         """Builds the title part of the layout with a QFrame widget
         """
+
         # main dark grey qframe
         self.setFrameColor(self.color)
         self.titleFrame.setContentsMargins(4, 0, 4, 0)
@@ -438,7 +440,7 @@ class StackItem(QtWidgets.QWidget):
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
 
         # the icon and title and spacer
-        self.iconButton = QtWidgets.QToolButton(parent=self)
+        self.iconButton.setParent(self.titleFrame)
         if self.collapsed:
             self.iconButton.setIcon(self._collapsedIcon)
         else:
@@ -463,7 +465,6 @@ class StackItem(QtWidgets.QWidget):
 
     def shiftUp(self):
         self.shiftUpPressed.emit()
-
 
     def shiftDown(self):
         self.shiftDownPressed.emit()
