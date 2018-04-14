@@ -73,6 +73,10 @@ class ToolSet(object):
         :return:
         :rtype:
         """
+        relativePath = path.Path(relativePath)
+        if not relativePath.getExtension(True):
+            relativePath = relativePath.setExtension(".json")
+
         if root is not None:
             rootPath = self.roots.get(root)
             if rootPath is not None:
@@ -81,12 +85,12 @@ class ToolSet(object):
                     return SettingObject(rootPath, relativePath)
                 return self.open(rootPath, relativePath)
         else:
-            for name, path in reversed(self.roots.items()):
+            for name, p in reversed(self.roots.items()):
                 # we're working with an ordered dict
-                fullpath = path / relativePath
+                fullpath = p/ relativePath
                 if not fullpath.exists():
                     continue
-                return self.open(path, relativePath)
+                return self.open(p, relativePath)
 
         return SettingObject("", relativePath)
 
@@ -97,7 +101,11 @@ class ToolSet(object):
         return setting
 
     def open(self, root, relativePath):
-        fullPath = os.path.join(root, relativePath)
+
+        relativePath = path.Path(relativePath)
+        if not relativePath.getExtension(True):
+            relativePath = relativePath.setExtension(".json")
+        fullPath = root / relativePath
         if not os.path.exists(fullPath):
             raise InvalidSettingsPath(fullPath)
         data = file.loadJson(fullPath)
@@ -109,7 +117,11 @@ class SettingObject(dict):
     """
 
     def __init__(self, root, relativePath=None, **kwargs):
-        kwargs["relativePath"] = relativePath or ""
+
+        relativePath  = path.Path(relativePath or "")
+        if not relativePath.getExtension(True):
+            relativePath = relativePath.setExtension(".json")
+        kwargs["relativePath"] = relativePath
         kwargs["root"] = root
         super(SettingObject, self).__init__(**kwargs)
 
@@ -155,6 +167,6 @@ class SettingObject(dict):
         del output["relativePath"]
         exts = fullPath.getExtension(True)
         if not exts:
-            fullPath.setExtension("json", True)
+            fullPath = fullPath.setExtension("json", True)
         file.saveJson(output, str(fullPath))
         return self.path()
