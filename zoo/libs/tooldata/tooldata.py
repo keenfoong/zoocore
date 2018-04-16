@@ -17,11 +17,14 @@ from collections import OrderedDict
 from zoo.libs.utils import filesystem
 from zoo.libs.utils import file, path
 
-
 logger = logging.getLogger(__name__)
 
 
 class RootAlreadyExistsError(Exception):
+    pass
+
+
+class RootDoesntExistsError(Exception):
     pass
 
 
@@ -55,27 +58,33 @@ class ToolSet(object):
     def __init__(self):
         self.roots = OrderedDict()
 
+    def root(self, name):
+        if name not in self.roots:
+            raise RootDoesntExistsError("Root by the name: {} doesn't exist".format(name))
+        return self.roots[name]
+
     def addRoot(self, fullPath, name):
         if name in self.roots:
             raise RootAlreadyExistsError("Root already exists: {}".format(name))
         self.roots[name] = path.Path(fullPath)
 
-    def findSetting(self, relativePath, root=None):
+    def findSetting(self, relativePath, root=None, extension=None):
         """ finds a settings object by searching the roots in reverse order.
 
         The first path to exist will be the one to be resolved. If a root is specified
         and the root+relativePath exists then that will be returned instead
 
         :param relativePath:
-        :type relativePath:
-        :param root:
-        :type root:
+        :type relativePath: str
+        :param root: The Root name to search if root is None then all roots in reverse order will be search until a
+        settings is found.
+        :type root: str or None
         :return:
-        :rtype:
+        :rtype: ::class:`SettingObject`
         """
         relativePath = path.Path(relativePath)
         if not relativePath.getExtension(True):
-            relativePath = relativePath.setExtension(".json")
+            relativePath = relativePath.setExtension(extension or ".json")
 
         if root is not None:
             rootPath = self.roots.get(root)
@@ -87,7 +96,7 @@ class ToolSet(object):
         else:
             for name, p in reversed(self.roots.items()):
                 # we're working with an ordered dict
-                fullpath = p/ relativePath
+                fullpath = p / relativePath
                 if not fullpath.exists():
                     continue
                 return self.open(p, relativePath)
@@ -100,11 +109,10 @@ class ToolSet(object):
         setting.save()
         return setting
 
-    def open(self, root, relativePath):
-
+    def open(self, root, relativePath, extension=None):
         relativePath = path.Path(relativePath)
         if not relativePath.getExtension(True):
-            relativePath = relativePath.setExtension(".json")
+            relativePath = relativePath.setExtension(extension or ".json")
         fullPath = root / relativePath
         if not os.path.exists(fullPath):
             raise InvalidSettingsPath(fullPath)
@@ -118,7 +126,7 @@ class SettingObject(dict):
 
     def __init__(self, root, relativePath=None, **kwargs):
 
-        relativePath  = path.Path(relativePath or "")
+        relativePath = path.Path(relativePath or "")
         if not relativePath.getExtension(True):
             relativePath = relativePath.setExtension(".json")
         kwargs["relativePath"] = relativePath

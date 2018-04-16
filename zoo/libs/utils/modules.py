@@ -72,3 +72,17 @@ def isDottedPath(path):
     """
     return len(path.split(".")) > 2
 
+
+def iterSubclassesFromModule(module, classType):
+    """Iterates all classes within a module object returning subclasses of type ::arg`classType`.
+
+    :param module: the module object to iterate on
+    :type module: module object
+    :param classType: The class object
+    :type classType: object
+    :return: genertor function returning class objects
+    :rtype: generator(object)
+    """
+    for member in iterMembers(module, predicate=inspect.isclass):
+        if issubclass(member, classType):
+            yield member

@@ -1,6 +1,38 @@
 """Mostly placeholder code until i get to doing the customisation
 """
 from qt import QtWidgets, QtCore, QtGui
+from zoo.libs.pyqt.widgets.graphics import graphicitems
+
+
+class NodeHeader(QtWidgets.QGraphicsWidget):
+    headerButtonStateChanged = QtCore.Signal(int)
+
+    def __init__(self, node, text, parent=None):
+        super(NodeHeader, self).__init__(parent)
+        self._node = node
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
+
+        layout = QtWidgets.QGraphicsLinearLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.setOrientation(QtCore.Qt.Horizontal)
+        self.setLayout(layout)
+        self._createLabel(text, layout)
+        layout.addStretch(1)
+
+    def _createLabel(self, primary, parentLayout):
+        container = graphicitems.ItemContainer(QtCore.Qt.Vertical, parent=self)
+        container.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed))
+        self._titleWidget = graphicitems.GraphicsText(primary, self)
+        self._titleWidget.setTextFlags(
+            QtWidgets.QGraphicsItem.ItemIsSelectable & QtWidgets.QGraphicsItem.ItemIsFocusable &
+            QtWidgets.QGraphicsItem.ItemIsMovable)
+        self._titleWidget.font = QtGui.QFont("Roboto-Bold.ttf", 8)
+        container.addItem(self._titleWidget, QtCore.Qt.AlignCenter | QtCore.Qt.AlignTop)
+        parentLayout.addItem(container)
+
+    def setText(self, text):
+        self._titleWidget.setText(text)
 
 
 #:todo include title and comment text
@@ -201,6 +233,7 @@ class BackDrop(QtWidgets.QGraphicsRectItem):
             color = self.selectedColor
         else:
             color = self.unSelectedColor
+
         painter.setBrush(QtGui.QBrush(color))
         painter.setPen(QtGui.QPen(self.edgeColor, 1.0, QtCore.Qt.SolidLine))
         painter.drawRect(self.rect())
