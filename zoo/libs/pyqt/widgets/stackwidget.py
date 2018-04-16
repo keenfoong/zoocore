@@ -626,8 +626,6 @@ class StackItem(QtWidgets.QWidget):
 
         self.iconButton.clicked.connect(self.showHideWidget)
 
-        self.titleFrame.mouseReleased.connect(self.showHideWidget)
-
         self.shiftUpBtn.clicked.connect(self.shiftUp)
         self.shiftDownBtn.clicked.connect(self.shiftDown)
         self.deleteBtn.clicked.connect(self.deleteEvent)
