@@ -2,6 +2,7 @@ from qt import QtWidgets, QtCore, QtGui
 from zoo.libs import iconlib
 from zoo.libs.pyqt import uiconstants
 from zoo.libs.pyqt.widgets import frame
+from zoo.libs.pyqt.embed import mayaui
 
 
 class StackWidget(QtWidgets.QWidget):
@@ -174,7 +175,7 @@ class StackTableWidget(QtWidgets.QTableWidget):
 
     def __init__(self, showArrows=True, showClose=True, parent=None, itemTint=tuple([60, 60, 60])):
         super(StackTableWidget, self).__init__(parent)
-        self.cellPadding = 5
+        self.cellPadding = mayaui.dpiScale(5)
         self.stackItems = []
         self.showArrows = showArrows
         self.showClose = showClose
@@ -204,7 +205,9 @@ class StackTableWidget(QtWidgets.QTableWidget):
 
         self.horizontalHeader().setStretchLastSection(True)
 
-        self.setContentsMargins(2, 2, 2, 2)
+        m = mayaui.dpiScale(2)
+
+        self.setContentsMargins(m, m, m, m)
 
         self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -363,7 +366,7 @@ class StackItem(QtWidgets.QWidget):
         self.iconButton = QtWidgets.QToolButton()
 
         # Title Frame
-        self.widgetHider = QtWidgets.QFrame()
+        self.widgetHider = QtWidgets.QFrame(parent=self)
         self.hiderLayout = QtWidgets.QVBoxLayout(self.widgetHider)
 
         if not shiftArrowsEnabled:
@@ -423,9 +426,11 @@ class StackItem(QtWidgets.QWidget):
         self.shiftUpBtn.setIcon(self._upIcon)
         self.deleteBtn.setIcon(self._deleteIcon)
 
-        self.deleteBtn.setIconSize(QtCore.QSize(12, 12))
-        self.shiftUpBtn.setIconSize(QtCore.QSize(12, 12))
-        self.shiftDownBtn.setIconSize(QtCore.QSize(12, 12))
+        iconSize = mayaui.sizeByDpi(QtCore.QSize(12, 12))
+
+        self.deleteBtn.setIconSize(iconSize)
+        self.shiftUpBtn.setIconSize(iconSize)
+        self.shiftDownBtn.setIconSize(iconSize)
 
     def buildTitleFrame(self):
         """Builds the title part of the layout with a QFrame widget
@@ -433,7 +438,7 @@ class StackItem(QtWidgets.QWidget):
 
         # main dark grey qframe
         self.setFrameColor(self.color)
-        self.titleFrame.setContentsMargins(4, 0, 4, 0)
+        self.titleFrame.setContentsMargins(4, 1, 4, 0)
 
         # the horizontal layout
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.titleFrame)
@@ -453,7 +458,7 @@ class StackItem(QtWidgets.QWidget):
         self.horizontalLayout.addWidget(self.itemIcon)
         self.horizontalLayout.addItem(spacerItem)
         self.titleFrame.setFixedHeight(self.titleFrame.sizeHint().height())
-        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height())
+        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height()+3)
 
         self.horizontalLayout.addWidget(self.stackTitleWgt)
         self.horizontalLayout.addLayout(self.titleExtrasLayout)
