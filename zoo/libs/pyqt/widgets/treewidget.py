@@ -172,8 +172,6 @@ class TreeWidget(QtWidgets.QTreeWidget):
         else:
             flags = self.groupFlags
 
-
-
         item = self.currentItem()
         treeParent = None
 
@@ -201,22 +199,15 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
     def itemWidgets(self, group=None):
         """
-        Gets all the item widgets in group. If group is none, then get the root level
-        :return:
+        Gets all the item widgets in group. If group is none, then get the root level.
+
+        :return: List of itemWidgets
         """
-
-        treeItem = group or self.invisibleRootItem()
+        treeItemIterator = QtWidgets.QTreeWidgetItemIterator(self)
         widgets = []
-
-        for i in range(treeItem.childCount()):
-            child = treeItem.child(i)
-            # Recursively go through the tree and apply the filter
-            if child.childCount() > 0:
-                widgets.extend(self.componentWidgets(child))
-
-            if self.getItemType(child) == self.ITEMTYPE_WIDGET:
-                wgt = self.getComponentWidget(child)
-                widgets.append(wgt)
+        for it in treeItemIterator:
+            treeItem = it.value()
+            widgets.append(self.itemWidget(treeItem))
 
         return widgets
 
