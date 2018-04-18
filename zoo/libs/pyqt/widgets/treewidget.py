@@ -2,28 +2,114 @@
 from zoo.libs.pyqt.embed import mayaui
 from qt import QtCore, QtWidgets, QtGui
 
+class TreeWidgetFrame(QtWidgets.QWidget):
+    def __init__(self, parent=None, title=""):
+        super(TreeWidgetFrame, self).__init__(parent=parent)
+        self.mainLayout = QtWidgets.QVBoxLayout()
+        self.title = QtWidgets.QLabel(title, parent=parent)
+        self.searchEdit = QtWidgets.QLineEdit(parent=parent)
+        self.treeWidget = None
+        self.toolbarLayout = QtWidgets.QHBoxLayout()
+
+
+    def initUi(self, treeWidget):
+        """
+        Initialize Ui
+        :return:
+        """
+        self.treeWidget = treeWidget
+        self.setupToolbar()
+        self.mainLayout.setContentsMargins(2, 4, 2, 4)
+
+        self.mainLayout.addWidget(self.title)
+        self.mainLayout.addLayout(self.toolbarLayout)
+        self.mainLayout.addWidget(self.treeWidget)
+
+        self.setLayout(self.mainLayout)
+
+    def setupToolbar(self):
+        """
+        The toolbar for the ComponentTreeView which will have widgets such as the searchbar,
+        and other useful buttons.
+        :return:
+        """
+
+        self.toolbarLayout.setContentsMargins(0, 0, 0, 0)
+        self.toolbarLayout.addWidget(self.searchEdit)
+
+        self.searchEdit.setPlaceholderText("Search...")
+
+        line = QtWidgets.QFrame(parent=self)
+        line.setFrameShape(QtWidgets.QFrame.HLine)
+        line.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.toolbarLayout.addWidget(line)
+
+        return self.toolbarLayout
+
+    def connections(self):
+        self.searchEdit.textChanged.connect(self.onSearchChanged)
+
+    def onSearchChanged(self):
+        """
+        Filter the results based on the text inputted into the search bar
+        :return:
+        """
+
+        if self.treeWidget is not None:
+            text = self.searchEdit.text().lower()
+            self.treeWidget.filter(text)
+            self.treeWidget.updateTreeWidget()
+
+    def addGroup(self, name="", expanded=True):
+        if self.treeWidget is not None:
+            return self.treeWidget.addGroup(name, expanded=expanded)
+        else:
+            print("TreeWidgetFrame.addGroup(): TreeWidget shouldn't be None!")
+
+    def updateTreeWidget(self):
+        if self.treeWidget is not None:
+            self.treeWidget.updateTreeWidget()
+
 
 class TreeWidget(QtWidgets.QTreeWidget):
     """
     A custom tree widget with some default things we want in zoo
     """
-    def __init__(self, parent=None):
-        self.WIDGET_COL = 0
-        self.DATA_COL = 2
 
-        self.ITEMTYPE_WIDGET = "WIDGET"
-        self.ITEMTYPE_GROUP = "GROUP"
+    ITEMTYPE_WIDGET = "WIDGET"
+    ITEMTYPE_GROUP = "GROUP"
 
+    WIDGET_COL = 0
+    DATA_COL = 2
+
+    def __init__(self, parent=None, locked=False):
         super(TreeWidget, self).__init__(parent)
+
+        self.defaultGroupName = "Group"
 
         self.font = QtGui.QFont("sans", mayaui.dpiScale(11))
 
-        self.groupFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | \
-                          QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable
+        self.groupDraggableFlags = QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
+        self.componentDraggableFlags = QtCore.Qt.ItemIsDragEnabled
+
+        self.groupFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable
 
         self.componentFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled
 
+        self.setLocked(locked)
+
         self.initUi()
+
+    def setLocked(self, locked):
+
+        if locked:
+            self.groupFlags = self.groupFlags & ~self.groupDraggableFlags
+            self.componentFlags = self.componentFlags & ~self.componentDraggableFlags
+        else:
+            self.groupFlags = self.groupFlags | self.groupDraggableFlags
+            self.componentFlags = self.componentFlags | self.componentDraggableFlags
+
+        pass
 
     def initUi(self):
         # Header setup
@@ -33,8 +119,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         self.initDragDrop()
 
-        self.setStyleSheet("QTreeWidgetItem {self.font-color: black}"
-                           "QTreeWidget::item {padding: 3px 2px;}")
+        #self.setStyleSheet("QTreeWidgetItem {self.font-color: black}")
+
         self.resizeColumnToContents(1)
 
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -49,11 +135,48 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.setDropIndicatorShown(True)
         self.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
 
-    def addNewItem(self, widget, name, itemType):
-        newTreeItem = TreeWidgetItem(self, strings=[name, ""], font=self.font, flags=self.componentFlags)
-        widget.setParent(self)
+    def dropEvent(self, event):
+        """
+        The drop event when dragging a ComponentWidget from one place to another
+        :param event:
+        :return:
+        """
+        dragged = self.currentItem()
+        wgt = self.itemWidget(dragged)
+
+        # We have to recreate the componentWidgetItem, because PySide destroys everything on dropEvent.
+        # If you do a straight reference change, it crashes
+        newWgt = wgt.copy()
+
+        super(TreeWidget, self).dropEvent(event)
+        newWgt.setParent(self)  # parent must be put here otherwise it will crash
+
+        self.setItemWidget(dragged, self.WIDGET_COL, newWgt)
+        self.updateTreeWidget()
+
+    def addNewItem(self, name, widget=None, itemType=ITEMTYPE_WIDGET):
+        """
+        Add a new item type. Should be a group or an itemWidget
+        :param name:
+        :param widget:
+        :param itemType:
+        :return:
+        """
+
+        if itemType == self.ITEMTYPE_WIDGET:
+            flags = self.componentFlags
+        else:
+            flags = self.groupFlags
+
+        newTreeItem = TreeWidgetItem(self, strings=[name, ""], font=self.font, flags=flags)
         newTreeItem.setData(self.DATA_COL, QtCore.Qt.EditRole, itemType)  # Data set to column 2, which is not visible
-        self.setItemWidget(newTreeItem, self.WIDGET_COL, widget)  # items parent must be set otherwise it will crash
+        newTreeItem.setFont(self.WIDGET_COL, self.font)
+
+        if widget:
+            widget.setParent(self)
+
+        if itemType == self.ITEMTYPE_WIDGET:
+            self.setItemWidget(newTreeItem, self.WIDGET_COL, widget)  # items parent must be set otherwise it will crash
 
         return newTreeItem
 
@@ -134,6 +257,70 @@ class TreeWidget(QtWidgets.QTreeWidget):
             #for i in range(self.rowCount()):
             #    found = not (text in self.cellWidget(i, 0).getTitle().lower())
             #    self.setRowHidden(i, found)
+
+    def addGroup(self, name="", expanded=True, groupSelected=True):
+        """
+        Adds a group to the ComponentTreeWidget. If no name is given, it will generate a unique one
+        in the form of "Group 1", "Group 2", "Group 3" etc
+
+        TODO: This area still needs a bit of work
+        :param expanded:
+        :param name:
+        :return:
+        """
+
+        # Place group after last selected item
+        if len(self.selectedItems()) > 0:
+            index = self.indexFromItem(self.selectedItems()[-1]).row()+1
+        else:
+            # Otherwise just place it on the top
+            index = self.topLevelItemCount()
+
+        name = name or self.getUniqueGroupName()
+        group = self.addNewItem(name, None, self.ITEMTYPE_GROUP)
+        self.insertTopLevelItem(index, group)
+
+        if groupSelected:
+            for s in self.selectedItems():
+                # If its a group move on to the next one
+                if self.getItemType(s) == self.ITEMTYPE_GROUP:
+                    continue
+
+                self.addToGroup(s, group, updateTree=False)
+
+        group.setExpanded(expanded)
+
+        self.updateTreeWidget()
+
+        return group
+
+    def addToGroup(self, item, group, updateTree=True):
+        newWgt = self.itemWidget(item, self.WIDGET_COL).copy()
+
+        if item.parent() is None:
+            # If it is a top level item
+            index = self.indexFromItem(item).row()
+            self.takeTopLevelItem(index)
+        else:
+            # If its under a group
+            index = item.parent().indexOfChild(item)
+            item.parent().takeChild(index)
+
+        # add to the last
+        group.addChild(item)
+        newWgt.setParent(self)  # parent must be put here otherwise it will crash
+        self.setItemWidget(item, 0, newWgt)
+
+        if updateTree:
+            self.updateTreeWidget()
+
+    def getUniqueGroupName(self):
+        """
+        Returns a unique group name: "Group 1", "Group 2", "Group 3" etc.
+        :return:
+        """
+        num = len(self.findItems(self.defaultGroupName + " *", QtCore.Qt.MatchFlag.MatchWildcard, 0))
+        return self.defaultGroupName + " " + str(num+1)
 
 
 
