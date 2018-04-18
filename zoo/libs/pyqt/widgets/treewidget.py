@@ -82,6 +82,9 @@ class TreeWidget(QtWidgets.QTreeWidget):
     WIDGET_COL = 0
     DATA_COL = 2
 
+    ADD_INSERTAFTER = 0
+    ADD_INSERTEND = 1
+
     def __init__(self, parent=None, locked=False):
         super(TreeWidget, self).__init__(parent)
 
@@ -154,9 +157,10 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.setItemWidget(dragged, self.WIDGET_COL, newWgt)
         self.updateTreeWidget()
 
-    def addNewItem(self, name, widget=None, itemType=ITEMTYPE_WIDGET):
+    def addNewItem(self, name, widget=None, itemType=ITEMTYPE_WIDGET, addBehaviour=ADD_INSERTAFTER):
         """
         Add a new item type. Should be a group or an itemWidget
+        :param addBehaviour:
         :param name:
         :param widget:
         :param itemType:
@@ -168,15 +172,30 @@ class TreeWidget(QtWidgets.QTreeWidget):
         else:
             flags = self.groupFlags
 
-        newTreeItem = TreeWidgetItem(self, strings=[name, ""], font=self.font, flags=flags)
+
+
+        item = self.currentItem()
+        treeParent = None
+
+        # If tree parent is left to none it will be added later on to end of the tree by self.addTopLevelItem()
+        if item is not None:
+            treeParent = self
+
+        newTreeItem = TreeWidgetItem(treeParent, name=name, font=self.font, flags=flags, after=item)
         newTreeItem.setData(self.DATA_COL, QtCore.Qt.EditRole, itemType)  # Data set to column 2, which is not visible
         newTreeItem.setFont(self.WIDGET_COL, self.font)
+
+        # This will add it in if it wasn't added earlier, if it has then it will just pass through
+        self.addTopLevelItem(newTreeItem)
 
         if widget:
             widget.setParent(self)
 
         if itemType == self.ITEMTYPE_WIDGET:
+            self.updateTreeWidget()
             self.setItemWidget(newTreeItem, self.WIDGET_COL, widget)  # items parent must be set otherwise it will crash
+
+        self.setCurrentItem(newTreeItem)
 
         return newTreeItem
 
@@ -267,7 +286,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
         Adds a group to the ComponentTreeWidget. If no name is given, it will generate a unique one
         in the form of "Group 1", "Group 2", "Group 3" etc
 
-        TODO: This area still needs a bit of work
+        TODO: This area still needs a bit of work. Update with addNewItem code
+        :param groupSelected:
         :param expanded:
         :param name:
         :return:
@@ -342,11 +362,10 @@ class TreeWidget(QtWidgets.QTreeWidget):
                 treeItem.setFlags(self.groupFlags)
 
 
-
-
-
 class TreeWidgetItem(QtWidgets.QTreeWidgetItem):
-    def __init__(self, parent, strings, font, flags):
-        super(TreeWidgetItem, self).__init__(parent, strings)
+    def __init__(self, parent, name, font, flags, after):
+
+        super(TreeWidgetItem, self).__init__(parent, after)
+        self.setText(TreeWidget.WIDGET_COL, name)
         self.setFont(1, font)
         self.setFlags(flags)
