@@ -90,11 +90,11 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.font = QtGui.QFont("sans", mayaui.dpiScale(11))
 
         self.groupDraggableFlags = QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
-        self.componentDraggableFlags = QtCore.Qt.ItemIsDragEnabled
+        self.itemWidgetDraggableFlags = QtCore.Qt.ItemIsDragEnabled
 
         self.groupFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable
 
-        self.componentFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled
+        self.itemWidgetFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled
 
         self.setLocked(locked)
 
@@ -104,12 +104,12 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         if locked:
             self.groupFlags = self.groupFlags & ~self.groupDraggableFlags
-            self.componentFlags = self.componentFlags & ~self.componentDraggableFlags
+            self.itemWidgetFlags = self.itemWidgetFlags & ~self.itemWidgetDraggableFlags
         else:
             self.groupFlags = self.groupFlags | self.groupDraggableFlags
-            self.componentFlags = self.componentFlags | self.componentDraggableFlags
+            self.itemWidgetFlags = self.itemWidgetFlags | self.itemWidgetDraggableFlags
 
-        pass
+        self.applyFlags()
 
     def initUi(self):
         # Header setup
@@ -164,7 +164,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         """
 
         if itemType == self.ITEMTYPE_WIDGET:
-            flags = self.componentFlags
+            flags = self.itemWidgetFlags
         else:
             flags = self.groupFlags
 
@@ -236,27 +236,31 @@ class TreeWidget(QtWidgets.QTreeWidget):
         itemType = self.getItemType(treeItem)
 
         if itemType == self.ITEMTYPE_WIDGET:
-            return self.itemWidget(treeItem, self.WIDGET_COL).name
+            try:
+                return self.itemWidget(treeItem, self.WIDGET_COL).name
+            except AttributeError:
+                # If no name is found, just use the treeItem text (the text hidden behind the widget)
+                return treeItem.text(self.WIDGET_COL)
         elif itemType == self.ITEMTYPE_GROUP:
             return treeItem.text(self.WIDGET_COL)
 
-    def filter(self, text, item=None):
-        filterItem = item or self.invisibleRootItem()
+    def filter(self, text):
+        """
+        Hide anything that that doesnt have text. Used for searches.
 
-        for i in range(filterItem.childCount()):
-            child = filterItem.child(i)
-            # Recursively go through the tree and apply the filter
-            if child.childCount() > 0:
-                self.filter(text, child)
+        :param text:
+        :param item:
+        :return:
+        """
 
-            name = self.getItemName(child)
-            print(text, name)
+        treeItemIterator = QtWidgets.QTreeWidgetItemIterator(self)
+
+        for it in treeItemIterator:
+            treeItem = it.value()
+            name = self.getItemName(treeItem)
+
             found = (text in name.lower())
-            self.setItemHidden(child, not found)
-
-            #for i in range(self.rowCount()):
-            #    found = not (text in self.cellWidget(i, 0).getTitle().lower())
-            #    self.setRowHidden(i, found)
+            self.setItemHidden(treeItem, not found)
 
     def addGroup(self, name="", expanded=True, groupSelected=True):
         """
@@ -321,6 +325,23 @@ class TreeWidget(QtWidgets.QTreeWidget):
         """
         num = len(self.findItems(self.defaultGroupName + " *", QtCore.Qt.MatchFlag.MatchWildcard, 0))
         return self.defaultGroupName + " " + str(num+1)
+
+    def applyFlags(self):
+        """
+        Apply flags as set by self.groupFlags and self.componentFlags
+        :return:
+        """
+
+        treeItemIterator = QtWidgets.QTreeWidgetItemIterator(self)
+
+        for it in treeItemIterator:
+            treeItem = it.value()
+            if self.getItemType(treeItem) == self.ITEMTYPE_WIDGET:
+                treeItem.setFlags(self.itemWidgetFlags)
+            elif self.getItemType(treeItem) == self.ITEMTYPE_GROUP:
+                treeItem.setFlags(self.groupFlags)
+
+
 
 
 
