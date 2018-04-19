@@ -92,28 +92,28 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         self.defaultGroupName = "Group"
 
-        self.font = QtGui.QFont("sans", mayaui.dpiScale(11))
+        self.font = QtGui.QFont("sans", mayaui.dpiScale(9))
         self.allowSubGroups = allowSubGroups
 
-        self.groupDraggableFlags = QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
-        self.itemWidgetDraggableFlags = QtCore.Qt.ItemIsDragEnabled
-
+        self.groupUnlockedFlags = QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
+        self.itemWidgetUnlockedFlags = QtCore.Qt.ItemIsDragEnabled
         self.groupFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable
+        self.itemWidgetFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled
 
-        self.itemWidgetFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled
-
+        self.locked = locked
         self.setLocked(locked)
 
         self.initUi()
 
     def setLocked(self, locked):
+        self.locked = locked
 
         if locked:
-            self.groupFlags = self.groupFlags & ~self.groupDraggableFlags
-            self.itemWidgetFlags = self.itemWidgetFlags & ~self.itemWidgetDraggableFlags
+            self.groupFlags = self.groupFlags & ~self.groupUnlockedFlags
+            self.itemWidgetFlags = self.itemWidgetFlags & ~self.itemWidgetUnlockedFlags
         else:
-            self.groupFlags = self.groupFlags | self.groupDraggableFlags
-            self.itemWidgetFlags = self.itemWidgetFlags | self.itemWidgetDraggableFlags
+            self.groupFlags = self.groupFlags | self.groupUnlockedFlags
+            self.itemWidgetFlags = self.itemWidgetFlags | self.itemWidgetUnlockedFlags
 
         self.applyFlags()
 
@@ -222,9 +222,10 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         return newTreeItem
 
-    def itemWidgets(self):
+    def itemWidgets(self, includeNones=False):
         """
-        Gets all the item widgets in group. If group is none, then get the root level.
+        Gets all widgets in the tree. includeNones is for when QTreeWidgetItems don't have a itemWidget attached, but
+        for any reason or another we still want to know
 
         :return: List of itemWidgets
         """
@@ -232,7 +233,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
         widgets = []
         for it in treeItemIterator:
             treeItem = it.value()
-            widgets.append(self.itemWidget(treeItem))
+            if treeItem is not None or includeNones is True:
+                widgets.append(self.itemWidget(treeItem))
 
         return widgets
 
@@ -314,6 +316,10 @@ class TreeWidget(QtWidgets.QTreeWidget):
         :param name:
         :return:
         """
+
+        if self.locked:
+            print("Locked. Adding of groups disabled")
+            return
 
         # Place group after last selected item
         if len(self.selectedItems()) > 0:
