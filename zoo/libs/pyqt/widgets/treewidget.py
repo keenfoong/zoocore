@@ -1,4 +1,3 @@
-
 from zoo.libs.pyqt.embed import mayaui
 from qt import QtCore, QtWidgets, QtGui
 from zoo.apps.hiveartistui import tooltips
@@ -13,7 +12,6 @@ class TreeWidgetFrame(QtWidgets.QWidget):
         self.searchEdit = QtWidgets.QLineEdit(parent=parent)
         self.treeWidget = None
         self.toolbarLayout = QtWidgets.QHBoxLayout()
-
 
     def initUi(self, treeWidget):
         """
@@ -89,12 +87,13 @@ class TreeWidget(QtWidgets.QTreeWidget):
     ADD_INSERTAFTER = 0
     ADD_INSERTEND = 1
 
-    def __init__(self, parent=None, locked=False):
+    def __init__(self, parent=None, locked=False, allowSubGroups=True):
         super(TreeWidget, self).__init__(parent)
 
         self.defaultGroupName = "Group"
 
         self.font = QtGui.QFont("sans", mayaui.dpiScale(11))
+        self.allowSubGroups = allowSubGroups
 
         self.groupDraggableFlags = QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
         self.itemWidgetDraggableFlags = QtCore.Qt.ItemIsDragEnabled
@@ -126,7 +125,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         self.initDragDrop()
 
-        #self.setStyleSheet("QTreeWidgetItem {self.font-color: black}")
+        # self.setStyleSheet("QTreeWidgetItem {self.font-color: black}")
 
         self.resizeColumnToContents(1)
 
@@ -148,18 +147,33 @@ class TreeWidget(QtWidgets.QTreeWidget):
         :param event:
         :return:
         """
+
+        # Check if the target item is a group, if subgroups aren't allowed just return
+        targetItem = self.itemAt(event.pos())
+
         dragged = self.currentItem()
         wgt = self.itemWidget(dragged)
+        newWgt = None
+
+        if self.getItemType(targetItem) == self.ITEMTYPE_GROUP and self.getItemType(dragged) == self.ITEMTYPE_GROUP and \
+                not self.allowSubGroups:
+            # Invalid drag events usually has a red crossed circle in PyQt, maybe theres a better way of doing this
+            return
 
         # We have to recreate the componentWidgetItem, because PySide destroys everything on dropEvent.
-        # If you do a straight reference change, it crashes
+        # If you do a straight reference change, it crashes. Should look to see if theres a better way
         try:
             newWgt = wgt.copy()
         except AttributeError:
-            print("WARNING: Widget Object doesn't have .copy() function! Using a temporary copyWidget function, but it should have its own copy() function")
-            newWgt = copyWidget(wgt)
+            if wgt is not None:
+                print("WARNING: Widget Object doesn't have .copy() function!")
+                return
 
         super(TreeWidget, self).dropEvent(event)
+
+        if newWgt is None:
+            return
+
         newWgt.setParent(self)  # parent must be put here otherwise it will crash
 
         self.setItemWidget(dragged, self.WIDGET_COL, newWgt)
@@ -193,7 +207,6 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         if icon is not None:
             newTreeItem.setIcon(self.WIDGET_COL, icon)
-
 
         # This will add it in if it wasn't added earlier, if it has then it will just pass through
         self.addTopLevelItem(newTreeItem)
@@ -298,7 +311,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         # Place group after last selected item
         if len(self.selectedItems()) > 0:
-            index = self.indexFromItem(self.selectedItems()[-1]).row()+1
+            index = self.indexFromItem(self.selectedItems()[-1]).row() + 1
         else:
             # Otherwise just place it on the top
             index = self.topLevelItemCount()
@@ -347,7 +360,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         :return:
         """
         num = len(self.findItems(self.defaultGroupName + " *", QtCore.Qt.MatchFlag.MatchWildcard, 0))
-        return self.defaultGroupName + " " + str(num+1)
+        return self.defaultGroupName + " " + str(num + 1)
 
     def applyFlags(self):
         """
@@ -367,7 +380,6 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
 class TreeWidgetItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, parent, name, font, flags, after):
-
         super(TreeWidgetItem, self).__init__(parent, after)
         self.setText(TreeWidget.WIDGET_COL, name)
         self.setFont(1, font)
@@ -376,7 +388,7 @@ class TreeWidgetItem(QtWidgets.QTreeWidgetItem):
 
 class ItemWidget(QtWidgets.QLabel):
     """
-    A bit confusing, but
+
     """
     triggered = QtCore.Signal()
 
@@ -384,17 +396,22 @@ class ItemWidget(QtWidgets.QLabel):
         super(ItemWidget, self).__init__(name)
 
         self.emitTarget = None
+        self.initUi()
+
+    def initUi(self):
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.contextMenu)
 
     def connectEvent(self, func):
         self.emitTarget = func
         self.triggered.connect(func)
-        #self.clicked.connect(func)
+        # self.clicked.connect(func)
 
     def copy(self):
         CurrentType = type(self)
         ret = CurrentType(self.text())
         ret.data = self.data
-        #ret.setIcon(self.icon())
+        # ret.setIcon(self.icon())
         ret.setStyleSheet(self.styleSheet())
         tooltips.copyExpandedTooltips(self, ret)
 
@@ -402,8 +419,53 @@ class ItemWidget(QtWidgets.QLabel):
 
     def mouseDoubleClickEvent(self, event):
         self.triggered.emit()
-        #self.emitTarget()
+        # self.emitTarget()
 
+    def contextMenu(self, pos):
+        """
+        The context menu for the ComponentTreeWidget. Some actions for the menu is handled here.
+        Eg the Delete and duplicate. However the rest of the settings is handled in the subclassed
+        ComponentWidget.
+
+        TODO: optimize this
+
+        :param pos:
+        :return:
+        """
+
+        # If we want to do something with multiple selections uncomment below
+        # selectionModel = self.selectionModel()
+        # selection = [model.itemFromIndex(index) for index in selectionModel.selectedIndexes()]
+        # for s in self.selectedItems():
+        #     print (self.itemWidget(s, self.COMPONENT_COL))
+
+        menu = QtWidgets.QMenu()
+        menu.setToolTipsVisible(True)
+
+        # These actions need to be done outside the ComponentWidget
+        addAction = QtWidgets.QAction("Add", menu)
+        settingsAction = QtWidgets.QAction("Settings", menu)
+        deleteAction = QtWidgets.QAction("Delete", menu)
+
+        menu.addAction(addAction)
+        menu.addAction(deleteAction)
+        menu.addSeparator()
+        menu.addAction(settingsAction)
+
+        addAction.triggered.connect(self.addActionTriggered)
+        deleteAction.triggered.connect(self.deleteActionTriggered)
+        settingsAction.triggered.connect(self.settingsActionTriggered)
+        menu.exec_(QtGui.QCursor.pos())
+
+    ### Action Events ###
+    def addActionTriggered(self):
+        self.triggered.emit()
+
+    def deleteActionTriggered(self):
+        pass
+
+    def settingsActionTriggered(self):
+        pass
 
 
 def copyWidget(w):
@@ -429,6 +491,5 @@ def copyWidget(w):
         ret.setStyleSheet(w.styleSheet())
     except:
         pass
-
 
     return ret
