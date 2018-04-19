@@ -269,10 +269,16 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
     def getItemName(self, treeItem):
         itemType = self.getItemType(treeItem)
+        wgt = self.itemWidget(treeItem)
 
         if itemType == self.ITEMTYPE_WIDGET:
+            # If its an ItemWidget class
+            if isinstance(wgt, ItemWidget):
+                return wgt.text()
+
+            # Try .name, if all else fails use the text in the widget column
             try:
-                return self.itemWidget(treeItem, self.WIDGET_COL).name
+                return wgt.name
             except AttributeError:
                 # If no name is found, just use the treeItem text (the text hidden behind the widget)
                 return treeItem.text(self.WIDGET_COL)
@@ -293,7 +299,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         for it in treeItemIterator:
             treeItem = it.value()
             name = self.getItemName(treeItem)
-
+            
             found = (text in name.lower())
             self.setItemHidden(treeItem, not found)
 
@@ -420,6 +426,9 @@ class ItemWidget(QtWidgets.QLabel):
     def mouseDoubleClickEvent(self, event):
         self.triggered.emit()
         # self.emitTarget()
+        
+    def text(self):
+        return super(ItemWidget, self).text()
 
     def contextMenu(self, pos):
         """
