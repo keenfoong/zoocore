@@ -1,6 +1,9 @@
 
 from zoo.libs.pyqt.embed import mayaui
 from qt import QtCore, QtWidgets, QtGui
+from zoo.apps.hiveartistui import tooltips
+from zoo.libs import iconlib
+
 
 class TreeWidgetFrame(QtWidgets.QWidget):
     def __init__(self, parent=None, title=""):
@@ -35,6 +38,7 @@ class TreeWidgetFrame(QtWidgets.QWidget):
         """
 
         self.toolbarLayout.setContentsMargins(0, 0, 0, 0)
+        self.toolbarLayout.setSpacing(1)
         self.toolbarLayout.addWidget(self.searchEdit)
 
         self.searchEdit.setPlaceholderText("Search...")
@@ -149,7 +153,11 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         # We have to recreate the componentWidgetItem, because PySide destroys everything on dropEvent.
         # If you do a straight reference change, it crashes
-        newWgt = wgt.copy()
+        try:
+            newWgt = wgt.copy()
+        except AttributeError:
+            print("WARNING: Widget Object doesn't have .copy() function! Using a temporary copyWidget function, but it should have its own copy() function")
+            newWgt = copyWidget(wgt)
 
         super(TreeWidget, self).dropEvent(event)
         newWgt.setParent(self)  # parent must be put here otherwise it will crash
@@ -157,7 +165,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.setItemWidget(dragged, self.WIDGET_COL, newWgt)
         self.updateTreeWidget()
 
-    def addNewItem(self, name, widget=None, itemType=ITEMTYPE_WIDGET, addBehaviour=ADD_INSERTAFTER):
+    def addNewItem(self, name, widget=None, itemType=ITEMTYPE_WIDGET, icon=None):
         """
         Add a new item type. Should be a group or an itemWidget
         :param addBehaviour:
@@ -183,6 +191,10 @@ class TreeWidget(QtWidgets.QTreeWidget):
         newTreeItem.setData(self.DATA_COL, QtCore.Qt.EditRole, itemType)  # Data set to column 2, which is not visible
         newTreeItem.setFont(self.WIDGET_COL, self.font)
 
+        if icon is not None:
+            newTreeItem.setIcon(self.WIDGET_COL, icon)
+
+
         # This will add it in if it wasn't added earlier, if it has then it will just pass through
         self.addTopLevelItem(newTreeItem)
 
@@ -197,7 +209,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         return newTreeItem
 
-    def itemWidgets(self, group=None):
+    def itemWidgets(self):
         """
         Gets all the item widgets in group. If group is none, then get the root level.
 
@@ -360,3 +372,63 @@ class TreeWidgetItem(QtWidgets.QTreeWidgetItem):
         self.setText(TreeWidget.WIDGET_COL, name)
         self.setFont(1, font)
         self.setFlags(flags)
+
+
+class ItemWidget(QtWidgets.QLabel):
+    """
+    A bit confusing, but
+    """
+    triggered = QtCore.Signal()
+
+    def __init__(self, name):
+        super(ItemWidget, self).__init__(name)
+
+        self.emitTarget = None
+
+    def connectEvent(self, func):
+        self.emitTarget = func
+        self.triggered.connect(func)
+        #self.clicked.connect(func)
+
+    def copy(self):
+        CurrentType = type(self)
+        ret = CurrentType(self.text())
+        ret.data = self.data
+        #ret.setIcon(self.icon())
+        ret.setStyleSheet(self.styleSheet())
+        tooltips.copyExpandedTooltips(self, ret)
+
+        return ret
+
+    def mouseDoubleClickEvent(self, event):
+        self.triggered.emit()
+        #self.emitTarget()
+
+
+
+def copyWidget(w):
+    """
+    A very shallow copy of the widget. Used more as a placeholder
+    :return:
+    :rtype: ComponentWidget
+    """
+    CurrentType = type(w)
+    ret = CurrentType()
+
+    try:
+        ret.setText(w.text())
+    except:
+        pass
+
+    try:
+        ret.setIcon(w.icon())
+    except:
+        pass
+
+    try:
+        ret.setStyleSheet(w.styleSheet())
+    except:
+        pass
+
+
+    return ret
