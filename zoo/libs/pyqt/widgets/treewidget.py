@@ -95,10 +95,11 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.font = QtGui.QFont("sans", mayaui.dpiScale(9))
         self.allowSubGroups = allowSubGroups
 
-        self.groupUnlockedFlags = QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
-        self.itemWidgetUnlockedFlags = QtCore.Qt.ItemIsDragEnabled
         self.groupFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable
+        self.groupUnlockedFlags = QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
+
         self.itemWidgetFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled
+        self.itemWidgetUnlockedFlags = QtCore.Qt.ItemIsDragEnabled
 
         self.locked = locked
         self.setLocked(locked)
@@ -155,8 +156,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
         wgt = self.itemWidget(dragged)
         newWgt = None
 
-        if self.getItemType(targetItem) == self.ITEMTYPE_GROUP and self.getItemType(dragged) == self.ITEMTYPE_GROUP and \
-                not self.allowSubGroups:
+        if self.getItemType(targetItem) == self.ITEMTYPE_GROUP and self.getItemType(dragged) == self.ITEMTYPE_GROUP \
+                and not self.allowSubGroups:
             # Invalid drag events usually has a red crossed circle in PyQt, maybe theres a better way of doing this
             return
 
@@ -233,7 +234,10 @@ class TreeWidget(QtWidgets.QTreeWidget):
         widgets = []
         for it in treeItemIterator:
             treeItem = it.value()
-            if treeItem is not None or includeNones is True:
+            if treeItem is not None:
+                itemWidget = self.itemWidget(treeItem)
+                if itemWidget is None and not includeNones:
+                    continue
                 widgets.append(self.itemWidget(treeItem))
 
         return widgets
@@ -411,8 +415,8 @@ class ItemWidget(QtWidgets.QLabel):
         self.initUi()
 
     def initUi(self):
-        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.contextMenu)
+        pass
+
 
     def connectEvent(self, func):
         self.emitTarget = func
@@ -436,51 +440,7 @@ class ItemWidget(QtWidgets.QLabel):
     def text(self):
         return super(ItemWidget, self).text()
 
-    def contextMenu(self, pos):
-        """
-        The context menu for the ComponentTreeWidget. Some actions for the menu is handled here.
-        Eg the Delete and duplicate. However the rest of the settings is handled in the subclassed
-        ComponentWidget.
 
-        TODO: optimize this
-
-        :param pos:
-        :return:
-        """
-
-        # If we want to do something with multiple selections uncomment below
-        # selectionModel = self.selectionModel()
-        # selection = [model.itemFromIndex(index) for index in selectionModel.selectedIndexes()]
-        # for s in self.selectedItems():
-        #     print (self.itemWidget(s, self.COMPONENT_COL))
-
-        menu = QtWidgets.QMenu()
-        menu.setToolTipsVisible(True)
-
-        # These actions need to be done outside the ComponentWidget
-        addAction = QtWidgets.QAction("Add", menu)
-        settingsAction = QtWidgets.QAction("Settings", menu)
-        deleteAction = QtWidgets.QAction("Delete", menu)
-
-        menu.addAction(addAction)
-        menu.addAction(deleteAction)
-        menu.addSeparator()
-        menu.addAction(settingsAction)
-
-        addAction.triggered.connect(self.addActionTriggered)
-        deleteAction.triggered.connect(self.deleteActionTriggered)
-        settingsAction.triggered.connect(self.settingsActionTriggered)
-        menu.exec_(QtGui.QCursor.pos())
-
-    ### Action Events ###
-    def addActionTriggered(self):
-        self.triggered.emit()
-
-    def deleteActionTriggered(self):
-        pass
-
-    def settingsActionTriggered(self):
-        pass
 
 
 def copyWidget(w):

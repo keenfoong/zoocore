@@ -458,6 +458,7 @@ class StackItem(QtWidgets.QWidget):
         self.horizontalLayout.addWidget(self.itemIcon)
         self.horizontalLayout.addItem(spacerItem)
         self.titleFrame.setFixedHeight(self.titleFrame.sizeHint().height())
+
         self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height()+3)
 
         self.horizontalLayout.addWidget(self.stackTitleWgt)
@@ -485,7 +486,6 @@ class StackItem(QtWidgets.QWidget):
         Widget can be toggled so it's a container for the layout
         """
         self.widgetHider.setContentsMargins(0, 0, 0, 0)
-
         self.hiderLayout.setContentsMargins(*self.contentMargins)
         self.hiderLayout.setSpacing(self.contentSpacing)
         self.widgetHider.setHidden(self.collapsed)
