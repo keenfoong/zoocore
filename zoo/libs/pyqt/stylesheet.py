@@ -1,3 +1,6 @@
+import os
+
+
 class StyleSheet(object):
     """
     ::example:
@@ -30,8 +33,9 @@ class StyleSheet(object):
         """
 
         with open(path, "r") as f:
-            styleSheet = cls(f.readLines())
-        styleSheet.format(**kwargs)
+            styleSheet = cls(f.read())
+        if kwargs:
+            styleSheet.format(**kwargs)
         return styleSheet
 
     def __init__(self, styleSheet=None):
@@ -39,9 +43,16 @@ class StyleSheet(object):
         self.originaldata = str(styleSheet)
 
     def __repr__(self):
-        return self.data
+        return str(self.data)
 
     def format(self, settings):
+        """Formats the stylesheet str with the settings
+
+        :param settings: A dict containing the str to replace and the value to replace with eg. {"BACK_COLOR_R": 251}
+        :type settings: dict
+        :return: True if successfully formatted
+        :rtype: bool
+        """
         if not self.data:
             return False
         data = str(self.data)
@@ -49,3 +60,37 @@ class StyleSheet(object):
             data = data.replace(key, str(value))
         self.data = data
         return True
+
+
+def stylesheetFromDirectory(directory, name):
+    """Recursively searches directory until the name.css file is found and a ::class:`Stylesheet` instance is returned
+
+    :param directory: The absolute path to the directory to search
+    :type directory: str
+    :param name: the file name to find
+    :type name: str
+    :return: The style sheet instance or None if no matching file is found
+    :rtype: tuple(::class:`StyleSheet`, str)
+    """
+    for root, dirs, files in os.walk(directory):
+        for f in files:
+            if f.endswith(".css") and f.startswith(name):
+                path = os.path.join(root, f)
+                return StyleSheet.fromPath(path), path
+
+
+def stylesheetsFromDirectory(directory):
+    """Recursively searches the directory for all .css files and returns ::class:`StyleSheet` instances and file paths
+
+    :param directory: The absolute path to the directory to search
+    :type directory: str
+    :return:
+    :rtype: list(tuple(::class:`StyleSheet`, str))
+    """
+    sheets = list()
+    for root, dirs, files in os.walk(directory):
+        for f in files:
+            if f.endswith(".css"):
+                path = os.path.join(root, f)
+                sheets.append((StyleSheet.fromPath(path), path))
+    return sheets
