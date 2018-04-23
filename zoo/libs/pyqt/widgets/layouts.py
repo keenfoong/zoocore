@@ -37,7 +37,7 @@ class StringEdit(QtWidgets.QWidget):
         self.layout.addWidget(self.edit)
         self.buttonText = buttonText
         if self.buttonText:
-            self.btn = QtWidgets.QPushButton(buttonText, parent=self)
+            self.btn = QtWidgets.QPushButton(buttonText, self)
             self.layout.addWidget(self.btn)
         self.setLayout(self.layout)
         self.connections()

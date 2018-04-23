@@ -1,5 +1,6 @@
 from qt import QtWidgets, QtCore
 from zoo.libs import iconlib
+from zoo.libs.pyqt.extended import viewfilterwidget
 
 
 class TreeViewPlus(QtWidgets.QFrame):
@@ -42,31 +43,18 @@ class TreeViewPlus(QtWidgets.QFrame):
         self.treeView.expandAll()
 
     def setSearchable(self, value):
-        self.searchFrame.setVisible(value)
+        self.searchWidget.setVisible(value)
 
     def _setupFilter(self):
-        self.searchBoxLabel = QtWidgets.QLabel("Search By: ", parent=self)
-        self.searchHeaderBox = QtWidgets.QComboBox(parent=self)
-
-        self.searchFrame = QtWidgets.QFrame(parent=self)
-        self.searchFrame.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.searchFrame.setFrameShadow(QtWidgets.QFrame.Plain)
         self.reloadBtn = QtWidgets.QToolButton(parent=self)
         self.reloadBtn.setIcon(iconlib.icon("reload"))
         self.searchLayout = QtWidgets.QHBoxLayout(self)
         self.searchLayout.setContentsMargins(2, 2, 2, 2)
-        self.searchClearBtn = QtWidgets.QPushButton("Clear", parent=self)
-        self.searchLabel = QtWidgets.QLabel("Search", parent=self)
-        self.searchEdit = QtWidgets.QLineEdit(self)
-        self.searchEdit.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.searchFrame.setLayout(self.searchLayout)
         self.searchLayout.addWidget(self.reloadBtn)
-        self.searchLayout.addWidget(self.searchBoxLabel)
-        self.searchLayout.addWidget(self.searchHeaderBox)
-        self.searchLayout.addWidget(self.searchLabel)
-        self.searchLayout.addWidget(self.searchEdit)
-        self.searchLayout.addWidget(self.searchClearBtn)
-        self.mainLayout.addWidget(self.searchFrame)
+        # setup the column search widget
+        self.searchWidget = viewfilterwidget.ViewSearchWidget(showColumnVisBox=False, parent=self)
+        self.searchLayout.addWidget(self.searchWidget)
+        self.mainLayout.addLayout(self.searchLayout)
 
     def _setupLayouts(self):
         self.mainLayout = QtWidgets.QVBoxLayout(self)
@@ -90,6 +78,25 @@ class TreeViewPlus(QtWidgets.QFrame):
         self.treeView.setModel(self.proxySearch)
         self.selectionModel = self.treeView.selectionModel()
 
+    def _headerMenu(self, pos):
+        globalPos = self.mapToGlobal(pos)
+        menu = QtWidgets.QMenu(parent=self)
+        headers = self.headerItems()
+        for i in range(len(headers)):
+            item = QtWidgets.QAction(headers[i], menu, checkable=True)
+            menu.addAction(item)
+            item.setChecked(not self.treeView.header().isSectionHidden(i))
+            item.setData({"index": i})
+        selectedItem = menu.exec_(globalPos)
+        self.toggleColumn(selectedItem.data()["index"],
+                          QtCore.Qt.Checked if selectedItem.isChecked() else QtCore.Qt.Unchecked)
+
+    def headerItems(self):
+        headerItems = []
+        for index in xrange(self.model.columnCount(QtCore.QModelIndex())):
+            headerItems.append(self.model.root.headerText(index))
+        return headerItems
+
     def selectedItems(self):
         indices = self.selectedQIndices()
         model = self.model
@@ -100,10 +107,11 @@ class TreeViewPlus(QtWidgets.QFrame):
         return indices
 
     def connections(self):
-        self.searchClearBtn.clicked.connect(self.searchEdit.clear)
-        self.searchHeaderBox.currentIndexChanged.connect(self.onSearchBoxChanged)
-        self.searchEdit.textChanged.connect(self.proxySearch.setFilterRegExp)
+        self.searchWidget.columnFilterIndexChanged.connect(self.proxySearch.setFilterKeyColumn)
+        self.searchWidget.searchTextedChanged.connect(self.proxySearch.setFilterRegExp)
         self.reloadBtn.clicked.connect(self.refresh)
+        self.treeView.header().setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.treeView.header().customContextMenuRequested.connect(self._headerMenu)
 
     def setModel(self, model):
         self.model = model
@@ -116,9 +124,6 @@ class TreeViewPlus(QtWidgets.QFrame):
 
         selModel = self.treeView.selectionModel()
         selModel.selectionChanged.connect(self.selectionChanged.emit)
-
-    def onSearchBoxChanged(self):
-        self.proxySearch.setFilterKeyColumn(self.searchHeaderBox.currentIndex())
 
     def refresh(self):
         self.refreshRequested.emit()

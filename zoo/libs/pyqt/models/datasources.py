@@ -28,7 +28,7 @@ class BaseDataSource(QtCore.QObject):
         return len(self.children)
 
     def columnCount(self):
-        return 0
+        return 1
 
     def parentSource(self):
         """Returns the parent of this node

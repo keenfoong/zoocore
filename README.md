@@ -16,7 +16,7 @@ Features
 --------
 
 ## Zoo Commands
-###### Description
+###### Description #######
 
 Python command pattern with undo,redo functionality for standard applications and or DCCs if supported via command executors
 

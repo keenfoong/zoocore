@@ -25,8 +25,8 @@ class CommandActionBase(QtCore.QObject):
 class MenuItem(CommandActionBase):
     def create(self, parent=None, optionBox=False):
         from maya import cmds
-        uiData = self.command.uiData()
-        self.item = cmds.menuItem(label=uiData["uiData"], bold=uiData.get("bold", False), parent=parent,
+        uiData = self.command.uiData
+        self.item = cmds.menuItem(label=uiData["label"], boldFont=uiData.get("bold", False), parent=parent,
                                   italicized=uiData.get("italicized", False), command=partial(self.triggered.emit,
                                                                                               self.command.id),
                                   optionBox=optionBox)
@@ -34,10 +34,12 @@ class MenuItem(CommandActionBase):
             cmds.menuItem(parent=parent, optionBox=optionBox, command=partial(self.triggeredUi.emit,
                                                                               self.command.id))
 
+        return self.item
+
 
 class CommandAction(CommandActionBase):
     def create(self, parent=None):
-        uiData = self.command.uiData()
+        uiData = self.command.uiData
         self.item = QtWidgets.QWidgetAction(parent)
         text = uiData.get("label", "NOLABEL")
         actionLabel = QtWidgets.QLabel(text)

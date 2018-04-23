@@ -138,7 +138,7 @@ def main():
         _bind()
         sys.exit(app.exec_())
     else:
-        from zoo.libs.pyqt.embed import mayaui
+        from zoo.libs.maya.qt import mayaui
         return _bind(parent=None)#mayaui.getMayaWindow())
 
 
