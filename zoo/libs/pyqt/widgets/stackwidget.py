@@ -349,9 +349,11 @@ class StackItem(QtWidgets.QWidget):
         self.shiftDownBtn = QtWidgets.QToolButton(parent=self)
         self.shiftUpBtn = QtWidgets.QToolButton(parent=self)
         self.deleteBtn = QtWidgets.QToolButton(parent=self)
-        self.stackTitleWgt = QtWidgets.QLineEdit(title)
+        #self.stackTitleWgt = QtWidgets.QLineEdit(title)
+        self.stackTitleWgt = LineClickEdit(title)
         self.titleExtrasLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout = QtWidgets.QHBoxLayout()
+
 
         self.spacesToUnderscore = True
 
@@ -636,3 +638,40 @@ class StackItem(QtWidgets.QWidget):
         self.deleteBtn.clicked.connect(self.deleteEvent)
 
         self.stackTitleWgt.textChanged.connect(self.titleValidate)
+
+class LineClickEdit(QtWidgets.QLineEdit):
+    """
+    Creates a line edit that becomes editable on click or doubleclick double click
+    """
+    def __init__(self, text):
+
+        super(LineClickEdit, self).__init__(text)
+        self.setReadOnly(True)
+        self.editingFinished.connect(self.editFinished)
+        self.editingStyle = self.styleSheet()
+        self.defaultStyle = "QLineEdit {background: transparent; border: 0}"
+        self.setStyleSheet(self.defaultStyle)
+
+        self.mousePressEvent = self.editEvent
+        self.mouseDoubleClickEvent = self.editEvent
+
+    def editFinished(self):
+        self.setReadOnly(True)
+        self.setStyleSheet(self.defaultStyle)
+        self.deselect()
+
+    def editEvent(self, event):
+        # Pass through the click
+        self.setStyleSheet(self.editingStyle)
+        self.selectAll()
+        self.setReadOnly(False)
+
+        event.accept()
+
+    def focusOutEvent(self, e):
+        super(LineClickEdit, self).focusOutEvent(e)  # required to remove cursor on focusOut
+        self.editFinished()
+
+
+
+

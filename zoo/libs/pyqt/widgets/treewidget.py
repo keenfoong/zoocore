@@ -1,3 +1,4 @@
+import cPickle
 from zoo.libs.pyqt.embed import mayaui
 from qt import QtCore, QtWidgets, QtGui
 from zoo.apps.hiveartistui import tooltips
@@ -140,7 +141,35 @@ class TreeWidget(QtWidgets.QTreeWidget):
         # Drag drop settings
         self.setDragEnabled(True)
         self.setDropIndicatorShown(True)
-        self.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        #self.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        self.setDragDropMode(QtWidgets.QAbstractItemView.DragDrop)
+        self.setAcceptDrops(True)
+
+    def supportedDropActions(self):
+        return QtCore.Qt.CopyAction | QtCore.Qt.MoveAction
+
+    def dropMimeData(self, parent, index, data, action):
+        print("drop mime data:", parent, index, data, action)
+        return True
+
+    def mimeTypes(self):
+        return ['component', 'text/xml']
+
+
+    def mimeData(self, items):
+
+        mimedata = QtCore.QMimeData()
+        #print(items[0].itemWidget())
+        #bstream = cPickle.dumps(self.nodeFromIndex(items[0]))
+        print(self.itemWidget(items[0]))
+        bstream = cPickle.dumps("components")
+
+        mimedata = super(TreeWidget, self).mimeData(items)
+        mimedata.setData('component', bstream)
+        print(mimedata.data("bstream"))
+
+        return mimedata
+
 
     def dropEvent(self, event):
         """
