@@ -27,14 +27,26 @@ class MenuItem(CommandActionBase):
         from maya import cmds
         uiData = self.command.uiData
         self.item = cmds.menuItem(label=uiData["label"], boldFont=uiData.get("bold", False), parent=parent,
-                                  italicized=uiData.get("italicized", False), command=partial(self.triggered.emit,
-                                                                                              self.command.id),
+                                  italicized=uiData.get("italicized", False), command=self.emitCommand,
                                   optionBox=optionBox)
         if optionBox:
-            cmds.menuItem(parent=parent, optionBox=optionBox, command=partial(self.triggeredUi.emit,
-                                                                              self.command.id))
+            cmds.menuItem(parent=parent, optionBox=optionBox, command=self.emitCommandUi)
 
         return self.item
+
+    def emitCommand(self, *args):
+        """
+        :param args: dummy to deal with maya command args shit stains. basically useless
+        :type args: tuple
+        """
+        self.triggered.emit(self.command.id)
+
+    def emitCommandUi(self, *args):
+        """
+        :param args: dummy to deal with maya command args shit stains. basically useless
+        :type args: tuple
+        """
+        self.triggeredUi.emit(self.command.id)
 
 
 class CommandAction(CommandActionBase):
