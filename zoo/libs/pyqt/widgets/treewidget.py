@@ -161,9 +161,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         return ['widgetHash', 'text/xml']
 
     def mimeData(self, items):
-
         self.dragWidgets = [self.itemWidget(i) for i in items]
-        print(self.dragWidgets)
         self.tempIcon = items[0].icon(0)
 
         parent = items[0].parent() or self.invisibleRootItem()
@@ -226,6 +224,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         newTreeItem = TreeWidgetItem(None, name=name, font=self.font, flags=flags)
         newTreeItem.setData(self.DATA_COL, QtCore.Qt.EditRole, itemType)  # Data set to column 2, which is not visible
+        newTreeItem.setIcon(self.WIDGET_COL, icon)
         newTreeItem.setFont(self.WIDGET_COL, self.font)
 
         treeParent.insertChild(index, newTreeItem)
