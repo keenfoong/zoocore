@@ -649,7 +649,7 @@ class LineClickEdit(QtWidgets.QLineEdit):
         self.setReadOnly(True)
         self.editingFinished.connect(self.editFinished)
         self.editingStyle = self.styleSheet()
-        self.defaultStyle = "QLineEdit {background: transparent; border: 0}"
+        self.defaultStyle = "QLineEdit { border: 0}"
         self.setStyleSheet(self.defaultStyle)
 
         self.mousePressEvent = self.editEvent
