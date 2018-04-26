@@ -224,7 +224,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         newTreeItem = TreeWidgetItem(None, name=name, font=self.font, flags=flags)
         newTreeItem.setData(self.DATA_COL, QtCore.Qt.EditRole, itemType)  # Data set to column 2, which is not visible
-        newTreeItem.setIcon(self.WIDGET_COL, icon)
+        if icon is not None:
+            newTreeItem.setIcon(self.WIDGET_COL, icon)
         newTreeItem.setFont(self.WIDGET_COL, self.font)
 
         treeParent.insertChild(index, newTreeItem)
