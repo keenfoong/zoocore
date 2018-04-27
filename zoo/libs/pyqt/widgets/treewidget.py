@@ -184,6 +184,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         return super(TreeWidget, self).dropEvent(event)
 
         """
+        # Deprecated: will remove soon after reviewing
         # Check if the target item is a group, if subgroups aren't allowed just return
         targetItem = self.itemAt(event.pos())
 
