@@ -639,11 +639,12 @@ class StackItem(QtWidgets.QWidget):
 
         self.stackTitleWgt.textChanged.connect(self.titleValidate)
 
+
 class LineClickEdit(QtWidgets.QLineEdit):
     """
     Creates a line edit that becomes editable on click or doubleclick double click
     """
-    def __init__(self, text):
+    def __init__(self, text, single=False,double=True):
 
         super(LineClickEdit, self).__init__(text)
         self.setReadOnly(True)
@@ -652,8 +653,10 @@ class LineClickEdit(QtWidgets.QLineEdit):
         self.defaultStyle = "QLineEdit { border: 0}"
         self.setStyleSheet(self.defaultStyle)
 
-        self.mousePressEvent = self.editEvent
-        self.mouseDoubleClickEvent = self.editEvent
+        if single:
+            self.mousePressEvent = self.editEvent
+        if double:
+            self.mouseDoubleClickEvent = self.editEvent
 
     def editFinished(self):
         self.setReadOnly(True)
