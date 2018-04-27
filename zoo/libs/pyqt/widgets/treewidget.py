@@ -128,8 +128,6 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         self.initDragDrop()
 
-        # self.setStyleSheet("QTreeWidgetItem {self.font-color: black}")
-
         self.resizeColumnToContents(1)
 
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -169,9 +167,6 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.removeCh = items[0]
 
         mimedata = super(TreeWidget, self).mimeData(items)
-        #mimedata.setData('component', bstream)
-        #mimedata.setData('componentHash', str(hash(self.dragWidgets)))
-        #print(mimedata.data("componentHash"))
 
         return mimedata
 
@@ -216,7 +211,6 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.setItemWidget(dragged, self.WIDGET_COL, newWgt)
         self.updateTreeWidget()"""
 
-
     def insertNewItem(self, name, widget=None, index=0, treeParent=None, itemType=ITEMTYPE_WIDGET, icon=None):
         if itemType == self.ITEMTYPE_WIDGET:
             flags = self.itemWidgetFlags
@@ -236,7 +230,6 @@ class TreeWidget(QtWidgets.QTreeWidget):
             self.setItemWidget(newTreeItem, self.WIDGET_COL, widget)
 
         return newTreeItem
-
 
     def addNewItem(self, name, widget=None, itemType=ITEMTYPE_WIDGET,icon=None):
         """
@@ -477,7 +470,6 @@ class ItemWidget(QtWidgets.QLabel):
     def initUi(self):
         pass
 
-
     def connectEvent(self, func):
         self.emitTarget = func
         self.triggered.connect(func)
@@ -499,8 +491,6 @@ class ItemWidget(QtWidgets.QLabel):
         
     def text(self):
         return super(ItemWidget, self).text()
-
-
 
 
 def copyWidget(w):
