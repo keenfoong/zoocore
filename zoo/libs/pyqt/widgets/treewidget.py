@@ -85,15 +85,16 @@ class TreeWidget(QtWidgets.QTreeWidget):
     WIDGET_COL = 0
     DATA_COL = 2
 
-    ADD_INSERTAFTER = 0
-    ADD_INSERTEND = 1
+    INSERT_AFTERSELECTION = 0
+    INSERT_END = 1
+    INSERT_ATINDEX = 2
 
     def __init__(self, parent=None, locked=False, allowSubGroups=True):
         super(TreeWidget, self).__init__(parent)
 
         self.defaultGroupName = "Group"
 
-        self.font = QtGui.QFont("sans", mayaui.dpiScale(9))
+        self.font = QtGui.QFont("sans")
         self.allowSubGroups = allowSubGroups
 
         self.groupFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable
@@ -127,8 +128,6 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         self.initDragDrop()
 
-        # self.setStyleSheet("QTreeWidgetItem {self.font-color: black}")
-
         self.resizeColumnToContents(1)
 
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -141,35 +140,35 @@ class TreeWidget(QtWidgets.QTreeWidget):
         # Drag drop settings
         self.setDragEnabled(True)
         self.setDropIndicatorShown(True)
-        #self.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
         self.setDragDropMode(QtWidgets.QAbstractItemView.DragDrop)
+        #self.setDefaultDropAction(QtCore.Qt.MoveAction) # For some reason dropMimeData doesn't get called if its set to MoveAction
+        self.setDefaultDropAction(QtCore.Qt.CopyAction)
         self.setAcceptDrops(True)
 
     def supportedDropActions(self):
-        return QtCore.Qt.CopyAction | QtCore.Qt.MoveAction
+        return QtCore.Qt.MoveAction | QtCore.Qt.CopyAction
 
     def dropMimeData(self, parent, index, data, action):
-        print("drop mime data:", parent, index, data, action)
+        widgetHash = data.data("widgetHash")
+        group = parent or self.invisibleRootItem()
+        newTreeItem = self.insertNewItem("", self.dragWidgets[0], index, group, itemType=self.ITEMTYPE_WIDGET, icon=self.tempIcon)
+        self.removePar.removeChild(self.removeCh)
         return True
 
     def mimeTypes(self):
-        return ['component', 'text/xml']
-
+        return ['widgetHash', 'text/xml']
 
     def mimeData(self, items):
+        self.dragWidgets = [self.itemWidget(i) for i in items]
+        self.tempIcon = items[0].icon(0)
 
-        mimedata = QtCore.QMimeData()
-        #print(items[0].itemWidget())
-        #bstream = cPickle.dumps(self.nodeFromIndex(items[0]))
-        print(self.itemWidget(items[0]))
-        bstream = cPickle.dumps("components")
+        parent = items[0].parent() or self.invisibleRootItem()
+        self.removePar = parent
+        self.removeCh = items[0]
 
         mimedata = super(TreeWidget, self).mimeData(items)
-        mimedata.setData('component', bstream)
-        print(mimedata.data("bstream"))
 
         return mimedata
-
 
     def dropEvent(self, event):
         """
@@ -177,7 +176,10 @@ class TreeWidget(QtWidgets.QTreeWidget):
         :param event:
         :return:
         """
+        return super(TreeWidget, self).dropEvent(event)
 
+        """
+        # Deprecated: will remove soon after reviewing
         # Check if the target item is a group, if subgroups aren't allowed just return
         targetItem = self.itemAt(event.pos())
 
@@ -207,9 +209,29 @@ class TreeWidget(QtWidgets.QTreeWidget):
         newWgt.setParent(self)  # parent must be put here otherwise it will crash
 
         self.setItemWidget(dragged, self.WIDGET_COL, newWgt)
-        self.updateTreeWidget()
+        self.updateTreeWidget()"""
 
-    def addNewItem(self, name, widget=None, itemType=ITEMTYPE_WIDGET, icon=None):
+    def insertNewItem(self, name, widget=None, index=0, treeParent=None, itemType=ITEMTYPE_WIDGET, icon=None):
+        if itemType == self.ITEMTYPE_WIDGET:
+            flags = self.itemWidgetFlags
+        else:
+            flags = self.groupFlags
+
+        newTreeItem = TreeWidgetItem(None, name=name, font=self.font, flags=flags)
+        newTreeItem.setData(self.DATA_COL, QtCore.Qt.EditRole, itemType)  # Data set to column 2, which is not visible
+        if icon is not None:
+            newTreeItem.setIcon(self.WIDGET_COL, icon)
+        newTreeItem.setFont(self.WIDGET_COL, self.font)
+
+        treeParent.insertChild(index, newTreeItem)
+
+        if itemType == self.ITEMTYPE_WIDGET:
+            self.updateTreeWidget()
+            self.setItemWidget(newTreeItem, self.WIDGET_COL, widget)
+
+        return newTreeItem
+
+    def addNewItem(self, name, widget=None, itemType=ITEMTYPE_WIDGET,icon=None):
         """
         Add a new item type. Should be a group or an itemWidget
         :param addBehaviour:
@@ -251,6 +273,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.setCurrentItem(newTreeItem)
 
         return newTreeItem
+
+
 
     def itemWidgets(self, includeNones=False):
         """
@@ -424,7 +448,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
 
 class TreeWidgetItem(QtWidgets.QTreeWidgetItem):
-    def __init__(self, parent, name, font, flags, after):
+    def __init__(self, parent, name, font, flags, after=None):
         super(TreeWidgetItem, self).__init__(parent, after)
         self.setText(TreeWidget.WIDGET_COL, name)
         self.setFont(1, font)
@@ -445,7 +469,6 @@ class ItemWidget(QtWidgets.QLabel):
 
     def initUi(self):
         pass
-
 
     def connectEvent(self, func):
         self.emitTarget = func
@@ -468,8 +491,6 @@ class ItemWidget(QtWidgets.QLabel):
         
     def text(self):
         return super(ItemWidget, self).text()
-
-
 
 
 def copyWidget(w):
