@@ -40,7 +40,7 @@ class PluginManager(object):
                 self.registerByPackage(p)
                 continue
             elif p:
-                importedModule = modules.importModule(p)
+                importedModule = modules.importModule(modules.asDottedPath(os.path.normpath(p)))
             if importedModule:
                 self.registerByModule(importedModule)
                 continue
@@ -63,17 +63,11 @@ class PluginManager(object):
         :param pkg: The package path to register eg. zoo.libs.apps
         :type pkg: str
         """
-        mod = modules.importModule(pkg)
-        realPath = os.path.dirname(inspect.getfile(mod))
-        pkgSplitPath = pkg.replace(".", os.path.sep)
-        self.basePaths.append(realPath)
-
-        for subModule in modules.iterModules(realPath):
+        for subModule in modules.iterModules(pkg):
             filename = os.path.splitext(os.path.basename(subModule))[0]
             if filename.startswith("__") or subModule.endswith(".pyc"):
                 continue
-            newDottedPath = pkg + subModule.split(pkgSplitPath)[-1].replace(os.path.sep, ".").split(".py")[0]
-            subModuleObj = modules.importModule(newDottedPath)
+            subModuleObj = modules.importModule(modules.asDottedPath(os.path.normpath(subModule)))
             for member in modules.iterMembers(subModuleObj, predicate=inspect.isclass):
                 self.registerPlugin(member[1])
 
