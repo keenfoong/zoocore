@@ -99,26 +99,6 @@ class CommandInterface(object):
         """
         pass
 
-    # @property
-    # def uiData(self):
-    #     """A dict for persistent GUI styling which is used by any and all GUIs(menus etc).
-    #
-    #     :rtype: dict
-    #     ::Example
-    #         {"icon": "greenCircle",
-    #         "tooltip": "some command tooltip for hover event",
-    #         "label": "the label of the menu action etc",
-    #         "color": "tuple of 3 values must be compatible with QColor",
-    #         "backgroundColor": "tuple of 3 values must be compatible with QColor"
-    #         }
-    #     """
-    #     return {"icon": "",
-    #             "tooltip": "",
-    #             "label": "",
-    #             "color": "",
-    #             "backgroundColor": ""
-    #             }
-
 
 class ZooCommand(CommandInterface):
     isEnabled = True
