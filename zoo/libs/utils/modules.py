@@ -5,16 +5,27 @@ import logging
 import sys
 import os
 import imp
-
+import importlib
 logger = logging.getLogger(__name__)
 
 
-def importModule(modulePath, name=""):
+def importModule(modulePath, name=None):
+    """Import's the modulePath, if ModulePath is a dottedPath then the function will use importlib otherwise it's
+    expected that modulePath is the absolute path to the source file. If the name arg is not provided then the basename
+    without the extension will be used.
+
+    :param modulePath: The module path either a dottedPath eg. zoo.libs.utils.zoomath or a absolute path.
+    :type modulePath: str
+    :param name: The name for the imported module which will be used if the modulepath is a absolute path.
+    :type name: str
+    :return: The imported module object
+    :rtype: ModuleObject
+    """
     if isDottedPath(modulePath) or not os.path.exists(modulePath):
         try:
-            return __import__(modulePath, fromlist="dummy")
+            return importlib.import_module(modulePath)
         except ImportError:
-            logger.debug("failed to load module->%s" % modulePath, exc_info=True)
+            logger.debug("Failed to load module->{}".format(modulePath), exc_info=True)
 
     try:
         if os.path.exists(modulePath):
@@ -86,3 +97,27 @@ def iterSubclassesFromModule(module, classType):
     for member in iterMembers(module, predicate=inspect.isclass):
         if issubclass(member, classType):
             yield member
+
+
+def asDottedPath(path):
+    """ Returns a dotted path relative to the python path.
+    example:
+        import sys
+        currentPath = os.path.expanduser("somerandomPath")
+        sys.path.append(currentPath)
+        asDottedPath("someRandomPath/subfolder/subsubfolder.py")
+        #result: subfolder.subsubfolder
+
+    :param path: the absolute path to convert to a dotted path
+    :type path: str
+    :return: The dotted path relative to the python
+    :rtype: str
+    """
+    d, f = os.path.split(path)
+    f = os.path.splitext(f)[0]
+    packagePath = [f]  # __package__ will be a reversed list of package name parts
+    syspath = sys.path
+    while d not in syspath:  # go up until we run out of __init__.py files
+        d, name = os.path.split(d)  # pull of a lowest level directory name
+        packagePath.append(name)  # add it to the package parts list
+    return ".".join(reversed(packagePath))
