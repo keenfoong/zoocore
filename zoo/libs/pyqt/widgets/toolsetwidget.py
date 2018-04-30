@@ -9,6 +9,8 @@ from zoo.libs.pyqt.widgets.stackwidget import LineClickEdit
 
 class ToolSetWidget(QtWidgets.QTreeWidget):
     """
+    Generic Toolsets
+    TODO: WIP
     """
     def __init__(self, parent=None):
         super(ToolSetWidget, self).__init__(parent=parent)

@@ -70,13 +70,17 @@ class TreeWidgetFrame(QtWidgets.QWidget):
             print("TreeWidgetFrame.addGroup(): TreeWidget shouldn't be None!")
 
     def updateTreeWidget(self):
+        """
+        Updates the TreeWidget UI for QT sizehints and visuals
+        :return:
+        """
         if self.treeWidget is not None:
             self.treeWidget.updateTreeWidget()
 
 
 class TreeWidget(QtWidgets.QTreeWidget):
     """
-    A custom tree widget with some default things we want in zoo
+    A custom tree widget with some default settings we want in our zoo UI
     """
 
     ITEMTYPE_WIDGET = "WIDGET"
@@ -96,6 +100,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         self.font = QtGui.QFont("sans")
         self.allowSubGroups = allowSubGroups
+        self.headerItem = None  # type: QtWidgets.QTreeWidgetItem
 
         self.groupFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable
         self.groupUnlockedFlags = QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
@@ -109,6 +114,12 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.initUi()
 
     def setLocked(self, locked):
+        """
+        Sets the lock for drag and drop.
+        :param locked:
+        :type locked: bool
+        :return:
+        """
         self.locked = locked
 
         if locked:
@@ -121,6 +132,10 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.applyFlags()
 
     def initUi(self):
+        """
+        Init Ui Setup
+        :return:
+        """
         # Header setup
         self.headerItem = QtWidgets.QTreeWidgetItem(["Widget"])
         self.setHeaderItem(self.headerItem)
@@ -137,18 +152,33 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.setFocusPolicy(QtCore.Qt.NoFocus)
 
     def initDragDrop(self):
-        # Drag drop settings
+        """
+        Set up Drag drop Settings for this widget
+        :return:
+        """
         self.setDragEnabled(True)
         self.setDropIndicatorShown(True)
         self.setDragDropMode(QtWidgets.QAbstractItemView.DragDrop)
-        #self.setDefaultDropAction(QtCore.Qt.MoveAction) # For some reason dropMimeData doesn't get called if its set to MoveAction
-        self.setDefaultDropAction(QtCore.Qt.CopyAction)
+        self.setDefaultDropAction(QtCore.Qt.CopyAction) # For some reason dropMimeData doesn't get called if its set to Qt.MoveAction
         self.setAcceptDrops(True)
 
     def supportedDropActions(self):
+        """
+        Supported actions of the drag drop
+        :return:
+        """
         return QtCore.Qt.MoveAction | QtCore.Qt.CopyAction
 
     def dropMimeData(self, parent, index, data, action):
+        """
+        Dropping data from one spot to another.
+        TODO: Wip
+        :param parent:
+        :param index:
+        :param data:
+        :param action:
+        :return:
+        """
         widgetHash = data.data("widgetHash")
         group = parent or self.invisibleRootItem()
         newTreeItem = self.insertNewItem("", self.dragWidgets[0], index, group, itemType=self.ITEMTYPE_WIDGET, icon=self.tempIcon)
@@ -156,9 +186,23 @@ class TreeWidget(QtWidgets.QTreeWidget):
         return True
 
     def mimeTypes(self):
+        """
+        Mimetypes that are allowed in the drag drop
+        TODO: WIP
+        :return:
+        """
         return ['widgetHash', 'text/xml']
 
     def mimeData(self, items):
+        """
+        The data that will be dragged between tree nodes
+
+        TODO: Quite hacky atm, and only transfers only one. Will have multi drag drop soon.
+        :param items: List of selected TreeWidgetItems
+        :type items: list(TreeWidgetItem)
+
+        :return:
+        """
         self.dragWidgets = [self.itemWidget(i) for i in items]
         self.tempIcon = items[0].icon(0)
 
@@ -173,13 +217,13 @@ class TreeWidget(QtWidgets.QTreeWidget):
     def dropEvent(self, event):
         """
         The drop event when dragging a ComponentWidget from one place to another
+        Deprecated, soon to be removed
         :param event:
         :return:
         """
-        return super(TreeWidget, self).dropEvent(event)
 
         """
-        # Deprecated: will remove soon after reviewing
+        # DEPRECATED: will remove soon after finishing work on drag drop
         # Check if the target item is a group, if subgroups aren't allowed just return
         targetItem = self.itemAt(event.pos())
 
@@ -211,7 +255,27 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.setItemWidget(dragged, self.WIDGET_COL, newWgt)
         self.updateTreeWidget()"""
 
+        return super(TreeWidget, self).dropEvent(event)
+
     def insertNewItem(self, name, widget=None, index=0, treeParent=None, itemType=ITEMTYPE_WIDGET, icon=None):
+        """
+        Inserts a new item at a location, and sets the widget as the itemWidget.
+        ItemType can be Widget or Group. Groups wont have user customized widgets, but can have children.
+        ITEMTYPE_WIDGETS wont have children.
+
+        May merge with self.addNewItem()
+        :param name: Name of the new Item, generally put into the text field of the TreeWidgetItem. This is the text
+                     that is used for the search bar if it is active.
+
+        :param widget: Expects ItemWidget or any subclass of QtWidgets.QWidget.
+        :param index: Index to insert into
+        :param treeParent: The parent that it will insert into. If treeParent is None, it will assume the parent to be Root
+        :type treeParent: TreeWidgetItem or None
+        :param itemType: The type of widget being set for the new Item.
+        :param icon: Icon to set for the TreeWidgetItem
+        :return: The new item created
+        :rtype: TreeWidgetItem
+        """
         if itemType == self.ITEMTYPE_WIDGET:
             flags = self.itemWidgetFlags
         else:
@@ -231,14 +295,22 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         return newTreeItem
 
-    def addNewItem(self, name, widget=None, itemType=ITEMTYPE_WIDGET,icon=None):
+    def addNewItem(self, name, widget=None, itemType=ITEMTYPE_WIDGET, icon=None):
         """
         Add a new item type. Should be a group or an itemWidget
-        :param addBehaviour:
-        :param name:
-        :param widget:
-        :param itemType:
-        :return:
+
+        ItemType can be Widget or Group. Groups wont have user customized widgets, but can have children.
+        ITEMTYPE_WIDGETS wont have children.
+
+        May merge with self.insertNewItem()
+
+        :param name: Name of the new Item, generally put into the text field of the TreeWidgetItem. This is the text
+                     that is used for the search bar if it is active.
+        :param widget: Expects ItemWidget or any subclass of QtWidgets.QWidget.
+        :param itemType: The type of widget being set for the new Item.
+        :param icon: Icon to set for the TreeWidgetItem
+        :return: The new item created
+        :rtype: TreeWidgetItem
         """
 
         if itemType == self.ITEMTYPE_WIDGET:
@@ -273,8 +345,6 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.setCurrentItem(newTreeItem)
 
         return newTreeItem
-
-
 
     def itemWidgets(self, includeNones=False):
         """
@@ -349,7 +419,6 @@ class TreeWidget(QtWidgets.QTreeWidget):
         Hide anything that that doesnt have text. Used for searches.
 
         :param text:
-        :param item:
         :return:
         """
 
@@ -358,7 +427,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         for it in treeItemIterator:
             treeItem = it.value()
             name = self.getItemName(treeItem)
-            
+
             found = (text in name.lower())
             self.setItemHidden(treeItem, not found)
 
@@ -433,12 +502,12 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
     def applyFlags(self):
         """
-        Apply flags as set by self.groupFlags and self.componentFlags
+        Apply flags as set by self.groupFlags and self.itemWidgetFlags.
+        ITEMTYPE_WIDGET gets applied a different set of drag drop flags to
+        ITEMWIDGET_GROUP
         :return:
         """
-
         treeItemIterator = QtWidgets.QTreeWidgetItemIterator(self)
-
         for it in treeItemIterator:
             treeItem = it.value()
             if self.getItemType(treeItem) == self.ITEMTYPE_WIDGET:
