@@ -151,6 +151,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.setIndentation(mayaui.dpiScale(10))
         self.setFocusPolicy(QtCore.Qt.NoFocus)
 
+
     def initDragDrop(self):
         """
         Set up Drag drop Settings for this widget
@@ -185,6 +186,18 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.removePar.removeChild(self.removeCh)
         return True
 
+    def setCurrentItems(self, items):
+        """
+        Selects the items in the TreeWidget
+        :param items:
+        :return:
+        """
+        prevMode = self.selectionMode()
+        self.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+        for item in items:
+            self.setCurrentItem(item)
+        self.setSelectionMode(prevMode)
+
     def mimeTypes(self):
         """
         Mimetypes that are allowed in the drag drop
@@ -213,49 +226,6 @@ class TreeWidget(QtWidgets.QTreeWidget):
         mimedata = super(TreeWidget, self).mimeData(items)
 
         return mimedata
-
-    def dropEvent(self, event):
-        """
-        The drop event when dragging a ComponentWidget from one place to another
-        Deprecated, soon to be removed
-        :param event:
-        :return:
-        """
-
-        """
-        # DEPRECATED: will remove soon after finishing work on drag drop
-        # Check if the target item is a group, if subgroups aren't allowed just return
-        targetItem = self.itemAt(event.pos())
-
-        dragged = self.currentItem()
-        wgt = self.itemWidget(dragged)
-        newWgt = None
-
-        if self.getItemType(targetItem) == self.ITEMTYPE_GROUP and self.getItemType(dragged) == self.ITEMTYPE_GROUP \
-                and not self.allowSubGroups:
-            # Invalid drag events usually has a red crossed circle in PyQt, maybe theres a better way of doing this
-            return
-
-        # We have to recreate the componentWidgetItem, because PySide destroys everything on dropEvent.
-        # If you do a straight reference change, it crashes. Should look to see if theres a better way
-        try:
-            newWgt = wgt.copy()
-        except AttributeError:
-            if wgt is not None:
-                print("WARNING: Widget Object doesn't have .copy() function!")
-                return
-
-        super(TreeWidget, self).dropEvent(event)
-
-        if newWgt is None:
-            return
-
-        newWgt.setParent(self)  # parent must be put here otherwise it will crash
-
-        self.setItemWidget(dragged, self.WIDGET_COL, newWgt)
-        self.updateTreeWidget()"""
-
-        return super(TreeWidget, self).dropEvent(event)
 
     def insertNewItem(self, name, widget=None, index=0, treeParent=None, itemType=ITEMTYPE_WIDGET, icon=None):
         """
@@ -289,9 +259,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         treeParent.insertChild(index, newTreeItem)
 
-        if itemType == self.ITEMTYPE_WIDGET:
-            self.updateTreeWidget()
-            self.setItemWidget(newTreeItem, self.WIDGET_COL, widget)
+        self.updateTreeWidget()
+        self.setItemWidget(newTreeItem, self.WIDGET_COL, widget)
 
         return newTreeItem
 
@@ -338,7 +307,6 @@ class TreeWidget(QtWidgets.QTreeWidget):
         if widget:
             widget.setParent(self)
 
-        if itemType == self.ITEMTYPE_WIDGET:
             self.updateTreeWidget()
             self.setItemWidget(newTreeItem, self.WIDGET_COL, widget)  # items parent must be set otherwise it will crash
 
@@ -346,7 +314,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         return newTreeItem
 
-    def itemWidgets(self, includeNones=False):
+    def itemWidgets(self, includeNones=False, itemType=None):
         """
         Gets all widgets in the tree. includeNones is for when QTreeWidgetItems don't have a itemWidget attached, but
         for any reason or another we still want to know
@@ -361,9 +329,30 @@ class TreeWidget(QtWidgets.QTreeWidget):
                 itemWidget = self.itemWidget(treeItem)
                 if itemWidget is None and not includeNones:
                     continue
-                widgets.append(self.itemWidget(treeItem))
+
+                # Add by type
+                if itemType is not None and self.getItemType(treeItem) == itemType:
+                    widgets.append(self.itemWidget(treeItem))
 
         return widgets
+
+    def treeWidgetItemByHash(self, treeItemHash):
+        """
+        Return TreeWidgetItem by hash.
+        If this is slow maybe we should put all the treeWidgetItems in a hash map as well.
+        :param treeItemHash:
+        :return:
+        :rtype: TreeWidgetItem
+        """
+        if treeItemHash is None:
+            return None
+
+        treeItemIterator = QtWidgets.QTreeWidgetItemIterator(self)
+
+        for it in treeItemIterator:
+            treeItem = it.value()
+            if hash(treeItem) == treeItemHash:
+                return treeItem
 
     def itemWidget(self, treeItem, col=None):
         """
@@ -431,7 +420,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
             found = (text in name.lower())
             self.setItemHidden(treeItem, not found)
 
-    def addGroup(self, name="", expanded=True, groupSelected=True):
+    def addGroup(self, name="", expanded=True, groupSelected=True, groupWgt=None):
         """
         Adds a group to the ComponentTreeWidget. If no name is given, it will generate a unique one
         in the form of "Group 1", "Group 2", "Group 3" etc
@@ -440,6 +429,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         :param groupSelected:
         :param expanded:
         :param name:
+        :param groupWgt: Use this as the widget, if its none we'll just use the text background as the display
         :return:
         """
 
@@ -455,7 +445,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
             index = self.topLevelItemCount()
 
         name = name or self.getUniqueGroupName()
-        group = self.addNewItem(name, None, self.ITEMTYPE_GROUP)
+        group = self.addNewItem(name, groupWgt, self.ITEMTYPE_GROUP)
         self.insertTopLevelItem(index, group)
 
         if groupSelected:
@@ -467,10 +457,33 @@ class TreeWidget(QtWidgets.QTreeWidget):
                 self.addToGroup(s, group, updateTree=False)
 
         group.setExpanded(expanded)
-
         self.updateTreeWidget()
 
         return group
+
+    def insertGroup(self, name="", index=0, treeParent=None, expanded=True, groupWgt=None, icon=None):
+        """
+        Inserts a group into index, underneath treeParent.
+        :param name:
+        :param index:
+        :param treeParent:
+        :param expanded:
+        :param groupWgt:
+        :param icon:
+        :return:
+        """
+        if self.locked:
+            print("Locked. Adding of groups disabled")
+            return
+
+        print ("insertGroup", groupWgt)
+
+        name = name or self.getUniqueGroupName()
+        print ("insertGroup2", groupWgt)
+        group = self.insertNewItem(name, widget=groupWgt, index=index, treeParent=treeParent,
+                                   itemType=self.ITEMTYPE_GROUP, icon=icon)
+        print ("insertGroup3", groupWgt)
+        group.setExpanded(expanded)
 
     def addToGroup(self, item, group, updateTree=True):
         newWgt = self.itemWidget(item, self.WIDGET_COL).copy()

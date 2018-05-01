@@ -200,7 +200,7 @@ class ToolSetWidgetItem(QtWidgets.QWidget):
         self.hiderLayout.setContentsMargins(*self.contentMargins)
         self.hiderLayout.setSpacing(self.contentSpacing)
         self.widgetHider.setHidden(self.collapsed)
-        self.widgetHider.setStyleSheet("QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
+        self.widgetHider.setStyleSheet(".QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
 
     def onCollapsed(self):
         """
