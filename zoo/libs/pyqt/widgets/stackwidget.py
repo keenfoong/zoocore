@@ -349,11 +349,9 @@ class StackItem(QtWidgets.QWidget):
         self.shiftDownBtn = QtWidgets.QToolButton(parent=self)
         self.shiftUpBtn = QtWidgets.QToolButton(parent=self)
         self.deleteBtn = QtWidgets.QToolButton(parent=self)
-        #self.stackTitleWgt = QtWidgets.QLineEdit(title)
         self.stackTitleWgt = LineClickEdit(title)
         self.titleExtrasLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout = QtWidgets.QHBoxLayout()
-
 
         self.spacesToUnderscore = True
 
@@ -491,7 +489,7 @@ class StackItem(QtWidgets.QWidget):
         self.hiderLayout.setContentsMargins(*self.contentMargins)
         self.hiderLayout.setSpacing(self.contentSpacing)
         self.widgetHider.setHidden(self.collapsed)
-        self.widgetHider.setStyleSheet("QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
+        self.widgetHider.setStyleSheet(".QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
 
     def onCollapsed(self):
         """
@@ -613,7 +611,7 @@ class StackItem(QtWidgets.QWidget):
 
     def setFrameColor(self, color):
         style = """
-            QFrame, QToolButton
+            .QFrame
             {{
                 background-color: rgb{0};
                 border-radius: 3px;

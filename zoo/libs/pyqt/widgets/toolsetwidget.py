@@ -9,6 +9,8 @@ from zoo.libs.pyqt.widgets.stackwidget import LineClickEdit
 
 class ToolSetWidget(QtWidgets.QTreeWidget):
     """
+    Generic Toolsets
+    TODO: WIP
     """
     def __init__(self, parent=None):
         super(ToolSetWidget, self).__init__(parent=parent)
@@ -198,7 +200,7 @@ class ToolSetWidgetItem(QtWidgets.QWidget):
         self.hiderLayout.setContentsMargins(*self.contentMargins)
         self.hiderLayout.setSpacing(self.contentSpacing)
         self.widgetHider.setHidden(self.collapsed)
-        self.widgetHider.setStyleSheet("QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
+        self.widgetHider.setStyleSheet(".QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
 
     def onCollapsed(self):
         """
