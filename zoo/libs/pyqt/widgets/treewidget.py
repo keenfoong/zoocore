@@ -1,7 +1,7 @@
 import cPickle
 from zoo.libs.pyqt.embed import mayaui
 from qt import QtCore, QtWidgets, QtGui
-from zoo.apps.hiveartistui import tooltips
+from zoo.apps.hiveartistui import tooltips, stylesheet
 from zoo.libs import iconlib
 
 
@@ -118,6 +118,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.setLocked(locked)
 
         self.initUi()
+        self.connections()
 
     def setLocked(self, locked):
         """
@@ -136,6 +137,16 @@ class TreeWidget(QtWidgets.QTreeWidget):
             self.itemWidgetFlags = self.itemWidgetFlags | self.itemWidgetUnlockedFlags
 
         self.applyFlags()
+
+    def connections(self):
+        self.itemSelectionChanged.connect(self.treeSelectionChanged)
+
+
+    def treeSelectionChanged(self):
+        pass
+
+
+
 
     def initUi(self):
         """
@@ -403,7 +414,6 @@ class TreeWidget(QtWidgets.QTreeWidget):
         :type treeItem: TreeWidgetItem
         :return:
         """
-        print(treeItem)
         return treeItem.data(self.DATA_COL, QtCore.Qt.EditRole)
 
     def getItemName(self, treeItem):
@@ -480,6 +490,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
         group.setExpanded(expanded)
         self.updateTreeWidget()
 
+        groupWgt.setTreeItem(group)
+
         return group
 
     def insertGroup(self, name="", index=0, treeParent=None, expanded=True, groupWgt=None, icon=None):
@@ -490,6 +502,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         :param treeParent:
         :param expanded:
         :param groupWgt:
+        :type groupWgt: zoo.apps.hiveartistui.views.componentwidget.ComponentGroupWidget
         :param icon:
         :return:
         """
@@ -500,7 +513,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
         name = name or self.getUniqueGroupName()
         group = self.insertNewItem(name, widget=groupWgt, index=index, treeParent=treeParent,
                                    itemType=self.ITEMTYPE_GROUP, icon=icon)
-        #group.setExpanded(expanded)
+
+        groupWgt.setTreeItem(group)
 
     def addToGroup(self, item, group, updateTree=True):
         newWgt = self.itemWidget(item, self.WIDGET_COL).copy()

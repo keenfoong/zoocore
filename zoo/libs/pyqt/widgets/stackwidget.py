@@ -363,7 +363,7 @@ class StackItem(QtWidgets.QWidget):
         self.collapsable = collapsable
         self.collapsed = collapsed
         self.titleFrame = frame.QFrame(parent=self)
-        self.iconButton = QtWidgets.QToolButton()
+        self.expandToggleButton = QtWidgets.QToolButton(parent=self)
 
         # Title Frame
         self.widgetHider = QtWidgets.QFrame(parent=self)
@@ -425,6 +425,7 @@ class StackItem(QtWidgets.QWidget):
         self.shiftDownBtn.setIcon(self._downIcon)
         self.shiftUpBtn.setIcon(self._upIcon)
         self.deleteBtn.setIcon(self._deleteIcon)
+        self.itemIcon.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
 
         iconSize = mayaui.sizeByDpi(QtCore.QSize(12, 12))
 
@@ -443,19 +444,20 @@ class StackItem(QtWidgets.QWidget):
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
 
         # the icon and title and spacer
-        self.iconButton.setParent(self.titleFrame)
+        self.expandToggleButton.setParent(self.titleFrame)
         if self.collapsed:
-            self.iconButton.setIcon(self._collapsedIcon)
+            self.expandToggleButton.setIcon(self._collapsedIcon)
         else:
-            self.iconButton.setIcon(self._expandIcon)
+            self.expandToggleButton.setIcon(self._expandIcon)
 
         spacerItem = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
 
         # add to horizontal layout
-        self.horizontalLayout.addWidget(self.iconButton)
+        self.horizontalLayout.addWidget(self.expandToggleButton)
         self.horizontalLayout.addWidget(self.itemIcon)
         self.horizontalLayout.addItem(spacerItem)
         self.titleFrame.setFixedHeight(self.titleFrame.sizeHint().height())
+        self.titleFrame.setObjectName("title")
 
         self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height()+3)
 
@@ -487,7 +489,8 @@ class StackItem(QtWidgets.QWidget):
         self.hiderLayout.setContentsMargins(*self.contentMargins)
         self.hiderLayout.setSpacing(self.contentSpacing)
         self.widgetHider.setHidden(self.collapsed)
-        self.widgetHider.setStyleSheet(".QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
+        self.widgetHider.setObjectName("stackbody")
+        #self.widgetHider.setStyleSheet(".QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
 
     def onCollapsed(self):
         """
@@ -495,7 +498,7 @@ class StackItem(QtWidgets.QWidget):
         :return:
         """
         self.widgetHider.setHidden(True)
-        self.iconButton.setIcon(self._collapsedIcon)
+        self.expandToggleButton.setIcon(self._collapsedIcon)
         self.closeRequested.emit()
         self.collapsed = 1
 
@@ -505,7 +508,7 @@ class StackItem(QtWidgets.QWidget):
         :return:
         """
         self.widgetHider.setHidden(False)
-        self.iconButton.setIcon(self._expandIcon)
+        self.expandToggleButton.setIcon(self._expandIcon)
         self.openRequested.emit()
         self.collapsed = 0
 
@@ -616,7 +619,7 @@ class StackItem(QtWidgets.QWidget):
     def connections(self):
         """ Connections for stack items"""
 
-        self.iconButton.clicked.connect(self.showHideWidget)
+        self.expandToggleButton.clicked.connect(self.showHideWidget)
 
         self.shiftUpBtn.clicked.connect(self.shiftUp)
         self.shiftDownBtn.clicked.connect(self.shiftDown)
