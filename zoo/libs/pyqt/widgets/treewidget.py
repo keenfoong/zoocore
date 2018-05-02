@@ -257,9 +257,10 @@ class TreeWidget(QtWidgets.QTreeWidget):
             newTreeItem.setIcon(self.WIDGET_COL, icon)
         newTreeItem.setFont(self.WIDGET_COL, self.font)
 
-        treeParent.insertChild(index, newTreeItem)
+        (treeParent or self.invisibleRootItem()).insertChild(index, newTreeItem)
 
         self.updateTreeWidget()
+        widget.setParent(self)
         self.setItemWidget(newTreeItem, self.WIDGET_COL, widget)
 
         return newTreeItem
@@ -476,14 +477,10 @@ class TreeWidget(QtWidgets.QTreeWidget):
             print("Locked. Adding of groups disabled")
             return
 
-        print ("insertGroup", groupWgt)
-
         name = name or self.getUniqueGroupName()
-        print ("insertGroup2", groupWgt)
         group = self.insertNewItem(name, widget=groupWgt, index=index, treeParent=treeParent,
                                    itemType=self.ITEMTYPE_GROUP, icon=icon)
-        print ("insertGroup3", groupWgt)
-        group.setExpanded(expanded)
+        #group.setExpanded(expanded)
 
     def addToGroup(self, item, group, updateTree=True):
         newWgt = self.itemWidget(item, self.WIDGET_COL).copy()
