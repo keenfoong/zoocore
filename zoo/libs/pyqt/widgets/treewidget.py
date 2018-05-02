@@ -363,9 +363,12 @@ class TreeWidget(QtWidgets.QTreeWidget):
                 if itemWidget is None and not includeNones:
                     continue
 
-                # Add by type
-                if itemType is not None and self.getItemType(treeItem) == itemType:
+                # Add by type, but if itemType is none, let them all through
+                if (itemType is not None and self.getItemType(treeItem) == itemType) or \
+                                itemType is None:
                     widgets.append(self.itemWidget(treeItem))
+
+
 
         return widgets
 
