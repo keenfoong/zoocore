@@ -436,8 +436,6 @@ class StackItem(QtWidgets.QWidget):
         """Builds the title part of the layout with a QFrame widget
         """
 
-        # main dark grey qframe
-        self.setFrameColor(self.color)
         self.titleFrame.setContentsMargins(4, 1, 4, 0)
 
         # the horizontal layout
@@ -611,18 +609,7 @@ class StackItem(QtWidgets.QWidget):
 
     def setFrameColor(self, color):
         style = """
-            .QFrame
-            {{
-                background-color: rgb{0};
-                border-radius: 3px;
-                border: 1px solid rgb{0};
-
-            }}
-            QLineEdit
-            {{
-                background-color: rgb{1};
-            }}
-            """.format(str(color), str((63, 63, 63)))
+            """.format(str(color))
 
         self.titleFrame.setStyleSheet(style)
 
@@ -642,7 +629,7 @@ class LineClickEdit(QtWidgets.QLineEdit):
     """
     Creates a line edit that becomes editable on click or doubleclick double click
     """
-    def __init__(self, text, single=False,double=True):
+    def __init__(self, text, single=False, double=True, passThroughClicks=True):
 
         super(LineClickEdit, self).__init__(text)
         self.setReadOnly(True)
@@ -653,8 +640,15 @@ class LineClickEdit(QtWidgets.QLineEdit):
 
         if single:
             self.mousePressEvent = self.editEvent
+        else:
+            if passThroughClicks:
+                self.mousePressEvent = self.mouseClickPassThrough
+
         if double:
             self.mouseDoubleClickEvent = self.editEvent
+        else:
+            if passThroughClicks:
+                self.mousePressEvent = self.mouseClickPassThrough
 
     def editFinished(self):
         self.setReadOnly(True)
@@ -672,6 +666,9 @@ class LineClickEdit(QtWidgets.QLineEdit):
     def focusOutEvent(self, e):
         super(LineClickEdit, self).focusOutEvent(e)  # required to remove cursor on focusOut
         self.editFinished()
+
+    def mouseClickPassThrough(self, event):
+        event.ignore()
 
 
 
