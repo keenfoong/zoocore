@@ -99,6 +99,12 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.defaultGroupName = "Group"
 
         self.font = QtGui.QFont("sans")
+
+        # Drag drop
+        self.removeForDrop = []  # type: list(TreeWidgetItem)
+        self.dragWidgets = []
+
+        # Grouping flags
         self.allowSubGroups = allowSubGroups
         self.headerItem = None  # type: QtWidgets.QTreeWidgetItem
 
@@ -180,10 +186,15 @@ class TreeWidget(QtWidgets.QTreeWidget):
         :param action:
         :return:
         """
-        widgetHash = data.data("widgetHash")
         group = parent or self.invisibleRootItem()
-        newTreeItem = self.insertNewItem("", self.dragWidgets[0], index, group, itemType=self.ITEMTYPE_WIDGET, icon=self.tempIcon)
-        self.removePar.removeChild(self.removeCh)
+        newItems = []
+        for g in reversed(self.dragWidgets):
+            newTreeItem = self.insertNewItem("", g['itemWidget'], index, group,
+                                             itemType=g['itemType'], icon=g['icon'])
+            newItems.append(newTreeItem)
+
+        self.removeDropItems()
+        self.setCurrentItems(newItems)
         return True
 
     def setCurrentItems(self, items):
@@ -204,28 +215,36 @@ class TreeWidget(QtWidgets.QTreeWidget):
         TODO: WIP
         :return:
         """
-        return ['widgetHash', 'text/xml']
+        return ['text/xml']
 
     def mimeData(self, items):
         """
         The data that will be dragged between tree nodes
 
-        TODO: Quite hacky atm, and only transfers only one. Will have multi drag drop soon.
         :param items: List of selected TreeWidgetItems
         :type items: list(TreeWidgetItem)
 
         :return:
         """
-        self.dragWidgets = [self.itemWidget(i) for i in items]
-        self.tempIcon = items[0].icon(0)
 
-        parent = items[0].parent() or self.invisibleRootItem()
-        self.removePar = parent
-        self.removeCh = items[0]
+        self.dragWidgets = []
+        for item in items:
+            itemWidget = self.itemWidget(item)
+            self.dragWidgets.append({'itemWidget': itemWidget, 'icon': item.icon(0), 'itemType':self.getItemType(item)})
+
+        self.removeForDrop = items
 
         mimedata = super(TreeWidget, self).mimeData(items)
 
         return mimedata
+
+    def removeDropItems(self):
+        """
+        Remove the source items from the treewidget that has been dragged
+        :return:
+        """
+        for r in self.removeForDrop:
+            (r.parent() or self.invisibleRootItem()).removeChild(r)
 
     def insertNewItem(self, name, widget=None, index=0, treeParent=None, itemType=ITEMTYPE_WIDGET, icon=None):
         """
@@ -374,7 +393,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         """
         # Super hacky way to update the TreeWidget, add an empty object and then remove it
         self.insertTopLevelItem(0, QtWidgets.QTreeWidgetItem())
-        self.takeTopLevelItem(0)  # Must be a better way to do this
+        self.takeTopLevelItem(0)
 
     def getItemType(self, treeItem):
         """
@@ -384,6 +403,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         :type treeItem: TreeWidgetItem
         :return:
         """
+        print(treeItem)
         return treeItem.data(self.DATA_COL, QtCore.Qt.EditRole)
 
     def getItemName(self, treeItem):
@@ -557,7 +577,7 @@ class ItemWidget(QtWidgets.QLabel):
     def copy(self):
         CurrentType = type(self)
         ret = CurrentType(self.text())
-        ret.data = self.data
+        ret.name = self.name
         # ret.setIcon(self.icon())
         ret.setStyleSheet(self.styleSheet())
         tooltips.copyExpandedTooltips(self, ret)
