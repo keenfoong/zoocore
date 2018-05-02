@@ -2,6 +2,7 @@ import cPickle
 from zoo.libs.pyqt.embed import mayaui
 from qt import QtCore, QtWidgets, QtGui
 from zoo.apps.hiveartistui import tooltips, stylesheet
+from zoo.apps.hiveartistui.views import componentgroup
 from zoo.libs import iconlib
 
 
@@ -65,7 +66,8 @@ class TreeWidgetFrame(QtWidgets.QWidget):
 
     def addGroup(self, name="", expanded=True):
         if self.treeWidget is not None:
-            return self.treeWidget.addGroup(name, expanded=expanded)
+            groupWgt = componentgroup.ComponentGroupWidget(name)
+            return self.treeWidget.addGroup(name, expanded=expanded, groupWgt=groupWgt)
         else:
             print("TreeWidgetFrame.addGroup(): TreeWidget shouldn't be None!")
 
