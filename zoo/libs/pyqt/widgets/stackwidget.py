@@ -367,7 +367,7 @@ class StackItem(QtWidgets.QWidget):
 
         # Title Frame
         self.widgetHider = QtWidgets.QFrame(parent=self)
-        self.hiderLayout = QtWidgets.QVBoxLayout(self.widgetHider)
+        self._contentsLayout = QtWidgets.QVBoxLayout(self.widgetHider)
 
         if not shiftArrowsEnabled:
             self.shiftDownBtn.hide()
@@ -406,6 +406,16 @@ class StackItem(QtWidgets.QWidget):
         else:
             self.shiftDownBtn.hide()
             self.shiftUpBtn.hide()
+
+    @property
+    def contentsLayout(self):
+        return self._contentsLayout
+
+    def showExpandIndicator(self, vis):
+        self.expandToggleButton.setVisible(vis)
+
+    def setTitleTextMouseTransparent(self, trans):
+        self.stackTitleWgt.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents, trans)
 
     def initUi(self):
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -476,51 +486,54 @@ class StackItem(QtWidgets.QWidget):
         self.shiftDownPressed.emit()
 
     def addWidget(self, widget):
-        self.hiderLayout.addWidget(widget)
+        self._contentsLayout.addWidget(widget)
 
     def addLayout(self, layout):
-        self.hiderLayout.addLayout(layout)
+        self._contentsLayout.addLayout(layout)
 
     def buildHiderWidget(self):
         """Builds widget that is collapsable
         Widget can be toggled so it's a container for the layout
         """
         self.widgetHider.setContentsMargins(0, 0, 0, 0)
-        self.hiderLayout.setContentsMargins(*self.contentMargins)
-        self.hiderLayout.setSpacing(self.contentSpacing)
+        self._contentsLayout.setContentsMargins(*self.contentMargins)
+        self._contentsLayout.setSpacing(self.contentSpacing)
         self.widgetHider.setHidden(self.collapsed)
         self.widgetHider.setObjectName("stackbody")
         #self.widgetHider.setStyleSheet(".QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
 
-    def onCollapsed(self):
+    def onCollapsed(self, emit=True):
         """
         Collapse and hide the item contents
         :return:
         """
         self.widgetHider.setHidden(True)
         self.expandToggleButton.setIcon(self._collapsedIcon)
-        self.closeRequested.emit()
+        if emit:
+            self.closeRequested.emit()
         self.collapsed = 1
 
-    def onExpand(self):
+    def onExpand(self, emit=True):
         """
         Expand the contents and show all the widget data
         :return:
         """
         self.widgetHider.setHidden(False)
         self.expandToggleButton.setIcon(self._expandIcon)
-        self.openRequested.emit()
+
+        if emit:
+            self.openRequested.emit()
         self.collapsed = 0
 
-    def expand(self):
+    def expand(self, emit=True):
         """ Extra Code for convenience """
-        self.onExpand()
+        self.onExpand(emit)
 
-    def collapse(self):
+    def collapse(self, emit=True):
         """ Extra Code for convenience """
-        self.onCollapsed()
+        self.onCollapsed(emit)
 
-    def showHideWidget(self):
+    def toggleContents(self):
         """Shows and hides the widget `self.widgetHider` this contains the layout `self.hiderLayout`
         which will hold the custom contents that the user specifies
         """
@@ -619,7 +632,7 @@ class StackItem(QtWidgets.QWidget):
     def connections(self):
         """ Connections for stack items"""
 
-        self.expandToggleButton.clicked.connect(self.showHideWidget)
+        self.expandToggleButton.clicked.connect(self.toggleContents)
 
         self.shiftUpBtn.clicked.connect(self.shiftUp)
         self.shiftDownBtn.clicked.connect(self.shiftDown)

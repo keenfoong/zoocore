@@ -40,7 +40,6 @@ class TreeWidgetFrame(QtWidgets.QWidget):
         self.toolbarLayout.setContentsMargins(0, 0, 0, 0)
         self.toolbarLayout.setSpacing(1)
         self.toolbarLayout.addWidget(self.searchEdit)
-
         self.searchEdit.setPlaceholderText("Search...")
 
         line = QtWidgets.QFrame(parent=self)
@@ -143,12 +142,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
     def connections(self):
         self.itemSelectionChanged.connect(self.treeSelectionChanged)
 
-
     def treeSelectionChanged(self):
         pass
-
-
-
 
     def initUi(self):
         """
@@ -367,8 +362,6 @@ class TreeWidget(QtWidgets.QTreeWidget):
                 if (itemType is not None and self.getItemType(treeItem) == itemType) or \
                                 itemType is None:
                     widgets.append(self.itemWidget(treeItem))
-
-
 
         return widgets
 
