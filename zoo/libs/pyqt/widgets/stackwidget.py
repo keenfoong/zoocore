@@ -536,7 +536,7 @@ class StackItem(QtWidgets.QWidget):
         """ Extra Code for convenience """
         self.onCollapsed(emit)
 
-    def toggleContents(self):
+    def toggleContents(self, emit=True):
         """Shows and hides the widget `self.widgetHider` this contains the layout `self.hiderLayout`
         which will hold the custom contents that the user specifies
         """
@@ -545,12 +545,13 @@ class StackItem(QtWidgets.QWidget):
 
         # If we're already collapsed then expand the layout
         if self.collapsed:
-            self.expand()
+            self.expand(emit)
             self.updateSize()
-            return
+            return not self.collapsed
 
-        self.onCollapsed()
+        self.collapse(emit)
         self.updateSize()
+        return self.collapsed
 
     def setComboToText(self, combobox, text):
         """
