@@ -411,6 +411,9 @@ class StackItem(QtWidgets.QWidget):
     def contentsLayout(self):
         return self._contentsLayout
 
+    def titleTextWidget(self):
+        return self.stackTitleWgt
+
     def showExpandIndicator(self, vis):
         self.expandToggleButton.setVisible(vis)
 
