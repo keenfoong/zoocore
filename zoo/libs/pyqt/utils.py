@@ -122,3 +122,14 @@ def desktopPixmapFromRect(rect):
     desktop = QtWidgets.QApplication.instance().desktop()
     return QtGui.QPixmap.grabWindow(desktop.winId(), rect.x(), rect.y(),
                                         rect.width(), rect.height())
+
+
+def updateStyle(widget):
+    """
+    Updates a widget after an style object name change.
+    eg. widget.setObjectName()
+    :param widget:
+    :return:
+    """
+    widget.setStyle(widget.style())
+

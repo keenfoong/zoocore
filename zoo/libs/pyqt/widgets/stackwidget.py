@@ -363,11 +363,11 @@ class StackItem(QtWidgets.QWidget):
         self.collapsable = collapsable
         self.collapsed = collapsed
         self.titleFrame = frame.QFrame(parent=self)
-        self.iconButton = QtWidgets.QToolButton()
+        self.expandToggleButton = QtWidgets.QToolButton(parent=self)
 
         # Title Frame
         self.widgetHider = QtWidgets.QFrame(parent=self)
-        self.hiderLayout = QtWidgets.QVBoxLayout(self.widgetHider)
+        self._contentsLayout = QtWidgets.QVBoxLayout(self.widgetHider)
 
         if not shiftArrowsEnabled:
             self.shiftDownBtn.hide()
@@ -407,6 +407,19 @@ class StackItem(QtWidgets.QWidget):
             self.shiftDownBtn.hide()
             self.shiftUpBtn.hide()
 
+    @property
+    def contentsLayout(self):
+        return self._contentsLayout
+
+    def titleTextWidget(self):
+        return self.stackTitleWgt
+
+    def showExpandIndicator(self, vis):
+        self.expandToggleButton.setVisible(vis)
+
+    def setTitleTextMouseTransparent(self, trans):
+        self.stackTitleWgt.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents, trans)
+
     def initUi(self):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(0)
@@ -425,6 +438,7 @@ class StackItem(QtWidgets.QWidget):
         self.shiftDownBtn.setIcon(self._downIcon)
         self.shiftUpBtn.setIcon(self._upIcon)
         self.deleteBtn.setIcon(self._deleteIcon)
+        self.itemIcon.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
 
         iconSize = mayaui.sizeByDpi(QtCore.QSize(12, 12))
 
@@ -436,8 +450,6 @@ class StackItem(QtWidgets.QWidget):
         """Builds the title part of the layout with a QFrame widget
         """
 
-        # main dark grey qframe
-        self.setFrameColor(self.color)
         self.titleFrame.setContentsMargins(4, 1, 4, 0)
 
         # the horizontal layout
@@ -445,19 +457,20 @@ class StackItem(QtWidgets.QWidget):
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
 
         # the icon and title and spacer
-        self.iconButton.setParent(self.titleFrame)
+        self.expandToggleButton.setParent(self.titleFrame)
         if self.collapsed:
-            self.iconButton.setIcon(self._collapsedIcon)
+            self.expandToggleButton.setIcon(self._collapsedIcon)
         else:
-            self.iconButton.setIcon(self._expandIcon)
+            self.expandToggleButton.setIcon(self._expandIcon)
 
         spacerItem = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
 
         # add to horizontal layout
-        self.horizontalLayout.addWidget(self.iconButton)
+        self.horizontalLayout.addWidget(self.expandToggleButton)
         self.horizontalLayout.addWidget(self.itemIcon)
         self.horizontalLayout.addItem(spacerItem)
         self.titleFrame.setFixedHeight(self.titleFrame.sizeHint().height())
+        self.titleFrame.setObjectName("title")
 
         self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height()+3)
 
@@ -476,50 +489,54 @@ class StackItem(QtWidgets.QWidget):
         self.shiftDownPressed.emit()
 
     def addWidget(self, widget):
-        self.hiderLayout.addWidget(widget)
+        self._contentsLayout.addWidget(widget)
 
     def addLayout(self, layout):
-        self.hiderLayout.addLayout(layout)
+        self._contentsLayout.addLayout(layout)
 
     def buildHiderWidget(self):
         """Builds widget that is collapsable
         Widget can be toggled so it's a container for the layout
         """
         self.widgetHider.setContentsMargins(0, 0, 0, 0)
-        self.hiderLayout.setContentsMargins(*self.contentMargins)
-        self.hiderLayout.setSpacing(self.contentSpacing)
+        self._contentsLayout.setContentsMargins(*self.contentMargins)
+        self._contentsLayout.setSpacing(self.contentSpacing)
         self.widgetHider.setHidden(self.collapsed)
-        self.widgetHider.setStyleSheet(".QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
+        self.widgetHider.setObjectName("stackbody")
+        #self.widgetHider.setStyleSheet(".QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
 
-    def onCollapsed(self):
+    def onCollapsed(self, emit=True):
         """
         Collapse and hide the item contents
         :return:
         """
         self.widgetHider.setHidden(True)
-        self.iconButton.setIcon(self._collapsedIcon)
-        self.closeRequested.emit()
+        self.expandToggleButton.setIcon(self._collapsedIcon)
+        if emit:
+            self.closeRequested.emit()
         self.collapsed = 1
 
-    def onExpand(self):
+    def onExpand(self, emit=True):
         """
         Expand the contents and show all the widget data
         :return:
         """
         self.widgetHider.setHidden(False)
-        self.iconButton.setIcon(self._expandIcon)
-        self.openRequested.emit()
+        self.expandToggleButton.setIcon(self._expandIcon)
+
+        if emit:
+            self.openRequested.emit()
         self.collapsed = 0
 
-    def expand(self):
+    def expand(self, emit=True):
         """ Extra Code for convenience """
-        self.onExpand()
+        self.onExpand(emit)
 
-    def collapse(self):
+    def collapse(self, emit=True):
         """ Extra Code for convenience """
-        self.onCollapsed()
+        self.onCollapsed(emit)
 
-    def showHideWidget(self):
+    def toggleContents(self, emit=True):
         """Shows and hides the widget `self.widgetHider` this contains the layout `self.hiderLayout`
         which will hold the custom contents that the user specifies
         """
@@ -528,12 +545,13 @@ class StackItem(QtWidgets.QWidget):
 
         # If we're already collapsed then expand the layout
         if self.collapsed:
-            self.expand()
+            self.expand(emit)
             self.updateSize()
-            return
+            return not self.collapsed
 
-        self.onCollapsed()
+        self.collapse(emit)
         self.updateSize()
+        return self.collapsed
 
     def setComboToText(self, combobox, text):
         """
@@ -611,25 +629,14 @@ class StackItem(QtWidgets.QWidget):
 
     def setFrameColor(self, color):
         style = """
-            .QFrame
-            {{
-                background-color: rgb{0};
-                border-radius: 3px;
-                border: 1px solid rgb{0};
-
-            }}
-            QLineEdit
-            {{
-                background-color: rgb{1};
-            }}
-            """.format(str(color), str((63, 63, 63)))
+            """.format(str(color))
 
         self.titleFrame.setStyleSheet(style)
 
     def connections(self):
         """ Connections for stack items"""
 
-        self.iconButton.clicked.connect(self.showHideWidget)
+        self.expandToggleButton.clicked.connect(self.toggleContents)
 
         self.shiftUpBtn.clicked.connect(self.shiftUp)
         self.shiftDownBtn.clicked.connect(self.shiftDown)
@@ -642,7 +649,7 @@ class LineClickEdit(QtWidgets.QLineEdit):
     """
     Creates a line edit that becomes editable on click or doubleclick double click
     """
-    def __init__(self, text, single=False,double=True):
+    def __init__(self, text, single=False, double=True, passThroughClicks=True):
 
         super(LineClickEdit, self).__init__(text)
         self.setReadOnly(True)
@@ -653,8 +660,15 @@ class LineClickEdit(QtWidgets.QLineEdit):
 
         if single:
             self.mousePressEvent = self.editEvent
+        else:
+            if passThroughClicks:
+                self.mousePressEvent = self.mouseClickPassThrough
+
         if double:
             self.mouseDoubleClickEvent = self.editEvent
+        else:
+            if passThroughClicks:
+                self.mousePressEvent = self.mouseClickPassThrough
 
     def editFinished(self):
         self.setReadOnly(True)
@@ -672,6 +686,9 @@ class LineClickEdit(QtWidgets.QLineEdit):
     def focusOutEvent(self, e):
         super(LineClickEdit, self).focusOutEvent(e)  # required to remove cursor on focusOut
         self.editFinished()
+
+    def mouseClickPassThrough(self, event):
+        event.ignore()
 
 
 

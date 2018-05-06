@@ -1,7 +1,8 @@
 import cPickle
 from zoo.libs.pyqt.embed import mayaui
 from qt import QtCore, QtWidgets, QtGui
-from zoo.apps.hiveartistui import tooltips
+from zoo.apps.hiveartistui import tooltips, stylesheet
+from zoo.apps.hiveartistui.views import componentgroup
 from zoo.libs import iconlib
 
 
@@ -39,7 +40,6 @@ class TreeWidgetFrame(QtWidgets.QWidget):
         self.toolbarLayout.setContentsMargins(0, 0, 0, 0)
         self.toolbarLayout.setSpacing(1)
         self.toolbarLayout.addWidget(self.searchEdit)
-
         self.searchEdit.setPlaceholderText("Search...")
 
         line = QtWidgets.QFrame(parent=self)
@@ -65,7 +65,8 @@ class TreeWidgetFrame(QtWidgets.QWidget):
 
     def addGroup(self, name="", expanded=True):
         if self.treeWidget is not None:
-            return self.treeWidget.addGroup(name, expanded=expanded)
+            groupWgt = componentgroup.ComponentGroupWidget(name)
+            return self.treeWidget.addGroup(name, expanded=expanded, groupWgt=groupWgt)
         else:
             print("TreeWidgetFrame.addGroup(): TreeWidget shouldn't be None!")
 
@@ -99,6 +100,12 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.defaultGroupName = "Group"
 
         self.font = QtGui.QFont("sans")
+
+        # Drag drop
+        self.removeForDrop = []  # type: list(TreeWidgetItem)
+        self.dragWidgets = []
+
+        # Grouping flags
         self.allowSubGroups = allowSubGroups
         self.headerItem = None  # type: QtWidgets.QTreeWidgetItem
 
@@ -112,6 +119,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.setLocked(locked)
 
         self.initUi()
+        self.connections()
 
     def setLocked(self, locked):
         """
@@ -130,6 +138,12 @@ class TreeWidget(QtWidgets.QTreeWidget):
             self.itemWidgetFlags = self.itemWidgetFlags | self.itemWidgetUnlockedFlags
 
         self.applyFlags()
+
+    def connections(self):
+        self.itemSelectionChanged.connect(self.treeSelectionChanged)
+
+    def treeSelectionChanged(self):
+        pass
 
     def initUi(self):
         """
@@ -180,10 +194,15 @@ class TreeWidget(QtWidgets.QTreeWidget):
         :param action:
         :return:
         """
-        widgetHash = data.data("widgetHash")
         group = parent or self.invisibleRootItem()
-        newTreeItem = self.insertNewItem("", self.dragWidgets[0], index, group, itemType=self.ITEMTYPE_WIDGET, icon=self.tempIcon)
-        self.removePar.removeChild(self.removeCh)
+        newItems = []
+        for g in reversed(self.dragWidgets):
+            newTreeItem = self.insertNewItem("", g['itemWidget'], index, group,
+                                             itemType=g['itemType'], icon=g['icon'])
+            newItems.append(newTreeItem)
+
+        self.removeDropItems()
+        self.setCurrentItems(newItems)
         return True
 
     def setCurrentItems(self, items):
@@ -204,28 +223,36 @@ class TreeWidget(QtWidgets.QTreeWidget):
         TODO: WIP
         :return:
         """
-        return ['widgetHash', 'text/xml']
+        return ['text/xml']
 
     def mimeData(self, items):
         """
         The data that will be dragged between tree nodes
 
-        TODO: Quite hacky atm, and only transfers only one. Will have multi drag drop soon.
         :param items: List of selected TreeWidgetItems
         :type items: list(TreeWidgetItem)
 
         :return:
         """
-        self.dragWidgets = [self.itemWidget(i) for i in items]
-        self.tempIcon = items[0].icon(0)
 
-        parent = items[0].parent() or self.invisibleRootItem()
-        self.removePar = parent
-        self.removeCh = items[0]
+        self.dragWidgets = []
+        for item in items:
+            itemWidget = self.itemWidget(item)
+            self.dragWidgets.append({'itemWidget': itemWidget, 'icon': item.icon(0), 'itemType':self.getItemType(item)})
+
+        self.removeForDrop = items
 
         mimedata = super(TreeWidget, self).mimeData(items)
 
         return mimedata
+
+    def removeDropItems(self):
+        """
+        Remove the source items from the treewidget that has been dragged
+        :return:
+        """
+        for r in self.removeForDrop:
+            (r.parent() or self.invisibleRootItem()).removeChild(r)
 
     def insertNewItem(self, name, widget=None, index=0, treeParent=None, itemType=ITEMTYPE_WIDGET, icon=None):
         """
@@ -257,9 +284,10 @@ class TreeWidget(QtWidgets.QTreeWidget):
             newTreeItem.setIcon(self.WIDGET_COL, icon)
         newTreeItem.setFont(self.WIDGET_COL, self.font)
 
-        treeParent.insertChild(index, newTreeItem)
+        (treeParent or self.invisibleRootItem()).insertChild(index, newTreeItem)
 
         self.updateTreeWidget()
+        widget.setParent(self)
         self.setItemWidget(newTreeItem, self.WIDGET_COL, widget)
 
         return newTreeItem
@@ -330,8 +358,9 @@ class TreeWidget(QtWidgets.QTreeWidget):
                 if itemWidget is None and not includeNones:
                     continue
 
-                # Add by type
-                if itemType is not None and self.getItemType(treeItem) == itemType:
+                # Add by type, but if itemType is none, let them all through
+                if (itemType is not None and self.getItemType(treeItem) == itemType) or \
+                                itemType is None:
                     widgets.append(self.itemWidget(treeItem))
 
         return widgets
@@ -373,7 +402,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         """
         # Super hacky way to update the TreeWidget, add an empty object and then remove it
         self.insertTopLevelItem(0, QtWidgets.QTreeWidgetItem())
-        self.takeTopLevelItem(0)  # Must be a better way to do this
+        self.takeTopLevelItem(0)
 
     def getItemType(self, treeItem):
         """
@@ -459,6 +488,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
         group.setExpanded(expanded)
         self.updateTreeWidget()
 
+        groupWgt.setTreeItem(group)
+
         return group
 
     def insertGroup(self, name="", index=0, treeParent=None, expanded=True, groupWgt=None, icon=None):
@@ -469,6 +500,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         :param treeParent:
         :param expanded:
         :param groupWgt:
+        :type groupWgt: zoo.apps.hiveartistui.views.componentwidget.ComponentGroupWidget
         :param icon:
         :return:
         """
@@ -476,14 +508,11 @@ class TreeWidget(QtWidgets.QTreeWidget):
             print("Locked. Adding of groups disabled")
             return
 
-        print ("insertGroup", groupWgt)
-
         name = name or self.getUniqueGroupName()
-        print ("insertGroup2", groupWgt)
         group = self.insertNewItem(name, widget=groupWgt, index=index, treeParent=treeParent,
                                    itemType=self.ITEMTYPE_GROUP, icon=icon)
-        print ("insertGroup3", groupWgt)
-        group.setExpanded(expanded)
+
+        groupWgt.setTreeItem(group)
 
     def addToGroup(self, item, group, updateTree=True):
         newWgt = self.itemWidget(item, self.WIDGET_COL).copy()
@@ -560,7 +589,7 @@ class ItemWidget(QtWidgets.QLabel):
     def copy(self):
         CurrentType = type(self)
         ret = CurrentType(self.text())
-        ret.data = self.data
+        ret.name = self.name
         # ret.setIcon(self.icon())
         ret.setStyleSheet(self.styleSheet())
         tooltips.copyExpandedTooltips(self, ret)
