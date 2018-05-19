@@ -4,6 +4,7 @@ import sys
 class CommandProgressBar(object):
     def __init__(self, total, prefix, suffix, decimals=1, barLength=50):
         """Call in a loop to create terminal progress bar
+
         :param total: the total iterations
         :type total int
         :param prefix:  prefix
