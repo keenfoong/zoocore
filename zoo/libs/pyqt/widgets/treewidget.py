@@ -1,19 +1,17 @@
-import cPickle
-from zoo.libs.pyqt.embed import mayaui
 from qt import QtCore, QtWidgets, QtGui
-from zoo.apps.hiveartistui import tooltips, stylesheet
+from zoo.apps.hiveartistui import tooltips
 from zoo.apps.hiveartistui.views import componentgroup
-from zoo.libs import iconlib
+from zoo.libs.pyqt import utils as qtutils
 
 
 class TreeWidgetFrame(QtWidgets.QWidget):
     def __init__(self, parent=None, title=""):
         super(TreeWidgetFrame, self).__init__(parent=parent)
-        self.mainLayout = QtWidgets.QVBoxLayout()
+        self.mainLayout = qtutils.vBoxLayout()
         self.title = QtWidgets.QLabel(title, parent=parent)
         self.searchEdit = QtWidgets.QLineEdit(parent=parent)
         self.treeWidget = None
-        self.toolbarLayout = QtWidgets.QHBoxLayout()
+        self.toolbarLayout = qtutils.hBoxLayout()
 
     def initUi(self, treeWidget):
         """
@@ -22,7 +20,6 @@ class TreeWidgetFrame(QtWidgets.QWidget):
         """
         self.treeWidget = treeWidget
         self.setupToolbar()
-        self.mainLayout.setContentsMargins(2, 4, 2, 4)
 
         self.mainLayout.addWidget(self.title)
         self.mainLayout.addLayout(self.toolbarLayout)
@@ -36,9 +33,6 @@ class TreeWidgetFrame(QtWidgets.QWidget):
         and other useful buttons.
         :return:
         """
-
-        self.toolbarLayout.setContentsMargins(0, 0, 0, 0)
-        self.toolbarLayout.setSpacing(1)
         self.toolbarLayout.addWidget(self.searchEdit)
         self.searchEdit.setPlaceholderText("Search...")
 
@@ -162,9 +156,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
-        self.setIndentation(mayaui.dpiScale(10))
+        self.setIndentation(10)
         self.setFocusPolicy(QtCore.Qt.NoFocus)
-
 
     def initDragDrop(self):
         """
@@ -174,7 +167,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.setDragEnabled(True)
         self.setDropIndicatorShown(True)
         self.setDragDropMode(QtWidgets.QAbstractItemView.DragDrop)
-        self.setDefaultDropAction(QtCore.Qt.CopyAction) # For some reason dropMimeData doesn't get called if its set to Qt.MoveAction
+        self.setDefaultDropAction(
+            QtCore.Qt.CopyAction)  # For some reason dropMimeData doesn't get called if its set to Qt.MoveAction
         self.setAcceptDrops(True)
 
     def supportedDropActions(self):
@@ -238,7 +232,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.dragWidgets = []
         for item in items:
             itemWidget = self.itemWidget(item)
-            self.dragWidgets.append({'itemWidget': itemWidget, 'icon': item.icon(0), 'itemType':self.getItemType(item)})
+            self.dragWidgets.append(
+                {'itemWidget': itemWidget, 'icon': item.icon(0), 'itemType': self.getItemType(item)})
 
         self.removeForDrop = items
 
@@ -360,7 +355,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
                 # Add by type, but if itemType is none, let them all through
                 if (itemType is not None and self.getItemType(treeItem) == itemType) or \
-                                itemType is None:
+                        itemType is None:
                     widgets.append(self.itemWidget(treeItem))
 
         return widgets
@@ -599,7 +594,7 @@ class ItemWidget(QtWidgets.QLabel):
     def mouseDoubleClickEvent(self, event):
         self.triggered.emit()
         # self.emitTarget()
-        
+
     def text(self):
         return super(ItemWidget, self).text()
 

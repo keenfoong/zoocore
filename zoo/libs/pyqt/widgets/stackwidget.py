@@ -2,7 +2,7 @@ from qt import QtWidgets, QtCore, QtGui
 from zoo.libs import iconlib
 from zoo.libs.pyqt import uiconstants
 from zoo.libs.pyqt.widgets import frame
-from zoo.libs.pyqt.embed import mayaui
+from zoo.libs.pyqt import utils as qtutils
 
 
 class StackWidget(QtWidgets.QWidget):
@@ -59,14 +59,14 @@ class StackWidget(QtWidgets.QWidget):
         self.expandBtn.setFixedSize(size)
 
         # Add buttons and search to toolbar
-        compStackToolbarLayout.addSpacing(5)
+        compStackToolbarLayout.addSpacing(1)
         compStackToolbarLayout.addWidget(self.collapseBtn)
         compStackToolbarLayout.addWidget(self.expandBtn)
 
         compStackToolbarLayout.setStretchFactor(self.stackSearchEdit, 1)
 
         compStackToolbarLayout.setContentsMargins(0, 0, 0, 0)
-        compStackToolbarLayout.setSpacing(2)
+        compStackToolbarLayout.setSpacing(1)
 
         compStackToolbar = QtWidgets.QWidget(parent=self)
         compStackToolbar.setLayout(compStackToolbarLayout)
@@ -175,7 +175,7 @@ class StackTableWidget(QtWidgets.QTableWidget):
 
     def __init__(self, showArrows=True, showClose=True, parent=None, itemTint=tuple([60, 60, 60])):
         super(StackTableWidget, self).__init__(parent)
-        self.cellPadding = mayaui.dpiScale(5)
+        self.cellPadding = 5
         self.stackItems = []
         self.showArrows = showArrows
         self.showClose = showClose
@@ -205,9 +205,8 @@ class StackTableWidget(QtWidgets.QTableWidget):
 
         self.horizontalHeader().setStretchLastSection(True)
 
-        m = mayaui.dpiScale(2)
-
-        self.setContentsMargins(m, m, m, m)
+        self.setContentsMargins(1, 1, 1, 1)
+        self.setSpacing(1)
 
         self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -287,10 +286,8 @@ class StackTableWidget(QtWidgets.QTableWidget):
         """
 
         if widget is not None:
-            print("widget not none")
             stackItem = widget
         else:
-            print("widget none")
             stackItem = self.sender()
 
             if stackItem is None:
@@ -350,12 +347,12 @@ class StackItem(QtWidgets.QWidget):
         self.shiftUpBtn = QtWidgets.QToolButton(parent=self)
         self.deleteBtn = QtWidgets.QToolButton(parent=self)
         self.stackTitleWgt = LineClickEdit(title)
-        self.titleExtrasLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.titleExtrasLayout = qtutils.hBoxLayout()
+        self.horizontalLayout = qtutils.hBoxLayout()
 
         self.spacesToUnderscore = True
 
-        self.layout = QtWidgets.QVBoxLayout()
+        self.layout = qtutils.vBoxLayout()
         self.title = title
         self.color = uiconstants.DARKBGCOLOR
         self.contentMargins = uiconstants.MARGINS
@@ -421,11 +418,6 @@ class StackItem(QtWidgets.QWidget):
         self.stackTitleWgt.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents, trans)
 
     def initUi(self):
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.setSpacing(0)
-
-        self.titleExtrasLayout.setContentsMargins(0, 0, 0, 0)
-        self.titleExtrasLayout.setSpacing(0)
 
         self.buildTitleFrame()
 
@@ -440,7 +432,7 @@ class StackItem(QtWidgets.QWidget):
         self.deleteBtn.setIcon(self._deleteIcon)
         self.itemIcon.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
 
-        iconSize = mayaui.sizeByDpi(QtCore.QSize(12, 12))
+        iconSize = QtCore.QSize(12, 12)
 
         self.deleteBtn.setIconSize(iconSize)
         self.shiftUpBtn.setIconSize(iconSize)
@@ -450,12 +442,10 @@ class StackItem(QtWidgets.QWidget):
         """Builds the title part of the layout with a QFrame widget
         """
 
-        self.titleFrame.setContentsMargins(4, 1, 4, 0)
+        self.titleFrame.setContentsMargins(1,1,1,1)
 
         # the horizontal layout
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.titleFrame)
-        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-
+        self.horizontalLayout = qtutils.hBoxLayout(self.titleFrame)
         # the icon and title and spacer
         self.expandToggleButton.setParent(self.titleFrame)
         if self.collapsed:
@@ -472,7 +462,7 @@ class StackItem(QtWidgets.QWidget):
         self.titleFrame.setFixedHeight(self.titleFrame.sizeHint().height())
         self.titleFrame.setObjectName("title")
 
-        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height()+3)
+        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height() + 3)
 
         self.horizontalLayout.addWidget(self.stackTitleWgt)
         self.horizontalLayout.addLayout(self.titleExtrasLayout)
@@ -503,7 +493,7 @@ class StackItem(QtWidgets.QWidget):
         self._contentsLayout.setSpacing(self.contentSpacing)
         self.widgetHider.setHidden(self.collapsed)
         self.widgetHider.setObjectName("stackbody")
-        #self.widgetHider.setStyleSheet(".QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
+        # self.widgetHider.setStyleSheet(".QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
 
     def onCollapsed(self, emit=True):
         """
@@ -649,6 +639,7 @@ class LineClickEdit(QtWidgets.QLineEdit):
     """
     Creates a line edit that becomes editable on click or doubleclick double click
     """
+
     def __init__(self, text, single=False, double=True, passThroughClicks=True):
 
         super(LineClickEdit, self).__init__(text)
@@ -689,7 +680,3 @@ class LineClickEdit(QtWidgets.QLineEdit):
 
     def mouseClickPassThrough(self, event):
         event.ignore()
-
-
-
-
