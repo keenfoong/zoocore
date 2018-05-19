@@ -63,7 +63,6 @@ def reloadLoggerHierarchy():
     for name, log in logging.Logger.manager.loggingDict.items():
         if not isinstance(log, logging.Logger):
             continue
-
         try:
             if log not in log.parent.children:
                 log.parent.children.append(log)
@@ -73,6 +72,13 @@ def reloadLoggerHierarchy():
 
 zooLogger = getLogger(CENTRAL_LOGGER_NAME)
 zooLogger.propagate = False
-zooLogger.setLevel(logging.DEBUG)
+zooLogger.setLevel(logging.INFO)
+handler = logging.NullHandler()
+# Create a logging formatter
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    '%m/%d/%Y %H:%M:%S',
+)
+handler.setFormatter(formatter)
 
 zooLogger.addHandler(logging.NullHandler())
