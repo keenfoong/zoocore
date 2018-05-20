@@ -72,6 +72,18 @@ def hBoxLayout(parent=None):
     layout.setSpacing(1)
     return layout
 
+def hframeLayout(parent=None):
+    subFrame = QtWidgets.QFrame(parent=parent)
+    layout = hBoxLayout(subFrame)
+    subFrame.setLayout(layout)
+    return subFrame, layout
+
+
+def vframeLayout(parent=None):
+    subFrame = QtWidgets.QFrame(parent=parent)
+    layout = vBoxLayout(subFrame)
+    subFrame.setLayout(layout)
+    return subFrame, layout
 
 def vBoxLayout(parent=None):
     layout = QtWidgets.QVBoxLayout(parent)
