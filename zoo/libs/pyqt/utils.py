@@ -66,6 +66,30 @@ def colorStr(c):
     """Generate a hex string code from a QColor"""
     return ('%02x' * 4) % (c.red(), c.green(), c.blue(), c.alpha())
 
+def hBoxLayout(parent=None):
+    layout = QtWidgets.QHBoxLayout(parent)
+    layout.setContentsMargins(2, 2, 2, 2)
+    layout.setSpacing(1)
+    return layout
+
+def hframeLayout(parent=None):
+    subFrame = QtWidgets.QFrame(parent=parent)
+    layout = hBoxLayout(subFrame)
+    subFrame.setLayout(layout)
+    return subFrame, layout
+
+
+def vframeLayout(parent=None):
+    subFrame = QtWidgets.QFrame(parent=parent)
+    layout = vBoxLayout(subFrame)
+    subFrame.setLayout(layout)
+    return subFrame, layout
+
+def vBoxLayout(parent=None):
+    layout = QtWidgets.QVBoxLayout(parent)
+    layout.setContentsMargins(2, 2, 2, 2)
+    layout.setSpacing(1)
+    return layout
 
 def hlineEdit(labelName, parent, enabled=True):
     layout = QtWidgets.QHBoxLayout()

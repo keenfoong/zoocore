@@ -1,10 +1,10 @@
 from qt import QtWidgets, QtCore
 
 from zoo.libs import iconlib
-from zoo.libs.maya.qt import mayaui
 from zoo.libs.pyqt import uiconstants
 from zoo.libs.pyqt.widgets import frame
 from zoo.libs.pyqt.widgets.stackwidget import LineClickEdit
+from zoo.libs.pyqt import utils as qtutils
 
 
 class ToolSetWidget(QtWidgets.QTreeWidget):
@@ -12,6 +12,7 @@ class ToolSetWidget(QtWidgets.QTreeWidget):
     Generic Toolsets
     TODO: WIP
     """
+
     def __init__(self, parent=None):
         super(ToolSetWidget, self).__init__(parent=parent)
 
@@ -58,15 +59,14 @@ class ToolSetWidgetItem(QtWidgets.QWidget):
         self.shiftDownBtn = QtWidgets.QToolButton(parent=self)
         self.shiftUpBtn = QtWidgets.QToolButton(parent=self)
         self.deleteBtn = QtWidgets.QToolButton(parent=self)
-        #self.stackTitleWgt = QtWidgets.QLineEdit(title)
+        # self.stackTitleWgt = QtWidgets.QLineEdit(title)
         self.stackTitleWgt = LineClickEdit(title)
-        self.titleExtrasLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-
+        self.titleExtrasLayout = qtutils.hBoxLayout()
+        self.horizontalLayout = qtutils.hBoxLayout()
 
         self.spacesToUnderscore = True
 
-        self.layout = QtWidgets.QVBoxLayout()
+        self.layout = qtutils.vBoxLayout()
         self.title = title
         self.color = uiconstants.DARKBGCOLOR
         self.contentMargins = uiconstants.MARGINS
@@ -78,7 +78,7 @@ class ToolSetWidgetItem(QtWidgets.QWidget):
 
         # Title Frame
         self.widgetHider = QtWidgets.QFrame(parent=self)
-        self.hiderLayout = QtWidgets.QVBoxLayout(self.widgetHider)
+        self.hiderLayout = qtutils.vBoxLayout()
 
         if not shiftArrowsEnabled:
             self.shiftDownBtn.hide()
@@ -119,11 +119,6 @@ class ToolSetWidgetItem(QtWidgets.QWidget):
             self.shiftUpBtn.hide()
 
     def initUi(self):
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.setSpacing(0)
-
-        self.titleExtrasLayout.setContentsMargins(0, 0, 0, 0)
-        self.titleExtrasLayout.setSpacing(0)
 
         self.buildTitleFrame()
 
@@ -137,7 +132,7 @@ class ToolSetWidgetItem(QtWidgets.QWidget):
         self.shiftUpBtn.setIcon(self._upIcon)
         self.deleteBtn.setIcon(self._deleteIcon)
 
-        iconSize = mayaui.sizeByDpi(QtCore.QSize(12, 12))
+        iconSize = QtCore.QSize(12, 12)
 
         self.deleteBtn.setIconSize(iconSize)
         self.shiftUpBtn.setIconSize(iconSize)
@@ -149,10 +144,10 @@ class ToolSetWidgetItem(QtWidgets.QWidget):
 
         # main dark grey qframe
         self.setFrameColor(self.color)
-        self.titleFrame.setContentsMargins(4, 1, 4, 0)
+        self.titleFrame.setContentsMargins(1, 1, 1, 1)
 
         # the horizontal layout
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.titleFrame)
+        self.horizontalLayout = qtutils.hBoxLayout(self.titleFrame)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
 
         # the icon and title and spacer
@@ -170,7 +165,7 @@ class ToolSetWidgetItem(QtWidgets.QWidget):
         self.horizontalLayout.addItem(spacerItem)
         self.titleFrame.setFixedHeight(self.titleFrame.sizeHint().height())
 
-        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height()+3)
+        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height() + 3)
 
         self.horizontalLayout.addWidget(self.stackTitleWgt)
         self.horizontalLayout.addLayout(self.titleExtrasLayout)
@@ -197,8 +192,7 @@ class ToolSetWidgetItem(QtWidgets.QWidget):
         Widget can be toggled so it's a container for the layout
         """
         self.widgetHider.setContentsMargins(0, 0, 0, 0)
-        self.hiderLayout.setContentsMargins(*self.contentMargins)
-        self.hiderLayout.setSpacing(self.contentSpacing)
+
         self.widgetHider.setHidden(self.collapsed)
         self.widgetHider.setStyleSheet(".QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
 
@@ -347,6 +341,3 @@ class ToolSetWidgetItem(QtWidgets.QWidget):
         self.deleteBtn.clicked.connect(self.deleteEvent)
 
         self.stackTitleWgt.textChanged.connect(self.titleValidate)
-
-
-
