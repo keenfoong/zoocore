@@ -158,11 +158,49 @@ def copyDirectoy(src, dst, ignorePattern=None):
             raise
 
 
+class MoveFileContext(object):
+    """With context utility to ensures that files that were moved within the scope are moved to their
+    original location if an exception was raised during that scope.
+    :example:
+        >>> with MoveFileContext() as FileContext:
+        ...     someSourcePath = os.path.expandUser("~/soemfile.config")
+        ...     FileContext.move(sourceSourcePath, os.path.join(os.path.dirname(sourcePath), "destination.config"))
+        ...     ValueError("raise an error so we revert")
+    """
+
+    def __init__(self):
+        self._stack = []
+
+    def __enter__(self):
+        """Returns the current class instance
+        """
+        return self
+
+    def move(self, source, destination):
+        """Move's a file and keeps track of the source/destination if it succeeded.
+
+        :param source: Source file to move.
+        :param destination: New location for that file.
+        """
+        shutil.move(source, destination)
+        self._stack.append((source, destination))
+
+    def __exit__(self, ex_type, value, traceback):
+        """
+        If some files have been moved, move them back to their original location.
+        """
+        if (ex_type or value or traceback) and self._stack:
+            logger.debug("Reverting file move changes!")
+            # Move files back to their original location.
+            for source, destination in self._stack:
+                logger.debug("Moving {} -> {}".format(destination, source))
+                shutil.move(destination, source)
+
+
 def folderSize(path):
     """Retrieves the total folder size in bytes
 
     :param path: Returns the total folder size by walking the directory adding together all child files sizes.
-
     :type path: str
     :return: size in bytes
     :rtype: int
@@ -210,8 +248,10 @@ def createValidfilename(name):
     """Sanitizer for file names which everyone tends to screw up, this function replace spaces and random character with
     underscore.
 
-    ::example 
-        "Some random file name" == "Some_random_file_name"
+    :example:
+    >>> createValidFilename("Some random file name")
+    #result: "Some_random_file_name"
+
     :param name: the name to convert
     :type name: str
     :rtype: the same format as the passed argument type(utf8 etc)
@@ -310,14 +350,3 @@ if os.name == "nt" and sys.version_info[0] < 3:
 
 
     os.symlink = symlink_ms
-
-
-def directoryTreeToDict(path):
-    d = {'name': os.path.basename(path),
-         "path": path}
-    if os.path.isdir(path):
-        d['type'] = "directory"
-        d['children'] = [directoryTreeToDict(os.path.join(path, x)) for x in os.listdir(path)]
-    else:
-        d['type'] = "file"
-    return d

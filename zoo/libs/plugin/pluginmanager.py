@@ -9,7 +9,6 @@ from zoo.libs.utils import zlogging
 logger = zlogging.zooLogger
 
 
-
 class PluginManager(object):
     """This class manages a group of plugin instance's.
     use registerPlugin(instance) to registry a instance, automatically discover plugin classes use registerByModule or
@@ -90,7 +89,8 @@ class PluginManager(object):
         tool = self.plugins.get(name)
         if tool:
             logger.debug("Loading Plugin -> {}".format(name))
-            self.loadedPlugins[name] = tool()
+            # pass the manager into the plugin, this is so we have access to any global info
+            self.loadedPlugins[name] = tool(manager=self)
             self.loadedPlugins[name].isLoaded = True
             return self.loadedPlugins[name]
 
