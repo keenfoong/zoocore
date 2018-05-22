@@ -109,8 +109,8 @@ class Icon(object):
         return cls.iconDataForName(iconName, size).get("path", "")
 
     @classmethod
-    def iconColorized(cls, iconName, size=16, color=(255, 255, 255)):
-        """Colorizers the icon from the library expects the default icon
+    def iconColorized(cls, iconName, size=16, color=(255, 255, 255), overlayName=None, overlayColor=(255,255,255)):
+        """Colorizes the icon from the library expects the default icon
         to be white for tinting.
 
         :param iconName: the icon name from the library
@@ -126,14 +126,15 @@ class Icon(object):
 
         if not iconLargest:
             return iconLargest  # will return an empty QIcon
-        color = QtGui.QColor(*color)
 
         origSize = iconLargest.availableSizes()[0]
-        pixmap = iconLargest.pixmap(origSize)
-        mask = pixmap.mask()
+        pixmap = cls.colorPixmap(iconLargest.pixmap(origSize), color)
 
-        pixmap.fill(color)
-        pixmap.setMask(mask)
+        if overlayName is not None:
+            overlayIcon = cls.icon(overlayName, -1)
+            overlayPixmap = overlayIcon.pixmap(origSize)
+            cls.addOverlay(pixmap, overlayPixmap, overlayColor)
+
         pixmap = pixmap.scaled(QtCore.QSize(size, size), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
 
         return QtGui.QIcon(pixmap)
@@ -155,6 +156,43 @@ class Icon(object):
         for size in icon.availableSizes():
             icon.addPixmap(icon.pixmap(size, QtGui.QIcon.Disabled))
         return icon
+
+    @classmethod
+    def colorPixmap(cls, pixmap, color):
+        """
+        Colorize the pixmap with a new color based on its alpha map
+        :param pixmap: Pixmap
+        :param color: new color in tuple format (255,255,255)
+        :return:
+        """
+        color = QtGui.QColor(*color)
+        mask = pixmap.mask()
+        pixmap.fill(color)
+        pixmap.setMask(mask)
+
+        return pixmap
+
+    @classmethod
+    def addOverlay(cls, pixmap, overlayPixmap, color):
+        """
+        Overlays one pixmap over the other
+        :param pixmap: The source pixmap
+        :param overlayPixmap: the pixmap to overlay on top of the source pixmap
+        :param color: The colour of the overlay pixmap
+        :return:
+        """
+
+        # Set the color for the overlay
+        overlayPixmap = cls.colorPixmap(overlayPixmap, color)
+
+        # Paint the overlay pixmap over the original
+        painter = QtGui.QPainter(pixmap)
+        painter.setCompositionMode(QtGui.QPainter.CompositionMode_SourceOver)
+        painter.drawPixmap(0, 0, overlayPixmap.width(), overlayPixmap.height(), overlayPixmap)
+        painter.end()
+
+
+
 
 
 
