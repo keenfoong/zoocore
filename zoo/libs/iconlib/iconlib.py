@@ -47,7 +47,8 @@ class Icon(object):
         the cache
 
         :param iconName: str, iconName_size or iconName, then it will resize the largest icon found
-        :param size: int, the size of the icon, the size will be used for both the width and height
+        :param size: int, the size of the icon, the size will be used for both the width and height.
+                     setting size=-1 will return the largest icon as well
         :return: QtGui.Qicon
         """
         if env.isMayapy():
@@ -55,11 +56,12 @@ class Icon(object):
         iconData = cls.iconDataForName(iconName, size)
         icon = iconData.get("icon")
         if icon and isinstance(icon, QtGui.QIcon) and not icon.isNull():
-
-            icon = cls.resizeIcon(icon, QtCore.QSize(size, size))
+            if size != -1:
+                icon = cls.resizeIcon(icon, QtCore.QSize(size, size))
             return icon
         newIcon = QtGui.QIcon(iconData.get("path", ""))
-        newIcon = cls.resizeIcon(newIcon, QtCore.QSize(size,size))
+        if size != -1:
+            newIcon = cls.resizeIcon(newIcon, QtCore.QSize(size, size))
 
         iconData["icon"] = newIcon
         return newIcon
@@ -120,15 +122,20 @@ class Icon(object):
         :return: the colorized icon
         :rtype: QtGui.QIcon
         """
-        icon = cls.icon(iconName, size)
-        if not icon:
-            return icon  # will return an empty QIcon
-        color = QtGui.QColor(*color)
-        pixmap = icon.pixmap(size)
+        iconLargest = cls.icon(iconName, -1)
 
-        mask = pixmap.createMaskFromColor(QtGui.QColor('white'), QtCore.Qt.MaskOutColor)
+        if not iconLargest:
+            return iconLargest  # will return an empty QIcon
+        color = QtGui.QColor(*color)
+
+        origSize = iconLargest.availableSizes()[0]
+        pixmap = iconLargest.pixmap(origSize)
+        mask = pixmap.mask()
+
         pixmap.fill(color)
         pixmap.setMask(mask)
+        pixmap = pixmap.scaled(QtCore.QSize(size, size), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
+
         return QtGui.QIcon(pixmap)
 
     @classmethod
@@ -148,6 +155,7 @@ class Icon(object):
         for size in icon.availableSizes():
             icon.addPixmap(icon.pixmap(size, QtGui.QIcon.Disabled))
         return icon
+
 
 
 Icon.reload()
