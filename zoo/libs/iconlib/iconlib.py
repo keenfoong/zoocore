@@ -46,7 +46,7 @@ class Icon(object):
         """Returns a QtGui.QIcon instance intialized to the icon path for the icon name if the icon name is found within
         the cache
 
-        :param iconName: str, iconName_size or iconName, if not size in name then 16px will be used
+        :param iconName: str, iconName_size or iconName, then it will resize the largest icon found
         :param size: int, the size of the icon, the size will be used for both the width and height
         :return: QtGui.Qicon
         """
@@ -55,13 +55,29 @@ class Icon(object):
         iconData = cls.iconDataForName(iconName, size)
         icon = iconData.get("icon")
         if icon and isinstance(icon, QtGui.QIcon) and not icon.isNull():
+
+            icon = cls.resizeIcon(icon, QtCore.QSize(size, size))
             return icon
         newIcon = QtGui.QIcon(iconData.get("path", ""))
+        newIcon = cls.resizeIcon(newIcon, QtCore.QSize(size,size))
+
         iconData["icon"] = newIcon
         return newIcon
 
     @classmethod
+    def resizeIcon(cls, icon, size):
+        if len(icon.availableSizes()) == 0:
+            return
+
+        origSize = icon.availableSizes()[0]
+        pixmap = icon.pixmap(origSize)
+        pixmap = pixmap.scaled(size, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
+
+        return QtGui.QIcon(pixmap)
+
+    @classmethod
     def iconDataForName(cls, iconName, size=16):
+
         if "_" in iconName:
             splitter = iconName.split("_")
             if splitter[-1].isdigit():
@@ -77,8 +93,9 @@ class Icon(object):
             if name != iconName:
                 continue
             sizes = data["sizes"]
+
             if size not in sizes:
-                size = sizes.keys()[0]
+                size = sizes.keys()[-1]
                 iconData = sizes[size]
             else:
                 iconData = data["sizes"][size]
@@ -107,8 +124,8 @@ class Icon(object):
         if not icon:
             return icon  # will return an empty QIcon
         color = QtGui.QColor(*color)
+        pixmap = icon.pixmap(size)
 
-        pixmap = icon.pixmap(QtCore.QSize(size, size))
         mask = pixmap.createMaskFromColor(QtGui.QColor('white'), QtCore.Qt.MaskOutColor)
         pixmap.fill(color)
         pixmap.setMask(mask)
