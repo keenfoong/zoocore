@@ -11,12 +11,11 @@ class FlowToolBar(QtWidgets.QWidget):
     the next row if there is no space
     """
 
-    def __init__(self, core, parent=None):
+    def __init__(self, parent=None):
         super(FlowToolBar, self).__init__(parent)
         self.artistUi = parent
         self.mainLayout = flowlayout.FlowLayout(margin=0, spacing=1)
         self.setLayout(self.mainLayout)
-        self.core = core
         self.iconSize = 22
         self.iconPadding = 2
 
