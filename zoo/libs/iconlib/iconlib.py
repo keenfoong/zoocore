@@ -59,10 +59,8 @@ class Icon(object):
             if size != -1:
                 icon = cls.resizeIcon(icon, QtCore.QSize(size, size))
             return icon
-        newIcon = QtGui.QIcon(iconData.get("path", ""))
-        if size != -1:
-            newIcon = cls.resizeIcon(newIcon, QtCore.QSize(size, size))
 
+        newIcon = QtGui.QIcon(iconData.get("path", ""))
         iconData["icon"] = newIcon
         return newIcon
 
