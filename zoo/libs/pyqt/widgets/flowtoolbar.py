@@ -18,6 +18,7 @@ class FlowToolBar(QtWidgets.QWidget):
         self.setLayout(self.mainLayout)
         self.iconSize = 22
         self.iconPadding = 2
+        self.menuIndicatorIcon = "arrowmenu"
 
         self.initUi()
 
@@ -28,7 +29,7 @@ class FlowToolBar(QtWidgets.QWidget):
         """
         pass
 
-    def addTool(self, iconName, name):
+    def addTool(self, iconName, name, iconColor=(255,255,255)):
         """
         Creates a new tool button based on the icon name, and the name.
         :param iconName: Name of the icon to retrieve
@@ -36,7 +37,7 @@ class FlowToolBar(QtWidgets.QWidget):
         :return:
         """
         # Create an item with a caption
-        btn = QtWidgets.QPushButton(iconlib.icon(iconName, mayaui.dpiScale(self.iconSize)), "")
+        btn = QtWidgets.QPushButton(iconlib.iconColorized(iconName, mayaui.dpiScale(self.iconSize), color=iconColor), "")
         btn.setProperty("name", name)
         btn.setIconSize(mayaui.sizeByDpi(QtCore.QSize(self.iconSize + self.iconPadding,
                                                       self.iconSize + self.iconPadding)))
@@ -45,7 +46,7 @@ class FlowToolBar(QtWidgets.QWidget):
         self.mainLayout.addWidget(btn)
         return btn
 
-    def addToolMenu(self, iconName, name, actions):
+    def addToolMenu(self, iconName, name, actions, iconColor=(255,255,255), showIndicator=True):
         """
         Adds a new tool menu.
         :param iconName: Name of the icon to retrieve
@@ -54,8 +55,11 @@ class FlowToolBar(QtWidgets.QWidget):
         eg ('Name', self.menuItemPressed)
         :return:
         """
+        overlayName = None
+        if showIndicator:
+            overlayName = self.menuIndicatorIcon
 
-        btn = iconmenu.IconMenuButton(iconlib.iconColorized(iconName, size=mayaui.dpiScale(self.iconSize), overlayName="arrowmenu"))
+        btn = iconmenu.IconMenuButton(iconlib.iconColorized(iconName, size=mayaui.dpiScale(self.iconSize), color=iconColor, overlayName=overlayName))
         btn.setProperty("name", name)
         btn.setIconSize(mayaui.sizeByDpi(QtCore.QSize(self.iconSize + self.iconPadding,
                                                       self.iconSize + self.iconPadding)))
