@@ -68,6 +68,13 @@ class Icon(object):
 
     @classmethod
     def resizeIcon(cls, icon, size):
+        """
+        Resizes the icon. Defaults to smooth bilinear scaling and keep aspect ratio.
+        :param icon: Icon to resize
+        :param size: New size to scale to
+        :type size: QtCore.QSize
+        :return:
+        """
         if len(icon.availableSizes()) == 0:
             return
 
@@ -120,6 +127,8 @@ class Icon(object):
         :param color: 3 tuple for the icon color
         :type color: tuple(int)
         :return: the colorized icon
+        :param overlayName: The name of the icon that will be overlayed on top of the original icon
+        :param overlayColor: The colour of the overlay
         :rtype: QtGui.QIcon
         """
         iconLargest = cls.icon(iconName, -1)
@@ -162,6 +171,7 @@ class Icon(object):
         """
         Colorize the pixmap with a new color based on its alpha map
         :param pixmap: Pixmap
+        :type pixmap: QtGui.QPixmap
         :param color: new color in tuple format (255,255,255)
         :return:
         """
@@ -177,8 +187,11 @@ class Icon(object):
         """
         Overlays one pixmap over the other
         :param pixmap: The source pixmap
+        :type pixmap: QtGui.QPixmap
         :param overlayPixmap: the pixmap to overlay on top of the source pixmap
+        :type overlayPixmap: QtGui.QPixmap
         :param color: The colour of the overlay pixmap
+        :type color: tuple(int,int,int)
         :return:
         """
 
@@ -191,9 +204,5 @@ class Icon(object):
         painter.drawPixmap(0, 0, overlayPixmap.width(), overlayPixmap.height(), overlayPixmap)
         painter.end()
 
-
-
-
-
-
 Icon.reload()
+
