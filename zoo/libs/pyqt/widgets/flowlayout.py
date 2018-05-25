@@ -29,8 +29,19 @@ class FlowLayout(QtWidgets.QLayout):
 
     def __del__(self):
         """Delete all the items in this layout"""
+        self.clear()
+
+    def clear(self):
+        """
+        Clear all widgets
+        :return:
+        """
         item = self.takeAt(0)
         while item:
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+
             item = self.takeAt(0)
 
     def addItem(self, item):

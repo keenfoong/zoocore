@@ -67,6 +67,13 @@ class FlowToolBar(QtWidgets.QWidget):
         self.mainLayout.addWidget(btn)
         return btn
 
+    def clear(self):
+        """
+        Clear all widgets
+        :return:
+        """
+        self.mainLayout.clear()
+
     def toolsClicked(self):
         """
         All buttons will run through here. It will then run a separate function telling which
