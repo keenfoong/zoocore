@@ -310,7 +310,6 @@ class StackTableWidget(QtWidgets.QTableWidget):
 class StackItem(QtWidgets.QWidget):
     """
     The item in each StackTableWidget.
-    Modified version of CollapsableFrameLayout in layouts.py
     """
     _downIcon = iconlib.icon("arrowSingleDown")
     _upIcon = iconlib.icon("arrowSingleUp")
@@ -635,7 +634,7 @@ class StackItem(QtWidgets.QWidget):
 
 class LineClickEdit(QtWidgets.QLineEdit):
     """
-    Creates a line edit that becomes editable on click or doubleclick double click
+    Creates a line edit that becomes editable on click or doubleclick
     """
 
     def __init__(self, text, single=False, double=True, passThroughClicks=True):
