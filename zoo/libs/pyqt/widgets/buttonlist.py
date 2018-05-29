@@ -2,9 +2,11 @@
 from qt import QtWidgets, QtCore
 
 class ButtonList(QtWidgets.QWidget):
-    """A nice vertical button list with an optional header and with a searchable feature. """
+    """
+    A nice vertical button list with an optional header and with a searchable feature.
+    """
 
-    def __init__(self, parent = None, title = '', showTitle = True, showSearch = True):
+    def __init__(self, parent=None, title='', showTitle=True, showSearch=True):
         super(ButtonList, self).__init__(parent=parent)
         self.mainLayout = QtWidgets.QVBoxLayout()
         self.mainLayout.setContentsMargins(2, 4, 2, 4)
