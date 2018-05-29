@@ -13,12 +13,66 @@ class ExpandedTooltipPopup(dialog.Dialog):
     """
     Expanded tooltips for when we press control (or the key as defined by popupKey).
     Features richtext labels and animated gifs in a transparent window.
+    ::examples:
+
+    To install the tooltip on a PyQt widget:
+    >>> btn = QtWidgets.QPushButton()
+    >>> toolTip = componentWidgetExpand = \
+    >>>     {
+    >>>         "title": "Expand / Collapse Widget",
+    >>>         "icon": "magic",
+    >>>         "tooltip": "Expand / Collapse Widget",
+    >>>         "expanded": "Expand / Collapse Widget <p><b><i>Everything here can be customized using HTML tags.</i></b></p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis et cursus libero. </p><p>Etiam viverra quam sit amet eros volutpat, ac <span class=\"highlight\"><i>aliquam ligula fringilla</i></span>. In semper volutpat nunc, ac placerat nisi mollis a. Donec condimentum urna eu elementum hendrerit. Sed pellentesque.</p><p> <a href=\"http://create3dcharacters.com\">Click for full documentation</a>"
+    >>>     }
+    >>> installTooltips(btn, tooltipDict=toolTip)
+
+    ExpandedTooltipPopup is just a dialogue box, so instantiate it then move it like a normal window:
+    >>> # On holding down control the popup (this class) will be displayed. ON Key release it will be closed
+    >>> def keyPressEvent(self, event):
+    >>>     if event.key() == QtCore.Qt.Key_Control:
+    >>>         pos = QtGui.QCursor.pos()
+    >>>         widgetAt = QtWidgets.QApplication.widgetAt(pos)
+    >>>         if expandedtooltip.hasExpandedTooltips(widgetAt):
+    >>>             self._popuptooltip = expandedtooltip.ExpandedTooltipPopup(widgetAt, keyRelease=QtCore.Qt.Key_Control)
+    >>>             self._popuptooltip.move(QtGui.QCursor.pos())
+    >>>
+    >>>         self.ctrlEvent = True
+    >>>
+    >>> def keyReleaseEvent(self, event):
+    >>>     if event.key() == QtCore.Qt.Key_Control:
+    >>>         self.ctrlEvent = False
+
+    Example Stylesheet:
+    >>> style = '''
+    >>>    ExpandedTooltipPopup .QFrame {{
+    >>>        border-width: 1px;
+    >>>        border-style: solid;
+    >>>        border-radius: 3px;
+    >>>        border-color: rgba(255,255,255,0.5);
+    >>>        background-color: rgba(20,20,20,0.8);
+    >>>    }}
+    >>>
+    >>>    ExpandedTooltipPopup QLabel {{
+    >>>        border-width: 0px; background: transparent;
+    >>>        font-size: 11pt;
+    >>>    }}
+    >>>
+    >>>    ExpandedTooltipPopup QLabel#title {{
+    >>>        padding: 5px 0px 0px 0px;
+    >>>        font-size: 14pt;
+    >>>    }}
+    >>>
+    >>>    ExpandedTooltipPopup GifWidget {{
+    >>>        border-width: 0px; background: transparent;
+    >>>    }}
+    >>> '''
+
     """
 
     defaultIcon = "magic"
     popupKey = QtCore.Qt.Key_Control
 
-    def __init__(self, widget, width=450, height=50, parent=None, showOnInitialize=False):
+    def __init__(self, widget, width=450, height=50, parent=None, showOnInitialize=False, popupRelease=QtCore.Qt.Key_Control):
         super(ExpandedTooltipPopup, self).__init__(None, width, height, "", parent, showOnInitialize)
         self.setStyleSheet(stylesheet.style)
         self.layout = QtWidgets.QVBoxLayout(self)
@@ -28,6 +82,7 @@ class ExpandedTooltipPopup(dialog.Dialog):
         self.themeColour = constants.ETT_THEMECOLOUR
         self.linkColour = constants.ETT_LINKCOLOUR
         self.iconSize = mayaui.dpiScale(40)
+        self.popupKey = popupRelease
 
         self.frameLayout = QtWidgets.QVBoxLayout()
         self.titleLayout = QtWidgets.QHBoxLayout()
@@ -199,7 +254,7 @@ class WidgetsFromTextParser(HTMLParser):
     Once it reaches a <zoo> tag, it creates a new widget for each zoo tag.
     """
 
-    def __init__(self, text, labelStyleSheet="", gifWidgetStyleSheet=""):
+    def __init__(self, text):
         HTMLParser.__init__(self)
         self._widgets = []
 
@@ -303,7 +358,7 @@ class WidgetsFromTextParser(HTMLParser):
 """
 
 
-def installExpanded(widget, tooltipDict):
+def installTooltips(widget, tooltipDict):
     """
     Installs the expanded tooltip onto a widget. Works in conjunction with
     artistui.keyPressEvent() to display a popup (zoo.apps.hiveartistui.views.expandedtooltip.ExpandedTooltipPopup)
