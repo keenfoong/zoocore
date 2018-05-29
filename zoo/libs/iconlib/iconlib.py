@@ -59,8 +59,10 @@ class Icon(object):
             if size != -1:
                 icon = cls.resizeIcon(icon, QtCore.QSize(size, size))
             return icon
-
         newIcon = QtGui.QIcon(iconData.get("path", ""))
+        if size != -1:
+            newIcon = cls.resizeIcon(newIcon, QtCore.QSize(size, size))
+
         iconData["icon"] = newIcon
         return newIcon
 
@@ -84,7 +86,12 @@ class Icon(object):
 
     @classmethod
     def iconDataForName(cls, iconName, size=16):
-
+        """
+        Sets up the icon data that is used by qt based on the iconName
+        :param iconName:
+        :param size:
+        :return:
+        """
         if "_" in iconName:
             splitter = iconName.split("_")
             if splitter[-1].isdigit():
@@ -132,11 +139,12 @@ class Icon(object):
         iconLargest = cls.icon(iconName, -1)
 
         if not iconLargest:
-            return iconLargest  # will return an empty QIcon
+            return iconLargest
 
         origSize = iconLargest.availableSizes()[0]
         pixmap = cls.colorPixmap(iconLargest.pixmap(origSize), color)
 
+        # Add overlay icon
         if overlayName is not None:
             overlayIcon = cls.icon(overlayName, -1)
             overlayPixmap = overlayIcon.pixmap(origSize)
@@ -192,7 +200,6 @@ class Icon(object):
         :type color: tuple(int,int,int)
         :return:
         """
-
         # Set the color for the overlay
         overlayPixmap = cls.colorPixmap(overlayPixmap, color)
 
@@ -202,5 +209,5 @@ class Icon(object):
         painter.drawPixmap(0, 0, overlayPixmap.width(), overlayPixmap.height(), overlayPixmap)
         painter.end()
 
-Icon.reload()
 
+Icon.reload()
