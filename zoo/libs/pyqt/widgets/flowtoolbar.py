@@ -8,6 +8,17 @@ class FlowToolBar(QtWidgets.QWidget):
     """
     A tool bar based off the FlowLayout. The buttons will flow from left to right and wrap to
     the next row if there is no space
+
+    ::example:
+    >>> flowToolbar = FlowToolBar()
+    >>> flowToolbar.addTool("stream2", name="Tool Button Name", iconColor=(255,255,255))
+    >>> flowToolbar.addToolMenu("stream2", name="Tool Button Name", actions=[('Menu Item 1', func1),('Menu Item 2', func2)])
+    >>>
+    >>> def func1():
+    >>>     pass
+    >>> def func2():
+    >>>     pass
+
     """
 
     def __init__(self, parent=None, menuIndicatorIcon="arrowmenu"):
