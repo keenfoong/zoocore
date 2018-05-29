@@ -1,7 +1,6 @@
 from qt import QtWidgets, QtCore, QtGui
 
 from zoo.libs import iconlib
-from zoo.libs.maya.qt import mayaui
 from zoo.libs.pyqt.widgets import flowlayout, iconmenu
 
 
@@ -11,14 +10,14 @@ class FlowToolBar(QtWidgets.QWidget):
     the next row if there is no space
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, menuIndicatorIcon="arrowmenu"):
         super(FlowToolBar, self).__init__(parent)
         self.artistUi = parent
         self.mainLayout = flowlayout.FlowLayout(margin=0, spacing=1)
         self.setLayout(self.mainLayout)
         self.iconSize = 22
         self.iconPadding = 2
-        self.menuIndicatorIcon = "arrowmenu"
+        self.menuIndicatorIcon = menuIndicatorIcon
 
         self.initUi()
 
@@ -29,40 +28,74 @@ class FlowToolBar(QtWidgets.QWidget):
         """
         pass
 
-    def addTool(self, iconName, name, iconColor=(255,255,255)):
+    def setIconSize(self, size):
+        """
+        Set the size of the icons of the tools and toolmenus
+        :param size:
+        :return:
+        """
+        self.iconSize = size
+
+        # Set the icon size, possibly will need to get them to get a new icon through iconColorized
+        for i in range(0, self.mainLayout.count()):
+            widget = self.mainLayout.itemAt(i).widget()
+            widget.setIconSize(self.getIconSize())
+
+    def setIconPadding(self, padding):
+        """
+        Sets the padding for the icons of the tools and the tool menus
+        :param padding:
+        :return:
+        """
+        self.iconPadding = padding
+
+    def addTool(self, iconName, name, iconColor=(255, 255, 255)):
         """
         Creates a new tool button based on the icon name, and the name.
         :param iconName: Name of the icon to retrieve
         :param name: Name of the tool
+        :param iconColor: Color of the icon for the tool
         :return:
         """
         # Create an item with a caption
-        btn = QtWidgets.QPushButton(iconlib.iconColorized(iconName, mayaui.dpiScale(self.iconSize), color=iconColor), "")
+        btn = QtWidgets.QPushButton(iconlib.iconColorized(iconName, self.iconSize, color=iconColor), "")
         btn.setProperty("name", name)
-        btn.setIconSize(mayaui.sizeByDpi(QtCore.QSize(self.iconSize + self.iconPadding,
-                                                      self.iconSize + self.iconPadding)))
+        btn.setIconSize(self.getIconSize())
         btn.clicked.connect(self.toolsClicked)
 
         self.mainLayout.addWidget(btn)
         return btn
 
-    def addToolMenu(self, iconName, name, actions, iconColor=(255,255,255), showIndicator=True):
+    def getIconSize(self):
+        """
+        Returns the icon generated QSize
+        :return:
+        """
+        return QtCore.QSize(self.iconSize + self.iconPadding,
+                            self.iconSize + self.iconPadding)
+
+    def addToolMenu(self, iconName, name, actions, iconColor=(255, 255, 255), showIndicator=True):
         """
         Adds a new tool menu.
         :param iconName: Name of the icon to retrieve
         :param name: Name of the tool
         :param actions: Actions is a list of tuples with the name and function to run
         eg ('Name', self.menuItemPressed)
+        :param iconColor: The icon color
+        :param showIndicator: Show the menu indicator (the arrow in the corner)
         :return:
         """
         overlayName = None
         if showIndicator:
             overlayName = self.menuIndicatorIcon
 
-        btn = iconmenu.IconMenuButton(iconlib.iconColorized(iconName, size=mayaui.dpiScale(self.iconSize), color=iconColor, overlayName="arrowmenu"))
+        btn = iconmenu.IconMenuButton(iconlib.iconColorized(iconName,
+                                                            size=self.iconSize,
+                                                            color=iconColor,
+                                                            overlayName=overlayName))
         btn.setProperty("name", name)
-        btn.setIconSize(mayaui.sizeByDpi(QtCore.QSize(self.iconSize + self.iconPadding,
-                                                      self.iconSize + self.iconPadding)))
+        btn.setIconSize(QtCore.QSize(self.iconSize + self.iconPadding,
+                                     self.iconSize + self.iconPadding))
         btn.clicked.connect(self.toolsClicked)
 
         for a in actions:
