@@ -1,8 +1,8 @@
 from qt import QtCore, QtWidgets, QtGui
 
-import zoo.libs.pyqt.extended.expandedtooltip
 from zoo.apps.hiveartistui.views import componentgroup
 from zoo.libs.pyqt import utils as qtutils
+from zoo.libs.pyqt.extended import expandedtooltip
 
 
 class TreeWidgetFrame(QtWidgets.QWidget):
@@ -588,7 +588,7 @@ class ItemWidget(QtWidgets.QLabel):
         ret.name = self.name
         # ret.setIcon(self.icon())
         ret.setStyleSheet(self.styleSheet())
-        zoo.libs.pyqt.extended.expandedtooltip.copyExpandedTooltips(self, ret)
+        expandedtooltip.copyExpandedTooltips(self, ret)
 
         return ret
 
