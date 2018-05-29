@@ -59,7 +59,7 @@ class FlowToolBar(QtWidgets.QWidget):
         if showIndicator:
             overlayName = self.menuIndicatorIcon
 
-        btn = iconmenu.IconMenuButton(iconlib.iconColorized(iconName, size=mayaui.dpiScale(self.iconSize), color=iconColor, overlayName=overlayName))
+        btn = iconmenu.IconMenuButton(iconlib.iconColorized(iconName, size=mayaui.dpiScale(self.iconSize), color=iconColor, overlayName="arrowmenu"))
         btn.setProperty("name", name)
         btn.setIconSize(mayaui.sizeByDpi(QtCore.QSize(self.iconSize + self.iconPadding,
                                                       self.iconSize + self.iconPadding)))
