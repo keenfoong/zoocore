@@ -1,5 +1,6 @@
 from qt import QtCore, QtWidgets, QtGui
-from zoo.apps.hiveartistui import tooltips
+
+import zoo.libs.pyqt.extended.expandedtooltip
 from zoo.apps.hiveartistui.views import componentgroup
 from zoo.libs.pyqt import utils as qtutils
 
@@ -587,7 +588,7 @@ class ItemWidget(QtWidgets.QLabel):
         ret.name = self.name
         # ret.setIcon(self.icon())
         ret.setStyleSheet(self.styleSheet())
-        tooltips.copyExpandedTooltips(self, ret)
+        zoo.libs.pyqt.extended.expandedtooltip.copyExpandedTooltips(self, ret)
 
         return ret
 
