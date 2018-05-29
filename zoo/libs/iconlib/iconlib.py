@@ -46,8 +46,9 @@ class Icon(object):
         """Returns a QtGui.QIcon instance intialized to the icon path for the icon name if the icon name is found within
         the cache
 
-        :param iconName: str, iconName_size or iconName, if not size in name then 16px will be used
-        :param size: int, the size of the icon, the size will be used for both the width and height
+        :param iconName: str, iconName_size or iconName, then it will resize the largest icon found
+        :param size: int, the size of the icon, the size will be used for both the width and height.
+                     setting size=-1 will return the largest icon as well
         :return: QtGui.Qicon
         """
         if env.isMayapy():
@@ -55,13 +56,42 @@ class Icon(object):
         iconData = cls.iconDataForName(iconName, size)
         icon = iconData.get("icon")
         if icon and isinstance(icon, QtGui.QIcon) and not icon.isNull():
+            if size != -1:
+                icon = cls.resizeIcon(icon, QtCore.QSize(size, size))
             return icon
         newIcon = QtGui.QIcon(iconData.get("path", ""))
+        if size != -1:
+            newIcon = cls.resizeIcon(newIcon, QtCore.QSize(size, size))
+
         iconData["icon"] = newIcon
         return newIcon
 
     @classmethod
+    def resizeIcon(cls, icon, size):
+        """
+        Resizes the icon. Defaults to smooth bilinear scaling and keep aspect ratio.
+        :param icon: Icon to resize
+        :param size: New size to scale to
+        :type size: QtCore.QSize
+        :return:
+        """
+        if len(icon.availableSizes()) == 0:
+            return
+
+        origSize = icon.availableSizes()[0]
+        pixmap = icon.pixmap(origSize)
+        pixmap = pixmap.scaled(size, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
+
+        return QtGui.QIcon(pixmap)
+
+    @classmethod
     def iconDataForName(cls, iconName, size=16):
+        """
+        Sets up the icon data that is used by qt based on the iconName
+        :param iconName:
+        :param size:
+        :return:
+        """
         if "_" in iconName:
             splitter = iconName.split("_")
             if splitter[-1].isdigit():
@@ -77,8 +107,9 @@ class Icon(object):
             if name != iconName:
                 continue
             sizes = data["sizes"]
+
             if size not in sizes:
-                size = sizes.keys()[0]
+                size = sizes.keys()[-1]
                 iconData = sizes[size]
             else:
                 iconData = data["sizes"][size]
@@ -90,8 +121,8 @@ class Icon(object):
         return cls.iconDataForName(iconName, size).get("path", "")
 
     @classmethod
-    def iconColorized(cls, iconName, size=16, color=(255, 255, 255)):
-        """Colorizers the icon from the library expects the default icon
+    def iconColorized(cls, iconName, size=16, color=(255, 255, 255), overlayName=None, overlayColor=(255,255,255)):
+        """Colorizes the icon from the library expects the default icon
         to be white for tinting.
 
         :param iconName: the icon name from the library
@@ -101,17 +132,26 @@ class Icon(object):
         :param color: 3 tuple for the icon color
         :type color: tuple(int)
         :return: the colorized icon
+        :param overlayName: The name of the icon that will be overlayed on top of the original icon
+        :param overlayColor: The colour of the overlay
         :rtype: QtGui.QIcon
         """
-        icon = cls.icon(iconName, size)
-        if not icon:
-            return icon  # will return an empty QIcon
-        color = QtGui.QColor(*color)
+        iconLargest = cls.icon(iconName, -1)
 
-        pixmap = icon.pixmap(QtCore.QSize(size, size))
-        mask = pixmap.createMaskFromColor(QtGui.QColor('white'), QtCore.Qt.MaskOutColor)
-        pixmap.fill(color)
-        pixmap.setMask(mask)
+        if not iconLargest:
+            return iconLargest
+
+        origSize = iconLargest.availableSizes()[0]
+        pixmap = cls.colorPixmap(iconLargest.pixmap(origSize), color)
+
+        # Add overlay icon
+        if overlayName is not None:
+            overlayIcon = cls.icon(overlayName, -1)
+            overlayPixmap = overlayIcon.pixmap(origSize)
+            cls.addOverlay(pixmap, overlayPixmap, overlayColor)
+
+        pixmap = pixmap.scaled(QtCore.QSize(size, size), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
+
         return QtGui.QIcon(pixmap)
 
     @classmethod
@@ -131,6 +171,43 @@ class Icon(object):
         for size in icon.availableSizes():
             icon.addPixmap(icon.pixmap(size, QtGui.QIcon.Disabled))
         return icon
+
+    @classmethod
+    def colorPixmap(cls, pixmap, color):
+        """
+        Colorize the pixmap with a new color based on its alpha map
+        :param pixmap: Pixmap
+        :type pixmap: QtGui.QPixmap
+        :param color: new color in tuple format (255,255,255)
+        :return:
+        """
+        color = QtGui.QColor(*color)
+        mask = pixmap.mask()
+        pixmap.fill(color)
+        pixmap.setMask(mask)
+
+        return pixmap
+
+    @classmethod
+    def addOverlay(cls, pixmap, overlayPixmap, color):
+        """
+        Overlays one pixmap over the other
+        :param pixmap: The source pixmap
+        :type pixmap: QtGui.QPixmap
+        :param overlayPixmap: the pixmap to overlay on top of the source pixmap
+        :type overlayPixmap: QtGui.QPixmap
+        :param color: The colour of the overlay pixmap
+        :type color: tuple(int,int,int)
+        :return:
+        """
+        # Set the color for the overlay
+        overlayPixmap = cls.colorPixmap(overlayPixmap, color)
+
+        # Paint the overlay pixmap over the original
+        painter = QtGui.QPainter(pixmap)
+        painter.setCompositionMode(QtGui.QPainter.CompositionMode_SourceOver)
+        painter.drawPixmap(0, 0, overlayPixmap.width(), overlayPixmap.height(), overlayPixmap)
+        painter.end()
 
 
 Icon.reload()
