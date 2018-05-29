@@ -2,9 +2,9 @@ from qt import QtWidgets, QtCore
 
 from zoo.libs import iconlib
 from zoo.libs.pyqt import uiconstants
-from zoo.libs.pyqt.widgets import frame
-from zoo.libs.pyqt.widgets.stackwidget import LineClickEdit
 from zoo.libs.pyqt import utils as qtutils
+from zoo.libs.pyqt.extended.stackwidget import LineClickEdit
+from zoo.libs.pyqt.widgets import frame
 
 
 class ToolSetWidget(QtWidgets.QTreeWidget):

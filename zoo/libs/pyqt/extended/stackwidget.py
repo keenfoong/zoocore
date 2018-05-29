@@ -8,8 +8,6 @@ from zoo.libs.pyqt import utils as qtutils
 class StackWidget(QtWidgets.QWidget):
     """
     The overall layout widget. The table underneath (self.stackTableWgt) holds all the stack items.
-    TODO: StackItem has been changed to use QSignals for ShiftUp, shiftDown, updateSize, delete. This needs to reflect
-    that.
 
     StackWidget is the overall view, StackTableWidget is the actual widget that holds the StackItems themselves.
     """
