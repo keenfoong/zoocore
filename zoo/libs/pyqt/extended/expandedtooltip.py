@@ -369,7 +369,6 @@ class WidgetsFromTextParser(HTMLParser):
     Functions to install the expanded tooltip into a widget
 
     Works in conjunction with artistui.keyPressEvent() to display a popup 
-    (zoo.apps.hiveartistui.views.expandedtooltip.ExpandedTooltipPopup)
 
     ======================================================================
 """
@@ -415,7 +414,6 @@ class ExpandedTooltips(QtCore.QObject):
     Acts as a Data storage for the Expanded tooltips.
 
     Works in conjunction with artistui.keyPressEvent() to display a popup
-    (zoo.apps.hiveartistui.views.expandedtooltip.ExpandedTooltipPopup)
 
     """
     icon = ""
