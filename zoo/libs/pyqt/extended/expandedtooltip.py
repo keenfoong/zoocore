@@ -3,9 +3,7 @@ from HTMLParser import HTMLParser
 
 from qt import QtCore, QtWidgets, QtGui
 
-from zoo.apps.hiveartistui import stylesheet, constants
 from zoo.libs import iconlib
-from zoo.libs.maya.qt import mayaui
 from zoo.libs.pyqt.widgets import dialog
 
 
@@ -25,6 +23,17 @@ class ExpandedTooltipPopup(dialog.Dialog):
     >>>         "expanded": "Expand / Collapse Widget <p><b><i>Everything here can be customized using HTML tags.</i></b></p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis et cursus libero. </p><p>Etiam viverra quam sit amet eros volutpat, ac <span class=\"highlight\"><i>aliquam ligula fringilla</i></span>. In semper volutpat nunc, ac placerat nisi mollis a. Donec condimentum urna eu elementum hendrerit. Sed pellentesque.</p><p> <a href=\"http://create3dcharacters.com\">Click for full documentation</a>"
     >>>     }
     >>> installTooltips(btn, tooltipDict=toolTip)
+
+    The "expanded" attribute allows for rich text:
+    >>> {"expanded":
+    >>>     ''' Expand / Collapse Widget
+    >>>         <p><b><i>Everything here can be customized using HTML tags.</i></b></p>
+    >>>         <p><span class=\"highlight\">Highlighted text with custom highlight color </span>
+    >>>         <p>Gifs can be used as well. <zoo gif=\"selectAllAnimCurvesInTheScene\" /></p>
+    >>>         <p> <a href=\"http://create3dcharacters.com\">Click for full documentation</a>"'''}
+
+    Gifs folders are set up in the package.json:
+    >>> "HIVE_UI_GIFS": "{self}/zoo/apps/hiveartistui/gifs"
 
     ExpandedTooltipPopup is just a dialogue box, so instantiate it then move it like a normal window:
     >>> # On holding down control the popup (this class) will be displayed. ON Key release it will be closed
@@ -72,17 +81,22 @@ class ExpandedTooltipPopup(dialog.Dialog):
     defaultIcon = "magic"
     popupKey = QtCore.Qt.Key_Control
 
-    def __init__(self, widget, width=450, height=50, parent=None, showOnInitialize=False, popupRelease=QtCore.Qt.Key_Control):
+    ETT_ICONCOLOUR = (82, 133, 166)
+    ETT_LINKCOLOUR = (255, 255, 255)
+    ETT_THEMECOLOUR = (82, 133, 166)
+
+    def __init__(self, widget, width=450, height=50, iconSize=40, parent=None, showOnInitialize=False, stylesheet="", popupRelease=QtCore.Qt.Key_Control):
         super(ExpandedTooltipPopup, self).__init__(None, width, height, "", parent, showOnInitialize)
-        self.setStyleSheet(stylesheet.style)
         self.layout = QtWidgets.QVBoxLayout(self)
         self.font = QtGui.QFont("sans")
         self.titleFont = QtGui.QFont("sans")
-        self.iconColour = constants.ETT_ICONCOLOUR
-        self.themeColour = constants.ETT_THEMECOLOUR
-        self.linkColour = constants.ETT_LINKCOLOUR
-        self.iconSize = mayaui.dpiScale(40)
+
+        # Maybe should link this with the stylesheets
+        self.iconColour = self.ETT_ICONCOLOUR
+        self.themeColour = self.ETT_THEMECOLOUR
+        self.linkColour = self.ETT_LINKCOLOUR
         self.popupKey = popupRelease
+        self.iconSize = iconSize
 
         self.frameLayout = QtWidgets.QVBoxLayout()
         self.titleLayout = QtWidgets.QHBoxLayout()
@@ -91,6 +105,9 @@ class ExpandedTooltipPopup(dialog.Dialog):
 
         self.tooltipIcon = None  # type: QtCore.QIcon
         self.widget = widget
+
+        if stylesheet != "":
+            self.setStyleSheet(stylesheet)
 
         self.initUi()
 
@@ -192,7 +209,7 @@ class ExpandedTooltipPopup(dialog.Dialog):
         :return:
         """
         icon = icon or self.defaultIcon
-        qicon = iconlib.iconColorized(icon, mayaui.dpiScale(240), self.iconColour)
+        qicon = iconlib.iconColorized(icon, self.iconSize, self.iconColour)
         iconWgt = QtWidgets.QToolButton()
         iconWgt.setIconSize(QtCore.QSize(self.iconSize, self.iconSize))
 
