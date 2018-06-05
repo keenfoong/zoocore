@@ -93,7 +93,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         super(TreeWidget, self).__init__(parent)
 
         self.defaultGroupName = "Group"
-
+        self.setRootIsDecorated(False)
         self.font = QtGui.QFont("sans")
 
         # Drag drop
@@ -281,10 +281,13 @@ class TreeWidget(QtWidgets.QTreeWidget):
         newTreeItem.setFont(self.WIDGET_COL, self.font)
 
         (treeParent or self.invisibleRootItem()).insertChild(index, newTreeItem)
-
-        self.updateTreeWidget()
-        widget.setParent(self)
-        self.setItemWidget(newTreeItem, self.WIDGET_COL, widget)
+        if widget is not None:
+            widget.setParent(self)
+            self.setItemWidget(newTreeItem, self.WIDGET_COL, widget)
+            if hasattr(widget, "toggleExpandRequested"):
+                widget.toggleExpandRequested.connect(self.updateTreeWidget)
+                widget.toggleExpandRequested.connect(newTreeItem.setExpanded)
+            self.updateTreeWidget()
 
         return newTreeItem
 
@@ -333,31 +336,38 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
             self.updateTreeWidget()
             self.setItemWidget(newTreeItem, self.WIDGET_COL, widget)  # items parent must be set otherwise it will crash
-
+            # temp hack to support rowheight refresh, need to replace
+            if hasattr(widget, "toggleExpandRequested"):
+                widget.toggleExpandRequested.connect(self.updateTreeWidget)
+                widget.toggleExpandRequested.connect(newTreeItem.setExpanded)
         self.setCurrentItem(newTreeItem)
 
         return newTreeItem
 
-    def itemWidgets(self, includeNones=False, itemType=None):
+    def itemWidgets(self, itemType=None, treeItem=None):
         """
         Gets all widgets in the tree. includeNones is for when QTreeWidgetItems don't have a itemWidget attached, but
         for any reason or another we still want to know
 
         :return: List of itemWidgets
         """
-        treeItemIterator = QtWidgets.QTreeWidgetItemIterator(self)
+        if treeItem is not None:
+            iteratorItem = treeItem
+        else:
+            iteratorItem = self
+        treeItemIterator = QtWidgets.QTreeWidgetItemIterator(iteratorItem)
         widgets = []
         for it in treeItemIterator:
             treeItem = it.value()
             if treeItem is not None:
                 itemWidget = self.itemWidget(treeItem)
-                if itemWidget is None and not includeNones:
+                if itemWidget is None:
                     continue
 
                 # Add by type, but if itemType is none, let them all through
                 if (itemType is not None and self.getItemType(treeItem) == itemType) or \
                         itemType is None:
-                    widgets.append(self.itemWidget(treeItem))
+                    widgets.append(itemWidget)
 
         return widgets
 
@@ -598,30 +608,3 @@ class ItemWidget(QtWidgets.QLabel):
 
     def text(self):
         return super(ItemWidget, self).text()
-
-
-def copyWidget(w):
-    """
-    A very shallow copy of the widget. Used more as a placeholder
-    :return:
-    :rtype: ComponentWidget
-    """
-    CurrentType = type(w)
-    ret = CurrentType()
-
-    try:
-        ret.setText(w.text())
-    except:
-        pass
-
-    try:
-        ret.setIcon(w.icon())
-    except:
-        pass
-
-    try:
-        ret.setStyleSheet(w.styleSheet())
-    except:
-        pass
-
-    return ret

@@ -3,18 +3,32 @@ from zoo.libs.pyqt.models import delegates
 
 
 class BaseDataSource(QtCore.QObject):
-    def __init__(self, model=None, parent=None):
+    enabledColor = QtGui.QColor(200, 200, 220)
+    disabledColor = enabledColor.darker(200)
+
+    def __init__(self, headerText=None,model=None, parent=None):
         super(BaseDataSource, self).__init__()
         self._parent = parent
         self.children = []
         self.model = model
+        self._headerText = headerText or ""
+
+    def width(self):
+        return 0
 
     def userObject(self, index):
         if index in xrange(self.rowCount()):
             return self.children[index]
 
+    def userObjects(self):
+        return self.children
+
+    def setUserObjects(self, objects):
+        pass
+
     def isRoot(self):
         """Determines if this item is the root of the tree
+
         :return:
         :rtype:
         """
@@ -28,7 +42,7 @@ class BaseDataSource(QtCore.QObject):
         return len(self.children)
 
     def columnCount(self):
-        return 1
+        return 0
 
     def parentSource(self):
         """Returns the parent of this node
@@ -82,7 +96,14 @@ class BaseDataSource(QtCore.QObject):
         :type index: int
         :rtype: str
         """
-        return ""
+        model = self.model
+        if model is None:
+            return ""
+        columns = list(model.columnDataSources)
+        msg = self.headerText(index) + ":" + str(self.data(index)) + "\n"
+        for i in columns:
+            msg += i.headerText(index) + ":" + str(i.data(self, index)) + "\n"
+        return msg
 
     def icon(self, index):
         """The icon for the index.
@@ -100,13 +121,13 @@ class BaseDataSource(QtCore.QObject):
         """
         return QtGui.QIcon()
 
-    def headerText(self, index=0):
+    def headerText(self, index):
         """Returns the column header text
 
         :return: the header value
         :rtype: str
         """
-        return ""
+        return self._headerText
 
     def headerVerticalText(self, index):
         """The Vertical header text, if the return type is None then no text is displayed, an empty string will
@@ -200,11 +221,19 @@ class BaseDataSource(QtCore.QObject):
         :param index: the column index
         :type index: int
         """
-        return None
+        if self.isEnabled(index):
+            return self.enabledColor
+        return self.disabledColor
 
     def backgroundColor(self, index):
         """
+        :param index: the column index
+        :type index: int
+        """
+        return None
 
+    def displayChangedColor(self, index):
+        """
         :param index: the column index
         :type index: int
         """
@@ -300,12 +329,22 @@ class BaseDataSource(QtCore.QObject):
         :param order: The Qt order
         :type order: int
         """
-        pass
+
+        def element(key):
+            return key[1]
+
+        toSort = [(obj, self.data(i)) for i, obj in enumerate(self.userObjects())]
+
+        if order == QtCore.Qt.DescendingOrder:
+            results = [i[0] for i in sorted(toSort, key=element, reverse=True)]
+        else:
+            results = [i[0] for i in sorted(toSort, key=element)]
+        self.setUserObjects(results)
 
 
 class ColumnDataSource(BaseDataSource):
 
-    def sort(self, rowDataSource=None, index=0, order=QtCore.Qt.DescendingOrder):
+    def sort(self, rowDataSource, index=0, order=QtCore.Qt.DescendingOrder):
         """This sort function purpose is for sorting the data by column.
 
         :param index: the column index to sort
@@ -313,7 +352,17 @@ class ColumnDataSource(BaseDataSource):
         :param order: The Qt order
         :type order: int
         """
-        pass
+
+        def element(key):
+            return key[1]
+
+        toSort = [(obj, self.data(i)) for i, obj in enumerate(self.userObjects())]
+
+        if order == QtCore.Qt.DescendingOrder:
+            results = [i[0] for i in sorted(toSort, key=element, reverse=True)]
+        else:
+            results = [i[0] for i in sorted(toSort, key=element)]
+        rowDataSource.setUserObjects(results)
 
     def setData(self, rowDataSource, index, value):
         """Sets the text value of this node at the specified column.
@@ -377,7 +426,7 @@ class ColumnDataSource(BaseDataSource):
         :return: whether or not this node is editable, defaults to False
         :rtype: bool
         """
-        return False
+        return rowDataSource.isEditable(index)
 
     def isEnabled(self, rowDataSource, index):
         """Determines if this node is enabled
@@ -389,7 +438,7 @@ class ColumnDataSource(BaseDataSource):
         :return: whether or not this node is enabled, defaults to True
         :rtype: bool
         """
-        return True
+        return rowDataSource.isEnabled(index)
 
     def supportsDrag(self, rowDataSource, index):
         """
@@ -465,11 +514,19 @@ class ColumnDataSource(BaseDataSource):
         :param index: the column index
         :type index: int
         """
-        return None
+        return rowDataSource.foregroundColor(index)
 
     def backgroundColor(self, rowDataSource, index):
         """
+        :param rowDataSource: The rowDataSource model for the column index
+        :type rowDataSource: BaseDataSource
+        :param index: the column index
+        :type index: int
+        """
+        return rowDataSource.backgroundColor(index)
 
+    def displayChangedColor(self, rowDataSource, index):
+        """
         :param rowDataSource: The rowDataSource model for the column index
         :type rowDataSource: BaseDataSource
         :param index: the column index
@@ -528,6 +585,14 @@ class RowEnumerationDataSource(BaseDataSource):
         return []
 
 
+class IconRowDataSource(BaseDataSource):
+    def delegate(self, parent):
+        return delegates.PixmapDelegate(parent)
+
+    def isEditable(self, rowDataSource, index):
+        return False
+
+
 class RowBooleanDataSource(ColumnDataSource):
     def isCheckable(self, rowDataSource, index):
         return False
@@ -564,8 +629,16 @@ class ColumnEnumerationDataSource(ColumnDataSource):
 
 
 class ColumnBooleanDataSource(ColumnDataSource):
-    # def delegate(self, parent):
-    #     return delegates.CheckBoxDelegate(parent)
+    def delegate(self, parent):
+        return delegates.CheckBoxDelegate(parent)
 
     def isCheckable(self, rowDataSource, index):
         return True
+
+
+class IconColumnDataSource(ColumnDataSource):
+    def delegate(self, parent):
+        return delegates.PixmapDelegate(parent)
+
+    def isEditable(self, rowDataSource, index):
+        return False

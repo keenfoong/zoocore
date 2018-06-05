@@ -55,6 +55,7 @@ class TableModel(QtCore.QAbstractTableModel):
         column = int(index.column())
         row = int(index.row())
         dataSource = self.dataSource(column)
+
         if dataSource is None:
             return
         if column == 0:
@@ -72,6 +73,8 @@ class TableModel(QtCore.QAbstractTableModel):
             if dataSource.data(**kwargs):
                 return QtCore.Qt.Checked
             return QtCore.Qt.Unchecked
+        elif role == constants.editChangedRole:
+            return dataSource.displayChangedColor(**kwargs)
         elif role == QtCore.Qt.TextAlignmentRole:
             return dataSource.alignment(**kwargs)
         elif role == QtCore.Qt.FontRole:
@@ -79,11 +82,11 @@ class TableModel(QtCore.QAbstractTableModel):
         elif role == QtCore.Qt.BackgroundRole:
             color = dataSource.backgroundColor(**kwargs)
             if color:
-                return QtGui.QColor(*color)
+                return color
         elif role == QtCore.Qt.ForegroundRole:
             color = dataSource.foregroundColor(**kwargs)
             if color:
-                return QtGui.QColor(*color)
+                return color
         elif role == constants.minValue:
             return dataSource.minimum(**kwargs)
         elif role == constants.maxValue:
@@ -132,6 +135,7 @@ class TableModel(QtCore.QAbstractTableModel):
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Horizontal:
             dataSource = self.dataSource(section)
+
             if role == QtCore.Qt.DisplayRole:
                 return dataSource.headerText(section)
             elif role == QtCore.Qt.DecorationRole:

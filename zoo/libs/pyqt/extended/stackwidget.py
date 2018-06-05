@@ -321,6 +321,7 @@ class StackItem(QtWidgets.QWidget):
 
     closeRequested = QtCore.Signal()
     openRequested = QtCore.Signal()
+    toggleExpandRequested = QtCore.Signal(bool)
     shiftUpPressed = QtCore.Signal()
     shiftDownPressed = QtCore.Signal()
     deletePressed = QtCore.Signal()
@@ -334,7 +335,7 @@ class StackItem(QtWidgets.QWidget):
             self.hide()
 
         self.itemTint = itemTint
-
+        self.setAutoFillBackground(True)
         self._itemIcon = icon or self._itemIcon
         self.stackWidget = parent
         self.hide()
@@ -350,7 +351,7 @@ class StackItem(QtWidgets.QWidget):
 
         self.spacesToUnderscore = True
 
-        self.layout = qtutils.vBoxLayout()
+        self.layout = qtutils.vBoxLayout(parent=self)
         self.title = title
         self.color = uiconstants.DARKBGCOLOR
         self.contentMargins = uiconstants.MARGINS
@@ -361,8 +362,8 @@ class StackItem(QtWidgets.QWidget):
         self.expandToggleButton = QtWidgets.QToolButton(parent=self)
 
         # Title Frame
-        self.widgetHider = QtWidgets.QFrame(parent=self)
-        self._contentsLayout = QtWidgets.QVBoxLayout(self.widgetHider)
+        self.widgetHider = frame.QFrame(parent=self)
+        self._contentsLayout = qtutils.vBoxLayout(self.widgetHider)
 
         if not shiftArrowsEnabled:
             self.shiftDownBtn.hide()
@@ -375,8 +376,6 @@ class StackItem(QtWidgets.QWidget):
             self.stackTitleWgt.setReadOnly(True)
 
         self.initUi()
-
-        self.setLayout(self.layout)
 
         self.connections()
 
@@ -460,7 +459,7 @@ class StackItem(QtWidgets.QWidget):
         self.titleFrame.setFixedHeight(self.titleFrame.sizeHint().height())
         self.titleFrame.setObjectName("title")
 
-        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height() + 3)
+        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height() + 1)
 
         self.horizontalLayout.addWidget(self.stackTitleWgt)
         self.horizontalLayout.addLayout(self.titleExtrasLayout)
@@ -530,7 +529,7 @@ class StackItem(QtWidgets.QWidget):
         """
         if not self.collapsable:
             return
-
+        self.toggleExpandRequested.emit(not self.collapsed)
         # If we're already collapsed then expand the layout
         if self.collapsed:
             self.expand(emit)
