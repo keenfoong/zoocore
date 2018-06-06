@@ -1,6 +1,7 @@
 from qt import QtWidgets, QtCore
 from zoo.libs.pyqt.models import sortmodel
 from zoo.libs.pyqt.extended import viewfilterwidget
+from zoo.libs.pyqt.widgets import tableview
 from zoo.libs import iconlib
 
 
@@ -29,23 +30,28 @@ class TableViewPlus(QtWidgets.QFrame):
         self._model.rowDataSource = dataSource
         self.tableview.verticalHeader().sectionClicked.connect(self.rowDataSource.onVerticalHeaderSelection)
         self.searchWidget.setVisibilityItems(self.rowDataSource.headerText(0))
+        width = dataSource.width()
+        if width > 0:
+            self.tableview.setColumnWidth(0, width)
 
     def registerColumnDataSources(self, dataSources):
         if not self.rowDataSource:
             raise ValueError("Must assign rowDataSource before columns")
         self.columnDataSources = dataSources
+        visItems = []
         for i in xrange(len(dataSources)):
             source = dataSources[i]
             source.model = self._model
             if hasattr(source, "delegate"):
                 delegate = source.delegate(self.tableview)
                 self.tableview.setItemDelegateForColumn(i + 1, delegate)
+            visItems.append(source.headerText(i))
+            width = source.width()
+            if width > 0:
+                self.tableview.setColumnWidth(i + 1, width)
 
         self._model.columnDataSources = dataSources
-        visItems = []
-        for i, source in enumerate(self.columnDataSources):
-            visItems.append(source.headerText(i))
-        self.searchWidget.setVisibilityItems([self.rowDataSource.headerText(0)]+visItems)
+        self.searchWidget.setVisibilityItems([self.rowDataSource.headerText(0)] + visItems)
 
     def setSearchable(self, value):
         self.searchWidget.setVisible(value)
@@ -61,35 +67,25 @@ class TableViewPlus(QtWidgets.QFrame):
         self.searchLayout.addWidget(self.searchWidget)
         self.mainLayout.addLayout(self.searchLayout)
 
-
     def _setupLayouts(self):
 
         self.mainLayout = QtWidgets.QVBoxLayout(self)
         self.mainLayout.setContentsMargins(2, 2, 2, 2)
-        self.tableview = QtWidgets.QTableView(parent=self)
-        self.tableview.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.tableview.setSelectionMode(self.tableview.ExtendedSelection)
-        self.tableview.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.tableview.customContextMenuRequested.connect(self.contextMenu)
+        self.tableview = tableview.TableView(parent=self)
+        self.tableview.contextMenuRequested.connect(self.contextMenu)
         self._setupFilter()
 
         self.mainLayout.addWidget(self.tableview)
 
-        self.proxySearch = sortmodel.TableFilterProxyModel()
+        self.proxySearch = sortmodel.LeafTableFilterProxyModel()
         self.proxySearch.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.proxySearch.setFilterKeyColumn(0)
         self.tableview.setModel(self.proxySearch)
-        self.tableview.setSortingEnabled(True)
-        self.tableview.sortByColumn(0, QtCore.Qt.AscendingOrder)
-        self.tableview.setShowGrid(False)
-        self.tableview.setAlternatingRowColors(True)
-        self.tableview.horizontalHeader().setStretchLastSection(True)
 
     def selectionModel(self):
         return self.tableview.selectionModel()
 
     def connections(self):
-        #self.searchWidget.searchTextedCleared.connect(self.searchEdit.clear)
         self.searchWidget.columnFilterIndexChanged.connect(self.onSearchBoxChanged)
         self.searchWidget.searchTextedChanged.connect(self.proxySearch.setFilterRegExp)
         self.searchWidget.columnVisibilityIndexChanged.connect(self.toggleColumn)
@@ -125,15 +121,16 @@ class TableViewPlus(QtWidgets.QFrame):
         for i in xrange(len(columnDataSources)):
             headerItems.append(columnDataSources[i].headerText(i))
 
-        self.searchWidget.setHeaderItems([rowDataSource.headerText(0)]+headerItems)
+        self.searchWidget.setHeaderItems([rowDataSource.headerText(0)] + headerItems)
 
     def contextMenu(self, position):
         menu = QtWidgets.QMenu(self)
-        selection = self.selectedRows()
+        selection = self.selectedRowColumns()
         if self.rowDataSource:
             self.rowDataSource.contextMenu(selection, menu)
         self.contextMenuRequested.emit(selection, menu)
-        menu.exec_(self.tableview.viewport().mapToGlobal(position))
+        if not menu.isEmpty():
+            menu.exec_(self.tableview.viewport().mapToGlobal(position))
 
     def selectedRows(self):
         """From all the selectedIndices grab the row numbers, this use selectionModel.selectedIndexes() to pull the rows
@@ -145,18 +142,17 @@ class TableViewPlus(QtWidgets.QFrame):
 
     def selectedColumns(self):
         return list(set([i.column() for i in self.selectionModel().selectedColumns()]))
+    def selectedRowColumns(self):
+        return list(set([(i.row(), i.column()) for i in self.selectionModel().selection()]))
+    def toggleColumn(self, column, state):
+        if column == 0:
 
-    def toggleColumn(self, headerText, state):
-        if headerText == self.rowDataSource.headerText(0):
             if state == QtCore.Qt.Checked:
                 self.tableview.showColumn(0)
             else:
                 self.tableview.hideColumn(0)
         else:
-            for i, source in enumerate(self.columnDataSources):
-                i += 1
-                if source.headerText(i) == headerText:
-                    if state == QtCore.Qt.Checked:
-                        self.tableview.showColumn(i)
-                    else:
-                        self.tableview.hideColumn(i)
+            if state == QtCore.Qt.Checked:
+                self.tableview.showColumn(column)
+            else:
+                self.tableview.hideColumn(column)
