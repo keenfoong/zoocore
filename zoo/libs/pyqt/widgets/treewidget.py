@@ -293,7 +293,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
     def addNewItem(self, name, widget=None, itemType=ITEMTYPE_WIDGET, icon=None):
         """
-        Add a new item type. Should be a group or an itemWidget
+        Add a new item type. Should be a group or an itemWidget. If you'd like to add a TreeWidgetItem instead, use
+        addNewTreeWidgetItem()
 
         ItemType can be Widget or Group. Groups wont have user customized widgets, but can have children.
         ITEMTYPE_WIDGETS wont have children.
@@ -562,6 +563,16 @@ class TreeWidget(QtWidgets.QTreeWidget):
                 treeItem.setFlags(self.itemWidgetFlags)
             elif self.getItemType(treeItem) == self.ITEMTYPE_GROUP:
                 treeItem.setFlags(self.groupFlags)
+
+    def iterator(self):
+        """
+        Iterator to iterate through the treeItems
+        example:
+        >>> for it in treeItemIterator:
+        >>>     treeItem = it.value()
+
+        """
+        return QtWidgets.QTreeWidgetItemIterator(self)
 
 
 class TreeWidgetItem(QtWidgets.QTreeWidgetItem):
