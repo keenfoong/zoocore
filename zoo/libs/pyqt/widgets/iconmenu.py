@@ -1,60 +1,77 @@
-from qt import QtWidgets, QtCore, QtGui
+from qt import QtWidgets,QtCore
 
+from zoo.libs.pyqt.widgets.extendedbutton import ExtendedButton
 
-class IconMenuButton(QtWidgets.QPushButton):
-    """
-    A Push button that fires a menu underneath it
-    """
-    def __init__(self, icon):
-        super(IconMenuButton, self).__init__(icon, "")
-        self.menu = QtWidgets.QMenu()
-
+class IconMenuButton(ExtendedButton):
+    def __init__(self, icon, parent, leftClickMenu=None, middleClickMenu=None, rightClickMenu=None):
+        super(IconMenuButton, self).__init__(icon, parent, leftClickMenu, middleClickMenu, rightClickMenu)
         self.initUi()
-        self.connections()
-        self.menuHidden = True
 
-    def connections(self):
-        """
-        Connections for the Icon menu
-        :return:
-        """
-        self.clicked.connect(self.contextMenu)
-        self.menu.aboutToHide.connect(self.hidden)
+    def initUi(self):
+        if self.leftMenu is not None:
+            self.leftMenu.setToolTipsVisible(True)
 
-    def addAction(self, name, connect=None):
+        if self.middleMenu is not None:
+            self.middleMenu.setToolTipsVisible(True)
+
+        if self.rightMenu is not None:
+            self.rightMenu.setToolTipsVisible(True)
+
+    def addAction(self, name, mouseMenu=QtCore.Qt.LeftButton, connect=None, checkable=False, action=None):
         """
         Add a new menu item through an action
+        :param mouseMenu: Expects QtCore.Qt.LeftButton, QtCore.Qt.MidButton, or QtCore.Qt.RightButton
         :param name: The text for the new menu item
         :param connect: The function to connect when the menu item is pressed
         :return:
         """
-        newAction = QtWidgets.QAction(name, self.menu)
-        self.menu.addAction(newAction)
+        menu = self.getMenu(mouseMenu)
+
+        if action is not None:
+            menu.addAction(action)
+            return
+
+        newAction = QtWidgets.QAction(name, menu, checkable=checkable)
+        menu.addAction(newAction)
 
         if connect is not None:
             newAction.triggered.connect(connect)
 
-    def initUi(self):
+
+    def addSeparator(self, mouseMenu=QtCore.Qt.LeftButton):
         """
-        Icon Menu settings
+        Add a separator in the menu
+        :param mouseMenu:
         :return:
         """
-        self.menu.setToolTipsVisible(True)
+        menu = self.getMenu(mouseMenu)
+        menu.addSeparator()
 
-    def hidden(self):
-        self.menuHidden = True
 
-    def contextMenu(self):
+    def getMenu(self, mouseMenu=QtCore.Qt.LeftButton):
         """
-        Display the context menu
+        Get menu depending on the mouse button pressed
+        :param mouseMenu:
         :return:
         """
-        self.menu.exec_(self.menuPos())
 
-    def menuPos(self):
-        """
-        Get menu position based on the current widget position and perimeter
-        :return:
-        """
-        point = self.rect().bottomLeft()
-        return self.mapToGlobal(point)
+        menu = None
+
+        if mouseMenu == QtCore.Qt.LeftButton:
+            if self.leftMenu is None:
+                self.leftMenu = QtWidgets.QMenu()
+            menu = self.leftMenu
+        elif mouseMenu == QtCore.Qt.MidButton:
+            if self.middleMenu is None:
+                self.middleMenu = QtWidgets.QMenu()
+            menu = self.middleMenu
+        elif mouseMenu == QtCore.Qt.RightButton:
+            if self.rightMenu is None:
+                self.rightMenu = QtWidgets.QMenu()
+            menu = self.rightMenu
+
+        return menu
+
+        
+    
+
