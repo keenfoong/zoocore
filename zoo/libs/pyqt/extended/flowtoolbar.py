@@ -70,7 +70,7 @@ class FlowToolBar(QtWidgets.QWidget):
         """
         # Create an item with a caption
 
-        btn = iconmenu.IconMenuButton(iconlib.iconColorized(iconName, self.iconSize, color=iconColor), "")
+        btn = iconmenu.IconMenuButton(iconName=iconName, parent=self, iconSize=self.iconSize, iconColor=iconColor)
         btn.setProperty("name", name)
         btn.setIconSize(self.getIconSize())
         btn.leftClicked.connect(self.toolsClicked)
@@ -101,10 +101,10 @@ class FlowToolBar(QtWidgets.QWidget):
         if showIndicator:
             overlayName = self.menuIndicatorIcon
 
-        btn = iconmenu.IconMenuButton(iconlib.iconColorized(iconName,
-                                                            size=self.iconSize,
-                                                            color=iconColor,
-                                                            overlayName=overlayName),
+        btn = iconmenu.IconMenuButton(iconName=iconName,
+                                      iconSize=self.iconSize,
+                                      iconColor=iconColor,
+                                      iconOverlayName=overlayName,
                                       parent=self)
         btn.setProperty("name", name)
         btn.setIconSize(QtCore.QSize(self.iconSize + self.iconPadding,

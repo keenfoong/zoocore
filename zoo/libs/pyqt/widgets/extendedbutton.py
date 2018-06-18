@@ -1,5 +1,8 @@
 from qt import QtWidgets, QtCore
 
+from zoo.libs import iconlib
+from zoo.libs.utils import colour
+
 
 class ExtendedButton(QtWidgets.QPushButton):
     """
@@ -16,8 +19,17 @@ class ExtendedButton(QtWidgets.QPushButton):
     middleMenuActive = None
     rightMenuActive = None
 
-    def __init__(self, icon=None, text=None,parent=None, leftClickMenu=None, middleClickMenu=None, rightClickMenu=None):
-        super(ExtendedButton, self).__init__(icon=icon, text=text, parent=parent)
+    def __init__(self, icon=None, iconName=None, iconSize=32, iconColor=(255,255,255), iconOverlayName=None,
+                 iconHoverOffset=40,
+                 text=None, parent=None,
+                 leftClickMenu=None, middleClickMenu=None, rightClickMenu=None):
+
+        self.buttonIcon = icon or iconlib.iconColorized(iconName, size=iconSize, color=iconColor, overlayName=iconOverlayName)
+        self.buttonIconHover = icon or iconlib.iconColorized(iconName,
+                                                     size=iconSize, color=self.offsetColor(iconColor, iconHoverOffset),
+                                                     overlayName=iconOverlayName)
+
+        super(ExtendedButton, self).__init__(icon=self.buttonIcon, text=text, parent=parent)
 
         self.leftMenu = leftClickMenu
         self.middleMenu = middleClickMenu
@@ -34,7 +46,6 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.installEventFilter(self)
 
     def eventFilter(self, object, event):
-
         if event.type() == QtCore.QEvent.MouseButtonPress:
             if event.button() == QtCore.Qt.MiddleButton:
                 self.setDown(True)
@@ -50,7 +61,27 @@ class ExtendedButton(QtWidgets.QPushButton):
             elif event.button() == QtCore.Qt.RightButton:
                 self.rightClicked.emit()
 
+        # Mouse icon hover
+        if event.type() == QtCore.QEvent.Enter:
+            self.setIcon(self.buttonIconHover)
+
+        elif event.type() == QtCore.QEvent.Leave:
+            self.setIcon(self.buttonIcon)
+
         return super(ExtendedButton, self).eventFilter(object, event)
+
+    def offsetColor(self, col, offset=0, saturation=0.5):
+        """
+        Returns a darker colour
+        :param col:
+        :param offset:
+        :return:
+        """
+        col = (colour.clamp(col[0] + offset), colour.clamp(col[1] + offset), colour.clamp(col[2] + offset))
+        #col = tuple(colour.convertHsvToRgb(colour.offsetSaturation(colour.convertRgbToHsv(list(col)), saturation)))
+
+        return col
+
 
     def leftContextMenu(self):
         """
