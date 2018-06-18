@@ -9,6 +9,15 @@ class ExtendedButton(QtWidgets.QPushButton):
     Push Button that allows you to have the left click, middle click, and right click.
 
     Each click allows for a menu
+
+    :example:
+    You can use it in a similar fashion to QPushbutton
+    >>> ExtendedButton(iconName="magic")
+    >>> ExtendedButton(iconName="magic", text="text")
+
+    Adding an icon this way will override iconName. Also the icon hover highlight currently
+    doesn't get generated this way.
+    >>> ExtendedButton(icon=iconlib.iconColorized("magic", size=32, color=(255,255,255)))
     """
 
     leftClicked = QtCore.Signal()
