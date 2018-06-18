@@ -26,8 +26,8 @@ class ExtendedButton(QtWidgets.QPushButton):
 
         self.buttonIcon = icon or iconlib.iconColorized(iconName, size=iconSize, color=iconColor, overlayName=iconOverlayName)
         self.buttonIconHover = icon or iconlib.iconColorized(iconName,
-                                                     size=iconSize, color=self.offsetColor(iconColor, iconHoverOffset),
-                                                     overlayName=iconOverlayName)
+                                                             size=iconSize, color=self.offsetColor(iconColor, iconHoverOffset),
+                                                             overlayName=iconOverlayName)
 
         super(ExtendedButton, self).__init__(icon=self.buttonIcon, text=text, parent=parent)
 
@@ -39,6 +39,7 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.middleMenuActive = True
         self.rightMenuActive = True
 
+        self.clicked.connect(lambda: self.leftClicked.emit())
         self.leftClicked.connect(self.leftContextMenu)
         self.middleClicked.connect(self.middleContextMenu)
         self.rightClicked.connect(self.rightContextMenu)
@@ -46,6 +47,12 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.installEventFilter(self)
 
     def eventFilter(self, object, event):
+        """
+        Mouse Button press and release. Also icon hovers
+        :param object:
+        :param event:
+        :return:
+        """
         if event.type() == QtCore.QEvent.MouseButtonPress:
             if event.button() == QtCore.Qt.MiddleButton:
                 self.setDown(True)
@@ -70,18 +77,16 @@ class ExtendedButton(QtWidgets.QPushButton):
 
         return super(ExtendedButton, self).eventFilter(object, event)
 
-    def offsetColor(self, col, offset=0, saturation=0.5):
+    def offsetColor(self, col, offset=0):
         """
-        Returns a darker colour
+        Returns a colour with the offset
         :param col:
         :param offset:
         :return:
         """
         col = (colour.clamp(col[0] + offset), colour.clamp(col[1] + offset), colour.clamp(col[2] + offset))
-        #col = tuple(colour.convertHsvToRgb(colour.offsetSaturation(colour.convertRgbToHsv(list(col)), saturation)))
 
         return col
-
 
     def leftContextMenu(self):
         """
