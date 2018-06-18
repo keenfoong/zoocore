@@ -4,6 +4,25 @@ from zoo.libs.pyqt.widgets.extendedbutton import ExtendedButton
 
 
 class IconMenuButton(ExtendedButton):
+    """
+    IconMenuButton is a button that only takes an icon. Clicking it will pop up a context menu.
+    Left click, middle click and right click can be customized and added with addAction
+
+    :example:
+    >>> logoButton = IconMenuButton(iconName="magic", iconSize=32)
+    >>> logoButton.setIconSize(QtCore.QSize(24, 24))
+
+    Add to menu. The menu is automatically created if there is none and placed into
+    self.leftMenu, self.middleMenu or self.rightMenu
+    >>> logoButton.addAction("Create 3D Characters")
+    >>> logoButton.addSeparator()
+    >>> logoButton.addAction("Toggle Toolbars", connect=self.toggleContents)
+
+    Middle Click and right click menu
+    >>> logoButton.addAction("Middle Click Menu", mouseMenu=QtCore.Qt.MidButton)
+    >>> logoButton.addAction("Right Click Menu", mouseMenu=QtCore.Qt.RightButton)
+
+    """
     def __init__(self, icon=None, iconName=None, parent=None, iconSize=32, iconColor=(255,255,255), iconOverlayName=None,leftClickMenu=None, middleClickMenu=None, rightClickMenu=None):
         super(IconMenuButton, self).__init__(icon=icon, iconName=iconName, iconSize=iconSize,
                                              iconColor=iconColor, iconOverlayName=iconOverlayName,
@@ -41,7 +60,6 @@ class IconMenuButton(ExtendedButton):
         if connect is not None:
             newAction.triggered.connect(connect)
 
-
     def addSeparator(self, mouseMenu=QtCore.Qt.LeftButton):
         """
         Add a separator in the menu
@@ -50,7 +68,6 @@ class IconMenuButton(ExtendedButton):
         """
         menu = self.getMenu(mouseMenu)
         menu.addSeparator()
-
 
     def getMenu(self, mouseMenu=QtCore.Qt.LeftButton):
         """
@@ -75,7 +92,3 @@ class IconMenuButton(ExtendedButton):
             menu = self.rightMenu
 
         return menu
-
-        
-    
-
