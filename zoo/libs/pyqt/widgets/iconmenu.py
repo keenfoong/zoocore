@@ -2,9 +2,13 @@ from qt import QtWidgets,QtCore
 
 from zoo.libs.pyqt.widgets.extendedbutton import ExtendedButton
 
+
 class IconMenuButton(ExtendedButton):
-    def __init__(self, icon, parent, leftClickMenu=None, middleClickMenu=None, rightClickMenu=None):
-        super(IconMenuButton, self).__init__(icon, parent, leftClickMenu, middleClickMenu, rightClickMenu)
+    def __init__(self, icon=None, iconName=None, parent=None, iconSize=32, iconColor=(255,255,255), iconOverlayName=None,leftClickMenu=None, middleClickMenu=None, rightClickMenu=None):
+        super(IconMenuButton, self).__init__(icon=icon, iconName=iconName, iconSize=iconSize,
+                                             iconColor=iconColor, iconOverlayName=iconOverlayName,
+                                             parent=parent,
+                                             leftClickMenu=leftClickMenu, middleClickMenu=middleClickMenu, rightClickMenu=rightClickMenu)
         self.initUi()
 
     def initUi(self):
