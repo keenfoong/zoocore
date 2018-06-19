@@ -2,6 +2,7 @@ from qt import QtWidgets, QtCore, QtGui
 
 from zoo.libs import iconlib
 from zoo.libs.pyqt.widgets import flowlayout, iconmenu
+from zoo.libs.utils import colour
 
 
 class FlowToolBar(QtWidgets.QWidget):
@@ -70,7 +71,11 @@ class FlowToolBar(QtWidgets.QWidget):
         """
         # Create an item with a caption
 
-        btn = iconmenu.IconMenuButton(iconName=iconName, parent=self, iconSize=self.iconSize, iconColor=iconColor)
+        btn = iconmenu.IconMenuButton(icon=iconlib.iconColorized(iconName, size=self.iconSize, color=iconColor),
+                                      iconHover=iconlib.iconColorized(iconName,
+                                                                      size=self.iconSize,
+                                                                      color=colour.offsetColor(iconColor, 40)),
+                                      parent=self)
         btn.setProperty("name", name)
         btn.setIconSize(self.getIconSize())
         btn.leftClicked.connect(self.toolsClicked)

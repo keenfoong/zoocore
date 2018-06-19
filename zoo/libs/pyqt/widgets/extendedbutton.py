@@ -12,12 +12,8 @@ class ExtendedButton(QtWidgets.QPushButton):
 
     :example:
     You can use it in a similar fashion to QPushbutton
-    >>> ExtendedButton(iconName="magic")
-    >>> ExtendedButton(iconName="magic", text="text")
-
-    Adding an icon this way will override iconName. Also the icon hover highlight currently
-    doesn't get generated this way.
     >>> ExtendedButton(icon=iconlib.iconColorized("magic", size=32, color=(255,255,255)))
+
     """
 
     leftClicked = QtCore.Signal()
@@ -28,30 +24,42 @@ class ExtendedButton(QtWidgets.QPushButton):
     middleMenuActive = None
     rightMenuActive = None
 
-    def __init__(self, icon=None, iconName=None, iconSize=32, iconColor=(255,255,255), iconOverlayName=None,
-                 iconHoverOffset=40,
-                 text=None, parent=None,
-                 leftClickMenu=None, middleClickMenu=None, rightClickMenu=None):
+    def __init__(self, icon=None, iconHover=None,
+                 text=None, parent=None):
 
-        self.buttonIcon = icon or iconlib.iconColorized(iconName, size=iconSize, color=iconColor, overlayName=iconOverlayName)
-        self.buttonIconHover = icon or iconlib.iconColorized(iconName,
-                                                             size=iconSize, color=self.offsetColor(iconColor, iconHoverOffset),
-                                                             overlayName=iconOverlayName)
+        self.buttonIcon = icon
+        self.buttonIconHover = iconHover
 
         super(ExtendedButton, self).__init__(icon=self.buttonIcon, text=text, parent=parent)
-
-        self.leftMenu = leftClickMenu
-        self.middleMenu = middleClickMenu
-        self.rightMenu = rightClickMenu
 
         self.leftMenuActive = True
         self.middleMenuActive = True
         self.rightMenuActive = True
 
+        self.leftMenu = None  # type: QtWidgets.QMenu
+        self.middleMenu = None  # type: QtWidgets.QMenu
+        self.rightMenu = None  # type: QtWidgets.QMenu
+
         self.clicked.connect(lambda: self.leftClicked.emit())
         self.leftClicked.connect(self.leftContextMenu)
         self.middleClicked.connect(self.middleContextMenu)
         self.rightClicked.connect(self.rightContextMenu)
+
+    def setMenu(self, menu, mouseButton=QtCore.Qt.LeftButton):
+        """
+        Set the menu based
+        :param menu:
+        :type menu: QtWidgets.QMenu
+        :param mouseButton:
+        :return:
+        """
+
+        if mouseButton == QtCore.Qt.LeftButton:
+            self.leftMenu = menu
+        elif mouseButton == QtCore.Qt.MidButton:
+            self.middleMenu = menu
+        elif mouseButton == QtCore.Qt.RightButton:
+            self.rightMenu = menu
 
     def mousePressEvent(self, event):
         """
@@ -59,7 +67,7 @@ class ExtendedButton(QtWidgets.QPushButton):
         :param event:
         :return:
         """
-        if event.button() == QtCore.Qt.MiddleButton:
+        if event.button() == QtCore.Qt.MidButton:
             self.setDown(True)
         elif event.button() == QtCore.Qt.RightButton:
             self.setDown(True)
@@ -73,7 +81,7 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.setDown(False)
         if event.button() == QtCore.Qt.LeftButton:
             self.leftClicked.emit()
-        elif event.button() == QtCore.Qt.MiddleButton:
+        elif event.button() == QtCore.Qt.MidButton:
             self.middleClicked.emit()
         elif event.button() == QtCore.Qt.RightButton:
             self.rightClicked.emit()
@@ -84,7 +92,8 @@ class ExtendedButton(QtWidgets.QPushButton):
         :param event:
         :return:
         """
-        self.setIcon(self.buttonIconHover)
+        if self.buttonIconHover is not None:
+            self.setIcon(self.buttonIconHover)
 
     def leaveEvent(self, event):
         """
@@ -93,17 +102,6 @@ class ExtendedButton(QtWidgets.QPushButton):
         :return:
         """
         self.setIcon(self.buttonIcon)
-
-    def offsetColor(self, col, offset=0):
-        """
-        Returns a colour with the offset
-        :param col:
-        :param offset:
-        :return:
-        """
-        col = (colour.clamp(col[0] + offset), colour.clamp(col[1] + offset), colour.clamp(col[2] + offset))
-
-        return col
 
     def leftContextMenu(self):
         """

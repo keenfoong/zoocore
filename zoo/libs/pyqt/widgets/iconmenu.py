@@ -9,7 +9,7 @@ class IconMenuButton(ExtendedButton):
     Left click, middle click and right click can be customized and added with addAction
 
     :example:
-    >>> logoButton = IconMenuButton(iconName="magic", iconSize=32)
+    >>> logoButton = IconMenuButton(iconlib.icon("magic", size=32))
     >>> logoButton.setIconSize(QtCore.QSize(24, 24))
 
     Add to menu. The menu is automatically created if there is none and placed into
@@ -23,11 +23,8 @@ class IconMenuButton(ExtendedButton):
     >>> logoButton.addAction("Right Click Menu", mouseMenu=QtCore.Qt.RightButton)
 
     """
-    def __init__(self, icon=None, iconName=None, parent=None, iconSize=32, iconColor=(255,255,255), iconOverlayName=None,leftClickMenu=None, middleClickMenu=None, rightClickMenu=None):
-        super(IconMenuButton, self).__init__(icon=icon, iconName=iconName, iconSize=iconSize,
-                                             iconColor=iconColor, iconOverlayName=iconOverlayName,
-                                             parent=parent,
-                                             leftClickMenu=leftClickMenu, middleClickMenu=middleClickMenu, rightClickMenu=rightClickMenu)
+    def __init__(self, icon=None, iconHover=None, parent=None):
+        super(IconMenuButton, self).__init__(icon=icon, iconHover=iconHover, parent=parent)
         self.initUi()
 
     def initUi(self):
