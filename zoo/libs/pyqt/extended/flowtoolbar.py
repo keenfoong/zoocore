@@ -69,10 +69,11 @@ class FlowToolBar(QtWidgets.QWidget):
         :return:
         """
         # Create an item with a caption
-        btn = QtWidgets.QPushButton(iconlib.iconColorized(iconName, self.iconSize, color=iconColor), "")
+
+        btn = iconmenu.IconMenuButton(iconName=iconName, parent=self, iconSize=self.iconSize, iconColor=iconColor)
         btn.setProperty("name", name)
         btn.setIconSize(self.getIconSize())
-        btn.clicked.connect(self.toolsClicked)
+        btn.leftClicked.connect(self.toolsClicked)
 
         self.mainLayout.addWidget(btn)
         return btn
@@ -100,17 +101,18 @@ class FlowToolBar(QtWidgets.QWidget):
         if showIndicator:
             overlayName = self.menuIndicatorIcon
 
-        btn = iconmenu.IconMenuButton(iconlib.iconColorized(iconName,
-                                                            size=self.iconSize,
-                                                            color=iconColor,
-                                                            overlayName=overlayName))
+        btn = iconmenu.IconMenuButton(iconName=iconName,
+                                      iconSize=self.iconSize,
+                                      iconColor=iconColor,
+                                      iconOverlayName=overlayName,
+                                      parent=self)
         btn.setProperty("name", name)
         btn.setIconSize(QtCore.QSize(self.iconSize + self.iconPadding,
                                      self.iconSize + self.iconPadding))
-        btn.clicked.connect(self.toolsClicked)
+        btn.leftClicked.connect(self.toolsClicked)
 
         for a in actions:
-            btn.addAction(a[0], a[1])
+            btn.addAction(a[0], connect=a[1])
 
         self.mainLayout.addWidget(btn)
         return btn
