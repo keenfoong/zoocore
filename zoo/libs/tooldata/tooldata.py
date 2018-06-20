@@ -57,7 +57,7 @@ class ToolSet(object):
 
     def __init__(self):
         self.roots = OrderedDict()
-
+        self.extension = ".json"
     def root(self, name):
         if name not in self.roots:
             raise RootDoesntExistsError("Root by the name: {} doesn't exist".format(name))
@@ -84,7 +84,7 @@ class ToolSet(object):
         """
         relativePath = path.Path(relativePath)
         if not relativePath.getExtension(True):
-            relativePath = relativePath.setExtension(extension or ".json")
+            relativePath = relativePath.setExtension(extension or self.extension)
 
         if root is not None:
             rootPath = self.roots.get(root)
@@ -103,16 +103,21 @@ class ToolSet(object):
 
         return SettingObject("", relativePath)
 
+    def settingFromRootPath(self, relativePath, rootPath):
+        fullpath = rootPath / relativePath
+        if not fullpath.exists():
+            return self.open(rootPath, relativePath)
+        return SettingObject("", relativePath)
+
     def createSetting(self, relative, root, data):
         setting = self.findSetting(relative, root)
         setting.update(data)
-        setting.save()
         return setting
 
     def open(self, root, relativePath, extension=None):
         relativePath = path.Path(relativePath)
         if not relativePath.getExtension(True):
-            relativePath = relativePath.setExtension(extension or ".json")
+            relativePath = relativePath.setExtension(extension or self.extension)
         fullPath = root / relativePath
         if not os.path.exists(fullPath):
             raise InvalidSettingsPath(fullPath)

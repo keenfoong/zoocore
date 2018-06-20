@@ -19,8 +19,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.docks = []
         self.toolBars = {}
         self.hasMainMenu = False
-        self.centralWidget = QtWidgets.QWidget()
-        self.setCentralWidget(self.centralWidget)
+        self.centralWidget = None
+        self.setCentralWidget(QtWidgets.QWidget())
 
         self.setDockOptions(QtWidgets.QMainWindow.AllowNestedDocks |
                             QtWidgets.QMainWindow.AnimatedDocks)
@@ -64,6 +64,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.viewMenu.addAction(i.toggleViewAction())
 
     def setCustomCentralWidget(self, widget):
+        self.centralWidget = widget
         self.setCentralWidget(widget)
 
     def createDock(self, mainWidget, area=QtCore.Qt.LeftDockWidgetArea,

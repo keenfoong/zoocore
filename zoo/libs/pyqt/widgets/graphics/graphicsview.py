@@ -77,14 +77,18 @@ class GraphicsView(QtWidgets.QGraphicsView):
             item = self.itemAt(event.pos())
             if item:
                 # # if we have the ctrl key pressed then add the selection
-                if event.modifiers() == QtCore.Qt.ControlModifier:
+                if event.modifiers() == QtCore.Qt.ShiftModifier:
                     if not item.isSelected():
-                        item.selected = True
+                        item.setSelected(True)
+                elif event.modifiers() == QtCore.Qt.ControlModifier and item.isSelected:
+                    item.setSelected(False)
                 else:
-                    if not item.isSelected:
-                        self.scene().clearSelection()
-                        item.selected = True
+                    item.setSelected(True)
+            else:
+                for item in self.scene().selectedItems():
+                    item.setSelected(False)
             self.previousMousePos = event.pos()
+
         elif event.button() == QtCore.Qt.MiddleButton:
             self.pan_active = True
             self.previousMousePos = self.mapToScene(event.pos()).toPoint()

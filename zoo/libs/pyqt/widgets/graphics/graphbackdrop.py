@@ -73,6 +73,7 @@ class BackDrop(QtWidgets.QGraphicsRectItem):
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsFocusable, True)
         self.setZValue(-100)
         self.updateHandlesPos()
+        self.resizing = False
 
     def handleAt(self, point):
         """
@@ -115,6 +116,7 @@ class BackDrop(QtWidgets.QGraphicsRectItem):
         if self.handleSelected:
             self.mousePressPos = mouseEvent.pos()
             self.mousePressRect = self.boundingRect()
+
         super(BackDrop, self).mousePressEvent(mouseEvent)
 
     def mouseMoveEvent(self, mouseEvent):
@@ -123,6 +125,7 @@ class BackDrop(QtWidgets.QGraphicsRectItem):
         """
         if self.handleSelected is not None:
             self.interactiveResize(mouseEvent.pos())
+            self.resizing = True
         else:
             super(BackDrop, self).mouseMoveEvent(mouseEvent)
 
@@ -134,6 +137,17 @@ class BackDrop(QtWidgets.QGraphicsRectItem):
         self.handleSelected = None
         self.mousePressPos = None
         self.mousePressRect = None
+        colliders = self.collidingItems(QtCore.Qt.IntersectsItemBoundingRect)
+        sceneNodes = self.scene().nodes
+        for item in colliders:
+            if item not in sceneNodes:
+                continue
+            # skip if the item has a parent in which case the parent belongs to a backdrop
+            parent = item.parentItem()
+            if parent and isinstance(parent, BackDrop):
+                continue
+            item.setParentItem(self)
+        self.resizing = False
         self.update()
 
     def boundingRect(self):
