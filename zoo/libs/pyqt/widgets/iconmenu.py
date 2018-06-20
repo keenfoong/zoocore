@@ -89,3 +89,4 @@ class IconMenuButton(ExtendedButton):
             menu = self.rightMenu
 
         return menu
+

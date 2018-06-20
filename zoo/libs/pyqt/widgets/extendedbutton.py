@@ -40,10 +40,17 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.middleMenu = None  # type: QtWidgets.QMenu
         self.rightMenu = None  # type: QtWidgets.QMenu
 
+        self.menuPadding = 5
+
+        self.menuAlign = QtCore.Qt.AlignLeft
+
         self.clicked.connect(lambda: self.leftClicked.emit())
         self.leftClicked.connect(self.leftContextMenu)
         self.middleClicked.connect(self.middleContextMenu)
         self.rightClicked.connect(self.rightContextMenu)
+
+    def setMenuAlign(self, align=QtCore.Qt.AlignLeft):
+        self.menuAlign = align
 
     def setMenu(self, menu, mouseButton=QtCore.Qt.LeftButton):
         """
@@ -109,7 +116,7 @@ class ExtendedButton(QtWidgets.QPushButton):
         :return:
         """
         if self.leftMenu is not None and self.leftMenuActive:
-            self.leftMenu.exec_(self.menuPos())
+            self.leftMenu.exec_(self.menuPos(menu=self.leftMenu, align=self.menuAlign))
 
     def middleContextMenu(self):
         """
@@ -127,10 +134,18 @@ class ExtendedButton(QtWidgets.QPushButton):
         if self.rightMenu is not None and self.rightMenuActive:
             self.rightMenu.exec_(self.menuPos())
 
-    def menuPos(self):
+    def menuPos(self, align=QtCore.Qt.AlignLeft, menu=None):
         """
         Get menu position based on the current widget position and perimeter
         :return:
         """
-        point = self.rect().bottomLeft()
-        return self.mapToGlobal(point)
+        pos = 0
+        if align == QtCore.Qt.AlignLeft:
+            point = self.rect().bottomLeft() - QtCore.QPoint(0, -self.menuPadding)
+            pos = self.mapToGlobal(point)
+        elif align == QtCore.Qt.AlignRight:
+            point = self.rect().bottomRight() - QtCore.QPoint(menu.sizeHint().width(), -self.menuPadding)
+            pos = self.mapToGlobal(point)
+
+        return pos
+
