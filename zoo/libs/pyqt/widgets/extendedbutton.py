@@ -53,38 +53,31 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.middleClicked.connect(self.middleContextMenu)
         self.rightClicked.connect(self.rightContextMenu)
 
-        self.installEventFilter(self)
+    def mousePressEvent(self, event):
 
-    def eventFilter(self, object, event):
-        """
-        Mouse Button press and release. Also icon hovers
-        :param object:
-        :param event:
-        :return:
-        """
-        if event.type() == QtCore.QEvent.MouseButtonPress:
-            if event.button() == QtCore.Qt.MiddleButton:
-                self.setDown(True)
-            elif event.button() == QtCore.Qt.RightButton:
-                self.setDown(True)
+        if event.button() == QtCore.Qt.MiddleButton:
+            self.setDown(True)
+        elif event.button() == QtCore.Qt.RightButton:
+            self.setDown(True)
+        return super(ExtendedButton, self).mousePressEvent(event)
 
-        if event.type() == QtCore.QEvent.MouseButtonRelease:
-            self.setDown(False)
-            if event.button() == QtCore.Qt.LeftButton:
-                self.leftClicked.emit()
-            elif event.button() == QtCore.Qt.MiddleButton:
-                self.middleClicked.emit()
-            elif event.button() == QtCore.Qt.RightButton:
-                self.rightClicked.emit()
+    def mouseReleaseEvent(self, event):
+        self.setDown(False)
+        if event.button() == QtCore.Qt.LeftButton:
+            self.leftClicked.emit()
+        elif event.button() == QtCore.Qt.MiddleButton:
+            self.middleClicked.emit()
+        elif event.button() == QtCore.Qt.RightButton:
+            self.rightClicked.emit()
+        return super(ExtendedButton, self).mouseReleaseEvent(event)
 
-        # Mouse icon hover
-        if event.type() == QtCore.QEvent.Enter:
-            self.setIcon(self.buttonIconHover)
+    def enterEvent(self, event):
+        self.setIcon(self.buttonIconHover)
+        return super(ExtendedButton, self).enterEvent(event)
 
-        elif event.type() == QtCore.QEvent.Leave:
-            self.setIcon(self.buttonIcon)
-
-        return super(ExtendedButton, self).eventFilter(object, event)
+    def leaveEvent(self, event):
+        self.setIcon(self.buttonIcon)
+        return super(ExtendedButton, self).leaveEvent(event)
 
     def offsetColor(self, col, offset=0):
         """
