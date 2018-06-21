@@ -106,10 +106,9 @@ class FlowToolBar(QtWidgets.QWidget):
         if showIndicator:
             overlayName = self.menuIndicatorIcon
 
-        btn = iconmenu.IconMenuButton(iconName=iconName,
-                                      iconSize=self.iconSize,
-                                      iconColor=iconColor,
-                                      iconOverlayName=overlayName,
+        btn = iconmenu.IconMenuButton(icon=iconlib.iconColorized(iconName,size=self.iconSize,color=iconColor,overlayName=overlayName),
+                                      iconHover=iconlib.iconColorized(iconName, size=self.iconSize, color=colour.offsetColor(iconColor, 80),
+                                                                 overlayName=overlayName),
                                       parent=self)
         btn.setProperty("name", name)
         btn.setIconSize(QtCore.QSize(self.iconSize + self.iconPadding,
