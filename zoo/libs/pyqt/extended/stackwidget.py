@@ -327,7 +327,8 @@ class StackItem(QtWidgets.QWidget):
     updateRequested = QtCore.Signal()
 
     def __init__(self, title, parent, collapsed=False, collapsable=True, icon=None, startHidden=False,
-                 itemTint=tuple([60, 60, 60]), shiftArrowsEnabled=True, deleteButtonEnabled=True, titleEditable=True):
+                 itemTint=tuple([60, 60, 60]), shiftArrowsEnabled=True, deleteButtonEnabled=True, titleEditable=True,
+                 initUi=True):
         super(StackItem, self).__init__(parent=parent)
 
         if startHidden:
@@ -373,10 +374,9 @@ class StackItem(QtWidgets.QWidget):
 
         if not titleEditable:
             self.stackTitleWgt.setReadOnly(True)
-
-        self.initUi()
-
-        self.connections()
+        if initUi:
+            self.initUi()
+            self.connections()
 
         if not collapsable:  # if not collapsable must be open
             self.collapsed = False
