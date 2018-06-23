@@ -9,6 +9,12 @@ class ExampleCustomWidget(thumbwidget.ThumbnailViewWidget):
     def __init__(self, *args,**kwargs):
         super(ExampleCustomWidget, self).__init__(*args, **kwargs)
 
+    def closeEvent(self, event):
+        if self.qModel is not None:
+            self.qModel.clear()
+            self.qModel.parentClosed.emit(True)
+        super(ExampleCustomWidget, self).closeEvent(event)
+
     def contextMenu(self, items, menu):
         """ Example on how to add the context menu
 
@@ -32,7 +38,8 @@ class ExampleItem(items.BaseItem):
 class ExampleThumbnailViewerModel(model.ItemModel):
     """Overridden base model to handle custom loading of the data eg. files
     """
-
+    # called by the view to signal the thread
+    parentClosed = QtCore.Signal(bool)
     def __init__(self, view, directory=""):
         super(ExampleThumbnailViewerModel, self).__init__(parent=view)
         self.view = view
@@ -40,13 +47,22 @@ class ExampleThumbnailViewerModel(model.ItemModel):
         self.currentFilesList = []
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
-    def onDirectoryChanged(self, directory):
-        # honestly this first stage should be done in the view and on a separate thread
+    def clear(self):
+        # remove any threads that haven't started yet
+        self.threadpool.clear()
+
+        while not self.threadpool.waitForDone():
+            continue
+        # clear any items, this is necessary to get python to GC alloc memory
         self.items = []
         self.loadedCount = 0
-        self.directory = directory
         self.currentFilesList = []
+        super(ExampleThumbnailViewerModel, self).clear()
+
+    def onDirectoryChanged(self, directory):
+        # honestly this first stage should be done in the view and on a separate thread
         self.clear()
+        self.directory = directory
         self.listFiles()
         self.loadData()
 
@@ -94,6 +110,7 @@ class ExampleThumbnailViewerModel(model.ItemModel):
             it = ExampleItem(name=os.path.basename(f).split(os.extsep)[0], iconPath=f)
             qitem = self.createItem(item=it)
             workerThread.signals.updated.connect(partial(self.setItemIconFromImage, qitem))
+            self.parentClosed.connect(workerThread.finished)
             self.threadpool.start(workerThread)
 
         self.reset()
@@ -120,11 +137,12 @@ class ExampleThumbnailViewerModel(model.ItemModel):
         :return:
         :rtype:
         """
-        print "called"
+        pass
+
 
 def _bind(parent=None):
     wid = ExampleCustomWidget(parent=parent)
-    rootDirectory = r"D:\\reference"
+    rootDirectory = r"D:\reference\Firefall"
     model = ExampleThumbnailViewerModel(wid, rootDirectory)
     wid.setModel(model)
     model.listFiles()

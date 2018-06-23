@@ -177,4 +177,4 @@ class ThumbnailViewWidget(QtWidgets.QWidget):
             model.loadData()
 
     def contextMenu(self, items, menu):
-        print items, menu
+        pass
