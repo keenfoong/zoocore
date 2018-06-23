@@ -80,7 +80,7 @@ class PluginManager(object):
             logger.debug("registering plugin -> {}".format(classObj.__name__))
             self.plugins[classObj.__name__] = classObj
 
-    def loadPlugin(self, name):
+    def loadPlugin(self, name, **kwargs):
         """Loads a given plugin by name. eg plugin(manager=self)
 
         :param name: the plugin to load by name
@@ -90,7 +90,8 @@ class PluginManager(object):
         if tool:
             logger.debug("Loading Plugin -> {}".format(name))
             # pass the manager into the plugin, this is so we have access to any global info
-            self.loadedPlugins[name] = tool(manager=self)
+            kwargs["manager"] = self
+            self.loadedPlugins[name] = tool(**kwargs)
             self.loadedPlugins[name].isLoaded = True
             return self.loadedPlugins[name]
 

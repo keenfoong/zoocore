@@ -32,7 +32,6 @@ class ViewSearchWidget(QtWidgets.QWidget):
         self.searchLayout = QtWidgets.QHBoxLayout(self)
         self.searchLayout.setContentsMargins(2, 2, 2, 2)
 
-        self.searchBoxLabel = QtWidgets.QLabel("Search By: ", parent=self)
         self.searchHeaderBox = combobox.ExtendedComboBox(parent=self)
         self.searchHeaderBox.setMinimumWidth(100)
         self.searchWidget = searchwidget.SearchLineEdit(searchIcon, closeIcon, parent=self)
@@ -50,7 +49,6 @@ class ViewSearchWidget(QtWidgets.QWidget):
             self.columnVisibilityBox.checkStateChanged.connect(self.onVisibilityChanged)
             self.searchLayout.addWidget(self.columnVisibilityBox)
 
-        self.searchLayout.addWidget(self.searchBoxLabel)
         self.searchLayout.addWidget(self.searchHeaderBox)
         self.searchLayout.addWidget(self.searchWidget)
 

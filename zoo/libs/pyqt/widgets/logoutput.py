@@ -16,8 +16,8 @@ class OutputLogDialog(QtWidgets.QPlainTextEdit):
 
     """
     infoColor = QtGui.QColor(QtCore.Qt.white)
-    debugColor = QtGui.QColor("#EEE97B")
-    warningColor = QtGui.QColor("#D89614")
+    debugColor = QtGui.QColor("#f4f4f4")
+    warningColor = QtGui.QColor("#ffe700")
     errorColor = QtGui.QColor("#CC0000")
     criticalColor = QtGui.QColor("#CC0000")
     html = """<p style="font-weight:300;color:{};"<span>{}</span></p>"""

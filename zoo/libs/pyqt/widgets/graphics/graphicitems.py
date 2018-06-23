@@ -24,6 +24,16 @@ class ItemContainer(QtWidgets.QGraphicsWidget):
         if alignment:
             self.layout().setAlignment(item, alignment)
 
+    def insertItem(self, index, item, alignment=None):
+        self.layout().insertItem(index, item)
+        if alignment:
+            self.layout().setAlignment(item, alignment)
+
+    def clear(self):
+        layout = self.layout()
+        for i in range(layout.count()):
+            layout.removeAt(i)
+
     def removeItemAtIndex(self, index):
         """Adds a QWidget to the container layout
 
@@ -259,7 +269,7 @@ class ConnectionEdge(QtWidgets.QGraphicsPathItem):
 class SelectionRect(QtWidgets.QGraphicsWidget):
     def __init__(self, mouseDownPos):
         super(SelectionRect, self).__init__()
-        self.setZValue(-1)
+        self.setZValue(100)
         self._color = QtGui.QColor(80, 80, 80, 50)
         self._pen = QtGui.QPen(QtGui.QColor(20, 20, 20), 1.0, QtCore.Qt.DashLine)
         self._mouseDownPos = mouseDownPos

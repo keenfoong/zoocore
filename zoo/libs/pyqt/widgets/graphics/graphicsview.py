@@ -74,19 +74,20 @@ class GraphicsView(QtWidgets.QGraphicsView):
         button = event.buttons()
 
         if button == QtCore.Qt.LeftButton:
-            item = self.itemAt(event.pos())
-            if item:
-                # # if we have the ctrl key pressed then add the selection
-                if event.modifiers() == QtCore.Qt.ShiftModifier:
-                    if not item.isSelected():
-                        item.setSelected(True)
-                elif event.modifiers() == QtCore.Qt.ControlModifier and item.isSelected:
-                    item.setSelected(False)
-                else:
-                    item.setSelected(True)
-            else:
-                for item in self.scene().selectedItems():
-                    item.setSelected(False)
+            # item = self.itemAt(event.pos())
+            # if item:
+            #     # # if we have the ctrl key pressed then add the selection
+            #     if event.modifiers() == QtCore.Qt.ShiftModifier:
+            #         if not item.isSelected():
+            #             item.setSelected(True)
+            #     elif event.modifiers() == QtCore.Qt.ControlModifier and item.isSelected:
+            #         item.setSelected(False)
+            #     else:
+            #         item.setSelected(True)
+            # else:
+            #     print "bugger"
+                # for item in self.scene().selectedItems():
+                #     item.setSelected(False)
             self.previousMousePos = event.pos()
 
         elif event.button() == QtCore.Qt.MiddleButton:
@@ -104,13 +105,13 @@ class GraphicsView(QtWidgets.QGraphicsView):
             rect.translate(-delta.x(), -delta.y())
             self.setSceneRect(rect)
             self.previousMousePos = self.mapToScene(event.pos()).toPoint()
-            return
         super(GraphicsView, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         if self.pan_active:
             self.pan_active = False
             self.setCursor(QtCore.Qt.ArrowCursor)
+
         super(GraphicsView, self).mouseReleaseEvent(event)
 
     def keyPressEvent(self, event):
