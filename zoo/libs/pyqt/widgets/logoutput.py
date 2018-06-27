@@ -37,21 +37,27 @@ class OutputLogDialog(QtWidgets.QPlainTextEdit):
         self.setReadOnly(True)
 
     def logInfo(self, msg):
-        self._write(msg, self.infoColor)
+        self.write(msg, self.infoColor)
 
     def logDebug(self, msg):
-        self._write(msg, self.debugColor)
+        self.write(msg, self.debugColor)
 
     def logWarning(self, msg):
-        self._write(msg, self.warningColor)
+        self.write(msg, self.warningColor)
 
     def logError(self, msg):
-        self._write(msg, self.errorColor)
+        self.write(msg, self.errorColor)
 
     def logCritical(self, msg):
-        self._write(msg, self.criticalColor)
+        self.write(msg, self.criticalColor)
 
-    def _write(self, msg, color):
+    def keyEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Delete:
+            self.clear()
+
+    def write(self, msg, color=QtGui.QColor(QtCore.Qt.white)):
+        # deal with multi line strings
+        msg = msg.replace("\n", "<br/>")
         html = self.html.format(color.name(), msg)
         self.appendHtml(html)
 

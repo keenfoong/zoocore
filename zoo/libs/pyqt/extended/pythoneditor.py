@@ -1,5 +1,6 @@
 import os
-
+import sys
+import traceback
 from qt import QtWidgets, QtGui, QtCore
 from zoo.libs.pyqt import utils as qtutils
 from zoo.libs.pyqt.syntaxhighlighter import highlighter
@@ -15,7 +16,7 @@ class NumberBar(QtWidgets.QWidget):
 
     def paintEvent(self, event):
         self.edit.numberbarPaint(self, event)
-        super(NumberBar,self).paintEvent(event)
+        super(NumberBar, self).paintEvent(event)
 
     def adjustWidth(self, count):
         width = self.fontMetrics().width(unicode(count))
@@ -33,10 +34,18 @@ class TextEditor(QtWidgets.QPlainTextEdit):
 
     def __init__(self, parent=None):
         super(TextEditor, self).__init__(parent=parent)
-
+        self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.setWordWrapMode(QtGui.QTextOption.NoWrap)
         self.setFrameStyle(QtWidgets.QFrame.NoFrame)
+        self.centerOnScroll()
         self.highlight()
         self.cursorPositionChanged.connect(self.highlight)
+        metrics = QtGui.QFontMetrics(self.document().defaultFont())
+        self.setTabStopWidth(4 * metrics.width(' '))
+        font = QtGui.QFont("Courier")
+        font.setStyleHint(QtGui.QFont.Monospace)
+        font.setFixedPitch(True)
+        self.setFont(font)
 
     def highlight(self):
         hi_selection = QtWidgets.QTextEdit.ExtraSelection()
@@ -85,11 +94,65 @@ class TextEditor(QtWidgets.QPlainTextEdit):
 
         painter.end()
 
-class Editor(QtWidgets.QFrame):
-    def __init__(self, parent=None):
-        super(Editor,self).__init__(parent=parent)
-        self.setFrameStyle(QtWidgets.QFrame.StyledPanel | QtWidgets.QFrame.Sunken)
+    def wheelEvent(self, event):
+        """
+        Handles zoom in/out of the text.
+        """
+        if event.modifiers() & QtCore.Qt.ControlModifier:
+            delta = event.delta()
+            if delta < 0:
+                self.zoom(-1)
+            elif delta > 0:
+                self.zoom(1)
+            return True
+        return super(TextEditor, self).wheelEvent(event)
 
+    def zoom(self, direction):
+        """
+        Zoom in on the text.
+        """
+
+        font = self.font()
+        size = font.pointSize()
+        if size == -1:
+            size = font.pixelSize()
+
+        size += direction
+
+        if size < 7:
+            size = 7
+        if size > 50:
+            return
+
+        style = """
+        QWidget {
+            font-size: %spt;
+        }
+        """ % (size,)
+        self.setStyleSheet(style)
+
+    def keyPressEvent(self, event):
+        if (event.modifiers() & QtCore.Qt.ShiftModifier and
+                event.key() in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]):
+            self.insertPlainText("\n")
+            event.accept()
+        elif event.key() == QtCore.Qt.Key_Tab:
+            # intercept the tab key and insert 4 spaces
+            self.insertPlainText("    ")
+            event.accept()
+        else:
+            super(TextEditor, self).keyPressEvent(event)
+        if event.key() in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter) and event.modifiers() == QtCore.Qt.ControlModifier:
+            self.parent().execute()
+
+
+class Editor(QtWidgets.QFrame):
+    outputText = QtCore.Signal(str)
+
+    def __init__(self, parent=None):
+        super(Editor, self).__init__(parent=parent)
+        self.setFrameStyle(QtWidgets.QFrame.StyledPanel | QtWidgets.QFrame.Sunken)
+        self._locals = {}
         self.textEdit = TextEditor(parent=self)
         self.numberBar = NumberBar(self.textEdit)
 
@@ -101,7 +164,8 @@ class Editor(QtWidgets.QFrame):
         self.textEdit.updateRequest.connect(self.numberBar.updateContents)
         self.pythonHighlighter = highlighter.highlighterFromJson(os.path.join(os.path.dirname(highlighter.__file__),
                                                                               "highlightdata.json"),
-                                                                  self.textEdit.document())
+                                                                 self.textEdit.document())
+
     def text(self):
         return self.textEdit.toPlainText()
 
@@ -116,3 +180,84 @@ class Editor(QtWidgets.QFrame):
 
     def setLineWrapMode(self, mode):
         self.edit.setLineWrapMode(mode)
+
+    def execute(self):
+        original_stdout= sys.stdout
+        class stdoutProxy():
+            def __init__(self, write_func):
+                self.write_func = write_func
+                self.skip = False
+
+            def write(self, text):
+                if not self.skip:
+                    stripped_text = text.rstrip('\n')
+                    self.write_func(stripped_text)
+                self.skip = not self.skip
+
+            def flush(self):
+                pass
+
+        sys.stdout = stdoutProxy(self.outputText.emit)
+
+        cursor = self.textEdit.textCursor()
+        script = cursor.selectedText()
+        script = script.replace(u"\u2029", "\n")
+
+        if not script:
+            script = str(self.toPlainText().strip())
+        if not script:
+            return
+        self.outputText.emit(script)
+        evalCode = True
+        try:
+            try:
+                outputCode = compile(script, "<string>", "eval")
+            except SyntaxError:
+                evalCode = False
+                outputCode = compile(script, "<string>", "exec")
+            except Exception:
+                trace = traceback.format_exc()
+                self.outputText.emit(trace)
+                return
+
+            # ok we've compiled the code now exec
+            if evalCode:
+                try:
+                    results = eval(outputCode, globals(), self._locals)
+                    self.outputText.emit(str(results))
+                except Exception:
+                    trace = traceback.format_exc()
+                    self.outputText.emit(trace)
+            else:
+                try:
+                    exec (outputCode, globals(), self._locals)
+                except Exception:
+                    trace = traceback.format_exc()
+                    self.outputText.emit(trace)
+        finally:
+            sys.stdout = original_stdout
+
+
+class TabbedEditor(QtWidgets.QTabWidget):
+    outputText = QtCore.Signal(str)
+    def __init__(self, parent):
+        super(TabbedEditor, self).__init__(parent=parent)
+        self.setTabsClosable(True)
+        self.setMovable(True)
+        self.newTabBtn = QtWidgets.QPushButton("+", parent=self)
+        self.newTabBtn.setMaximumWidth(40)
+        self.newTabBtn.setToolTip("Add New Tab")
+        self.setCornerWidget(self.newTabBtn, QtCore.Qt.TopLeftCorner)
+        self.newTabBtn.clicked.connect(self.addNewEditor)
+        self.tabCloseRequested.connect(self.closeCurrentTab)
+
+    def addNewEditor(self, name=None):
+        name = name or "New tab"
+        edit = Editor(parent=self)
+        self.addTab(edit, name)
+        edit.outputText.connect(self.outputText.emit)
+        edit.textEdit.moveCursor(QtGui.QTextCursor.Start)
+        self.setCurrentIndex(self.count()-1)
+
+    def closeCurrentTab(self, index):
+        self.removeTab(index)

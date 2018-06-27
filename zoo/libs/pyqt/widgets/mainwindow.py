@@ -23,7 +23,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(QtWidgets.QWidget())
 
         self.setDockOptions(QtWidgets.QMainWindow.AllowNestedDocks |
-                            QtWidgets.QMainWindow.AnimatedDocks)
+                            QtWidgets.QMainWindow.AnimatedDocks |
+                            QtWidgets.QMainWindow.AllowTabbedDocks)
         self.setTabPosition(QtCore.Qt.AllDockWidgetAreas,QtWidgets.QTabWidget.North)
         if icon:
             if isinstance(icon, QtGui.QIcon):
@@ -73,7 +74,7 @@ class MainWindow(QtWidgets.QMainWindow):
         existing = self.findDock(dockName)
         if existing:
             existing.raise_()
-        dock = dockwidget.DockWidget(dockName, parent=self, floating=False)
+        dock = dockwidget.DockWidget(mainWidget.objectName(), parent=self, floating=False)
 
         dock.setObjectName(dockName)
         dock.setWidget(mainWidget)
