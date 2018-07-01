@@ -21,7 +21,7 @@ class PluginManager(object):
     def __init__(self, interface=plugin.Plugin, variableName=None):
         self.plugins = {}
         # register the plugin names by the variable, if its missing fallback to the class name
-        self.variableName = variableName
+        self.variableName = variableName or ""
         self.interface = interface
         self.loadedPlugins = {}  # {className: instance}
         self.basePaths = []
