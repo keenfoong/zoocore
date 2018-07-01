@@ -18,8 +18,10 @@ class PluginManager(object):
      To return all plugins currently registry use the instance.plugins variable.
     """
 
-    def __init__(self, interface=plugin.Plugin):
+    def __init__(self, interface=plugin.Plugin, variableName=None):
         self.plugins = {}
+        # register the plugin names by the variable, if its missing fallback to the class name
+        self.variableName = variableName
         self.interface = interface
         self.loadedPlugins = {}  # {className: instance}
         self.basePaths = []
@@ -77,8 +79,9 @@ class PluginManager(object):
         :type classObj: Plugin
         """
         if classObj not in self.plugins.values() and issubclass(classObj, self.interface):
-            logger.debug("registering plugin -> {}".format(classObj.__name__))
-            self.plugins[classObj.__name__] = classObj
+            name = getattr(classObj, self.variableName) if hasattr(classObj, self.variableName) else classObj.__name__
+            logger.debug("registering plugin -> {}".format(name))
+            self.plugins[name] = classObj
 
     def loadPlugin(self, name, **kwargs):
         """Loads a given plugin by name. eg plugin(manager=self)
