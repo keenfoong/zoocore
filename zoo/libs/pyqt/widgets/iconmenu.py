@@ -117,8 +117,9 @@ class IconMenuButton(ExtendedButton):
         return self.clickMenu[mouseMenu]
 
     def contextMenu(self, mouseButton):
-        super(IconMenuButton, self).contextMenu(mouseButton)
+        if isinstance(self.clickMenu[mouseButton], searchablemenu.SearchableMenu):
+            searchEdit = self.clickMenu[mouseButton].searchEdit
+            searchEdit.setFocus()
 
-        """if isinstance(self.leftMenu, searchablemenu.SearchableMenu):
-            self.leftMenu"""
+        super(IconMenuButton, self).contextMenu(mouseButton)
 
