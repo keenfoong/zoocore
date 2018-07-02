@@ -80,5 +80,6 @@ class ItemModel(QtGui.QStandardItemModel):
             if color:
                 return QtGui.QColor(*color)
         return super(ItemModel, self).data(index, role)
+
     def doubleClickEvent(self, modelIndex, item):
         pass

@@ -40,6 +40,7 @@ class ExampleThumbnailViewerModel(model.ItemModel):
     """
     # called by the view to signal the thread
     parentClosed = QtCore.Signal(bool)
+
     def __init__(self, view, directory=""):
         super(ExampleThumbnailViewerModel, self).__init__(parent=view)
         self.view = view
@@ -138,7 +139,6 @@ class ExampleThumbnailViewerModel(model.ItemModel):
         :rtype:
         """
         pass
-
 
 def _bind(parent=None):
     wid = ExampleCustomWidget(parent=parent)
