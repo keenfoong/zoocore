@@ -87,7 +87,8 @@ class FlowLayout(QtWidgets.QLayout):
 
     def expandingDirections(self):
         """This layout grows only in the horizontal dimension"""
-        return QtCore.Qt.Orientations(QtCore.Qt.Horizontal)
+        if QtCore is not None:  # QtCore errors driving me insane
+            return QtCore.Qt.Orientations(QtCore.Qt.Horizontal)
 
     def hasHeightForWidth(self):
         """If this layout's preferred height depends on its width
@@ -99,8 +100,9 @@ class FlowLayout(QtWidgets.QLayout):
         """Get the preferred height a layout item with the given width
 
         :param width (int)"""
-        height = self.doLayout(QtCore.QRect(0, 0, width, 0), True)
-        return height
+        if QtCore is not None:  # QtCore errors driving me insane
+            height = self.doLayout(QtCore.QRect(0, 0, width, 0), True)
+            return height
 
     def setGeometry(self, rect):
         """Set the geometry of this layout
@@ -120,12 +122,13 @@ class FlowLayout(QtWidgets.QLayout):
 
         :return (QSize)"""
         # Calculate the size
-        size = QtCore.QSize()
-        for item in self.itemList:
-            size = size.expandedTo(item.minimumSize())
-        # Add the margins
-        size += QtCore.QSize(2, 2)
-        return size
+        if QtCore is not None:  # QtCore errors driving me insane
+            size = QtCore.QSize()
+            for item in self.itemList:
+                size = size.expandedTo(item.minimumSize())
+            # Add the margins
+            size += QtCore.QSize(2, 2)
+            return size
 
     def doLayout(self, rect, testOnly):
         """Layout all the items

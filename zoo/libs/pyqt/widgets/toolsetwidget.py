@@ -42,13 +42,11 @@ class ToolSetWidgetItem(QtWidgets.QWidget):
     updateRequested = QtCore.Signal()
 
     def __init__(self, title, parent, collapsed=False, collapsable=True, icon=None, startHidden=False,
-                 itemTint=tuple([60, 60, 60]), shiftArrowsEnabled=True, deleteButtonEnabled=True, titleEditable=True):
+                 shiftArrowsEnabled=True, deleteButtonEnabled=True, titleEditable=True):
         super(ToolSetWidgetItem, self).__init__(parent=parent)
 
         if startHidden:
             self.hide()
-
-        self.itemTint = itemTint
 
         self._itemIcon = icon or self._itemIcon
         self.stackWidget = parent
@@ -194,7 +192,7 @@ class ToolSetWidgetItem(QtWidgets.QWidget):
         self.widgetHider.setContentsMargins(0, 0, 0, 0)
 
         self.widgetHider.setHidden(self.collapsed)
-        self.widgetHider.setStyleSheet(".QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
+        #self.widgetHider.setStyleSheet(".QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
 
     def onCollapsed(self):
         """

@@ -327,13 +327,12 @@ class StackItem(QtWidgets.QWidget):
     updateRequested = QtCore.Signal()
 
     def __init__(self, title, parent, collapsed=False, collapsable=True, icon=None, startHidden=False,
-                 itemTint=tuple([60, 60, 60]), shiftArrowsEnabled=True, deleteButtonEnabled=True, titleEditable=True):
+                 shiftArrowsEnabled=True, deleteButtonEnabled=True, titleEditable=True):
         super(StackItem, self).__init__(parent=parent)
 
         if startHidden:
             self.hide()
 
-        self.itemTint = itemTint
         self.setAutoFillBackground(True)
         self._itemIcon = icon or self._itemIcon
         self.stackWidget = parent
@@ -363,6 +362,7 @@ class StackItem(QtWidgets.QWidget):
         # Title Frame
         self.widgetHider = frame.QFrame(parent=self)
         self._contentsLayout = qtutils.vBoxLayout(self.widgetHider)
+
 
         if not shiftArrowsEnabled:
             self.shiftDownBtn.hide()
@@ -489,7 +489,6 @@ class StackItem(QtWidgets.QWidget):
         self._contentsLayout.setSpacing(self.contentSpacing)
         self.widgetHider.setHidden(self.collapsed)
         self.widgetHider.setObjectName("stackbody")
-        # self.widgetHider.setStyleSheet(".QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
 
     def onCollapsed(self, emit=True):
         """
