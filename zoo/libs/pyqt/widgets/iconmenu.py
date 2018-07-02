@@ -28,32 +28,13 @@ class IconMenuButton(ExtendedButton):
         super(IconMenuButton, self).__init__(icon=icon, iconHover=iconHover, parent=parent,
                                              doubleClickEnabled=doubleClickEnabled)
         self.initUi()
-        self.menuSearchable = {QtCore.Qt.LeftButton: False,
-                               QtCore.Qt.MidButton: False,
-                               QtCore.Qt.RightButton: False}
 
     def initUi(self):
         for m in self.clickMenu.values():
             if m is not None: m.setToolTipsVisible(True)
 
-    def setSearchable(self, mouseMenu=QtCore.Qt.LeftButton, searchable=True):
-        self.menuSearchable[mouseMenu] = searchable
-        # todo set searchable for existing menus
-
     def setTearOffEnabled(self, mouseMenu=QtCore.Qt.LeftButton, tearoff=True):
         self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu)).setTearOffEnabled(tearoff)
-
-    def isSearchable(self, mouseMenu=QtCore.Qt.LeftButton):
-        """
-        Checks if the button menu is searchable or not
-        :param mouseMenu:
-        :return:
-        """
-
-        if self.clickMenu[mouseMenu] is not None:
-            return isinstance(self.clickMenu[mouseMenu], searchablemenu.SearchableMenu)
-        else:
-            return self.menuSearchable[mouseMenu]
 
     def addAction(self, name, mouseMenu=QtCore.Qt.LeftButton, connect=None, checkable=False, action=None):
         """

@@ -1,6 +1,7 @@
 from qt import QtWidgets, QtCore
 
 from zoo.libs import iconlib
+from zoo.libs.pyqt.extended import searchablemenu
 
 
 class ExtendedButton(QtWidgets.QPushButton):
@@ -42,6 +43,11 @@ class ExtendedButton(QtWidgets.QPushButton):
                           QtCore.Qt.MidButton: None,
                           QtCore.Qt.RightButton: None}
 
+        # Is menu searchable?
+        self.menuSearchable = {QtCore.Qt.LeftButton: False,
+                               QtCore.Qt.MidButton: False,
+                               QtCore.Qt.RightButton: False}
+
         self.menuPadding = 5
 
         self.menuAlign = QtCore.Qt.AlignLeft
@@ -80,6 +86,22 @@ class ExtendedButton(QtWidgets.QPushButton):
         :return:
         """
         self.clickMenu[mouseButton] = menu
+
+    def setSearchable(self, mouseMenu=QtCore.Qt.LeftButton, searchable=True):
+        self.menuSearchable[mouseMenu] = searchable
+        # todo set searchable for existing menus
+
+    def isSearchable(self, mouseMenu=QtCore.Qt.LeftButton):
+        """
+        Checks if the button menu is searchable or not
+        :param mouseMenu:
+        :return:
+        """
+
+        if self.clickMenu[mouseMenu] is not None:
+            return isinstance(self.clickMenu[mouseMenu], searchablemenu.SearchableMenu)
+        else:
+            return self.menuSearchable[mouseMenu]
 
     def setMenuAlign(self, align=QtCore.Qt.AlignLeft):
         self.menuAlign = align
