@@ -61,7 +61,7 @@ class FlowToolBar(QtWidgets.QWidget):
         """
         self.iconPadding = padding
 
-    def addTool(self, iconName, name, iconColor=(255, 255, 255)):
+    def addTool(self, iconName, name, iconColor=(255, 255, 255), doubleClickEnabled=False):
         """
         Creates a new tool button based on the icon name, and the name.
         :param iconName: Name of the icon to retrieve
@@ -76,6 +76,9 @@ class FlowToolBar(QtWidgets.QWidget):
                                                                       size=self.iconSize,
                                                                       color=colour.offsetColor(iconColor, 40)),
                                       parent=self)
+
+        btn.setDoubleClickEnabled(doubleClickEnabled)
+        btn.setDoubleClickInterval(150)
         btn.setProperty("name", name)
         btn.setIconSize(self.getIconSize())
         btn.leftClicked.connect(self.toolsClicked)

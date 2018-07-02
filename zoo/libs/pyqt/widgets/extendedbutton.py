@@ -1,7 +1,6 @@
 from qt import QtWidgets, QtCore
 
 from zoo.libs import iconlib
-from zoo.libs.utils import colour
 
 
 class ExtendedButton(QtWidgets.QPushButton):
@@ -20,12 +19,17 @@ class ExtendedButton(QtWidgets.QPushButton):
     middleClicked = QtCore.Signal()
     rightClicked = QtCore.Signal()
 
+    leftDoubleClicked = QtCore.Signal()
+    middleDoubleClicked = QtCore.Signal()
+    rightDoubleClicked = QtCore.Signal()
+
     leftMenu = None
     middleMenuActive = None
     rightMenuActive = None
 
     def __init__(self, icon=None, iconHover=None,
-                 text=None, parent=None):
+                 text=None, parent=None,
+                 doubleClickEnabled=False):
 
         self.buttonIcon = icon
         self.buttonIconHover = iconHover
@@ -49,8 +53,25 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.middleClicked.connect(self.middleContextMenu)
         self.rightClicked.connect(self.rightContextMenu)
 
-    def setMenuAlign(self, align=QtCore.Qt.AlignLeft):
-        self.menuAlign = align
+        self.doubleClickInterval = QtWidgets.QApplication.instance().doubleClickInterval()  # 500
+        self.doubleClickEnabled = doubleClickEnabled
+        self.lastClick = None
+
+    def setDoubleClickInterval(self, interval=150):
+        """
+        Sets the interval of the double click, defaults to 150
+        :param interval:
+        :return:
+        """
+        self.doubleClickInterval = interval
+
+    def setDoubleClickEnabled(self, enabled):
+        """
+        Enables double click signals for this widget
+        :param enabled:
+        :return:
+        """
+        self.doubleClickEnabled = enabled
 
     def setMenu(self, menu, mouseButton=QtCore.Qt.LeftButton):
         """
@@ -68,16 +89,25 @@ class ExtendedButton(QtWidgets.QPushButton):
         elif mouseButton == QtCore.Qt.RightButton:
             self.rightMenu = menu
 
+    def setMenuAlign(self, align=QtCore.Qt.AlignLeft):
+        self.menuAlign = align
+
     def mousePressEvent(self, event):
         """
         Mouse set down button visuals
         :param event:
         :return:
         """
+
+        if not QtCore.Qt:
+            return
+
         if event.button() == QtCore.Qt.MidButton:
             self.setDown(True)
         elif event.button() == QtCore.Qt.RightButton:
             self.setDown(True)
+
+        self.lastClick = "Click"
 
     def mouseReleaseEvent(self, event):
         """
@@ -85,13 +115,51 @@ class ExtendedButton(QtWidgets.QPushButton):
         :param event:
         :return:
         """
+        button = event.button()
         self.setDown(False)
-        if event.button() == QtCore.Qt.LeftButton:
-            self.leftClicked.emit()
-        elif event.button() == QtCore.Qt.MidButton:
-            self.middleClicked.emit()
-        elif event.button() == QtCore.Qt.RightButton:
-            self.rightClicked.emit()
+
+        # Single Clicks Only
+        if not self.doubleClickEnabled:
+            self.mouseSingleClickAction(button)
+            return
+
+        # Double clicks
+        if self.lastClick == "Click":
+            QtCore.QTimer.singleShot(self.doubleClickInterval,
+                                     lambda: self.mouseSingleClickAction(button))
+        else:
+            self.mouseDoubleClickAction(event.button())
+
+    def mouseSingleClickAction(self, button):
+        """
+        The actual single click action
+        :param button:
+        :return:
+        """
+
+        if self.lastClick == "Click":
+            if button == QtCore.Qt.LeftButton:
+                self.leftClicked.emit()
+            elif button == QtCore.Qt.MidButton:
+                self.middleClicked.emit()
+            elif button == QtCore.Qt.RightButton:
+                self.rightClicked.emit()
+
+    def mouseDoubleClickAction(self, button):
+        """
+        The actual double click Action
+        :param button:
+        :return:
+        """
+        if button == QtCore.Qt.LeftButton:
+            self.leftDoubleClicked.emit()
+        elif button == QtCore.Qt.MidButton:
+            self.middleDoubleClicked.emit()
+        elif button == QtCore.Qt.RightButton:
+            self.rightDoubleClicked.emit()
+
+    def mouseDoubleClickEvent(self, event):
+        self.lastClick = "Double Click"
 
     def enterEvent(self, event):
         """
