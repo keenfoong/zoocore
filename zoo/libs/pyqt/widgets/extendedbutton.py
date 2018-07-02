@@ -23,10 +23,6 @@ class ExtendedButton(QtWidgets.QPushButton):
     middleDoubleClicked = QtCore.Signal()
     rightDoubleClicked = QtCore.Signal()
 
-    leftMenu = None
-    middleMenuActive = None
-    rightMenuActive = None
-
     def __init__(self, icon=None, iconHover=None,
                  text=None, parent=None,
                  doubleClickEnabled=False):
@@ -36,22 +32,24 @@ class ExtendedButton(QtWidgets.QPushButton):
 
         super(ExtendedButton, self).__init__(icon=self.buttonIcon, text=text, parent=parent)
 
-        self.leftMenuActive = True
-        self.middleMenuActive = True
-        self.rightMenuActive = True
+        # To check of the menu is active
+        self.menuActive = {QtCore.Qt.LeftButton: True,
+                           QtCore.Qt.MidButton: True,
+                           QtCore.Qt.RightButton: True}
 
-        self.leftMenu = None  # type: QtWidgets.QMenu
-        self.middleMenu = None  # type: QtWidgets.QMenu
-        self.rightMenu = None  # type: QtWidgets.QMenu
+        # Store menus into a dictionary
+        self.clickMenu = {QtCore.Qt.LeftButton: None,
+                          QtCore.Qt.MidButton: None,
+                          QtCore.Qt.RightButton: None}
 
         self.menuPadding = 5
 
         self.menuAlign = QtCore.Qt.AlignLeft
 
         self.clicked.connect(lambda: self.leftClicked.emit())
-        self.leftClicked.connect(self.leftContextMenu)
-        self.middleClicked.connect(self.middleContextMenu)
-        self.rightClicked.connect(self.rightContextMenu)
+        self.leftClicked.connect(lambda: self.contextMenu(QtCore.Qt.LeftButton))
+        self.middleClicked.connect(lambda: self.contextMenu(QtCore.Qt.MidButton))
+        self.rightClicked.connect(lambda: self.contextMenu(QtCore.Qt.RightButton))
 
         self.doubleClickInterval = QtWidgets.QApplication.instance().doubleClickInterval()  # 500
         self.doubleClickEnabled = doubleClickEnabled
@@ -81,13 +79,7 @@ class ExtendedButton(QtWidgets.QPushButton):
         :param mouseButton:
         :return:
         """
-
-        if mouseButton == QtCore.Qt.LeftButton:
-            self.leftMenu = menu
-        elif mouseButton == QtCore.Qt.MidButton:
-            self.middleMenu = menu
-        elif mouseButton == QtCore.Qt.RightButton:
-            self.rightMenu = menu
+        self.clickMenu[mouseButton] = menu
 
     def setMenuAlign(self, align=QtCore.Qt.AlignLeft):
         self.menuAlign = align
@@ -178,29 +170,16 @@ class ExtendedButton(QtWidgets.QPushButton):
         """
         self.setIcon(self.buttonIcon)
 
-    def leftContextMenu(self):
+    def contextMenu(self, mouseButton):
         """
-        Display the left context menu
+        Run context menu depending on mouse button
+        :param mouseButton:
         :return:
         """
-        if self.leftMenu is not None and self.leftMenuActive:
-            self.leftMenu.exec_(self.menuPos(menu=self.leftMenu, align=self.menuAlign))
-
-    def middleContextMenu(self):
-        """
-        Display the middle context menu
-        :return:
-        """
-        if self.middleMenu is not None and self.middleMenuActive:
-            self.middleMenu.exec_(self.menuPos())
-
-    def rightContextMenu(self):
-        """
-        Display the right context menu
-        :return:
-        """
-        if self.rightMenu is not None and self.rightMenuActive:
-            self.rightMenu.exec_(self.menuPos())
+        menu = self.clickMenu[mouseButton]
+        if menu is not None and self.menuActive[mouseButton]:
+            pos = self.menuPos(menu=menu, align=self.menuAlign)
+            menu.exec_(pos)
 
     def menuPos(self, align=QtCore.Qt.AlignLeft, menu=None):
         """

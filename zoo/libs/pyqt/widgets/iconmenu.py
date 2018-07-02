@@ -28,50 +28,32 @@ class IconMenuButton(ExtendedButton):
         super(IconMenuButton, self).__init__(icon=icon, iconHover=iconHover, parent=parent,
                                              doubleClickEnabled=doubleClickEnabled)
         self.initUi()
-        self.leftSearchable = False
-        self.midSearchable = False
-        self.rightSearchable = False
+        self.menuSearchable = {QtCore.Qt.LeftButton: False,
+                               QtCore.Qt.MidButton: False,
+                               QtCore.Qt.RightButton: False}
 
     def initUi(self):
-        if self.leftMenu is not None:
-            self.leftMenu.setToolTipsVisible(True)
-
-        if self.middleMenu is not None:
-            self.middleMenu.setToolTipsVisible(True)
-
-        if self.rightMenu is not None:
-            self.rightMenu.setToolTipsVisible(True)
+        for m in self.clickMenu.values():
+            if m is not None: m.setToolTipsVisible(True)
 
     def setSearchable(self, mouseMenu=QtCore.Qt.LeftButton, searchable=True):
-        if mouseMenu == QtCore.Qt.LeftButton:
-            self.leftSearchable = searchable
-        if mouseMenu == QtCore.Qt.MidButton:
-            self.midSearchable = searchable
-        if mouseMenu == QtCore.Qt.RightButton:
-            self.rightSearchable = searchable
+        self.menuSearchable[mouseMenu] = searchable
         # todo set searchable for existing menus
 
     def setTearOffEnabled(self, mouseMenu=QtCore.Qt.LeftButton, tearoff=True):
         self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu)).setTearOffEnabled(tearoff)
 
     def isSearchable(self, mouseMenu=QtCore.Qt.LeftButton):
-        if mouseMenu == QtCore.Qt.LeftButton:
-            if self.leftMenu is not None:
-                return isinstance(self.leftMenu, searchablemenu.SearchableMenu)
-            else:
-                return self.leftSearchable
+        """
+        Checks if the button menu is searchable or not
+        :param mouseMenu:
+        :return:
+        """
 
-        elif mouseMenu == QtCore.Qt.MidButton:
-            if self.middleMenu is not None:
-                return isinstance(self.middleMenu, searchablemenu.SearchableMenu)
-            else:
-                return self.midSearchable
-
-        elif mouseMenu == QtCore.Qt.RightButton:
-            if self.rightMenu is not None:
-                return isinstance(self.rightMenu, searchablemenu.SearchableMenu)
-            else:
-                return self.rightSearchable
+        if self.clickMenu[mouseMenu] is not None:
+            return isinstance(self.clickMenu[mouseMenu], searchablemenu.SearchableMenu)
+        else:
+            return self.menuSearchable[mouseMenu]
 
     def addAction(self, name, mouseMenu=QtCore.Qt.LeftButton, connect=None, checkable=False, action=None):
         """
@@ -126,31 +108,17 @@ class IconMenuButton(ExtendedButton):
         :return:
         """
 
-        menu = None
+        if self.clickMenu[mouseMenu] is None:
+            if searchable and autoCreate:
+                self.clickMenu[mouseMenu] = searchablemenu.SearchableMenu(objectName="test", title="test menu")
+            else:
+                self.clickMenu[mouseMenu] = QtWidgets.QMenu()
 
-        # too many if statements, need to fix
-        if mouseMenu == QtCore.Qt.LeftButton:
-            if self.leftMenu is None:
-                if searchable and autoCreate:
-                    self.leftMenu = searchablemenu.SearchableMenu(objectName="test", title="test menu")
-                else:
-                    self.leftMenu = QtWidgets.QMenu()
+        return self.clickMenu[mouseMenu]
 
-            menu = self.leftMenu
-        elif mouseMenu == QtCore.Qt.MidButton:
-            if self.middleMenu is None:
-                if searchable and autoCreate:
-                    self.middleMenu = searchablemenu.SearchableMenu(objectName="test", title="test menu")
-                else:
-                    self.middleMenu = QtWidgets.QMenu()
-            menu = self.middleMenu
-        elif mouseMenu == QtCore.Qt.RightButton:
-            if self.rightMenu is None:
-                if searchable and autoCreate:
-                    self.rightMenu = searchablemenu.SearchableMenu(objectName="test", title="test menu")
-                else:
-                    self.rightMenu = QtWidgets.QMenu()
-            menu = self.rightMenu
+    def contextMenu(self, mouseButton):
+        super(IconMenuButton, self).contextMenu(mouseButton)
 
-        return menu
+        """if isinstance(self.leftMenu, searchablemenu.SearchableMenu):
+            self.leftMenu"""
 
