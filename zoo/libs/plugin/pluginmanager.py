@@ -83,20 +83,25 @@ class PluginManager(object):
             logger.debug("registering plugin -> {}".format(name))
             self.plugins[name] = classObj
 
-    def loadPlugin(self, name, **kwargs):
+    def loadPlugin(self, pluginName, **kwargs):
         """Loads a given plugin by name. eg plugin(manager=self)
 
         :param name: the plugin to load by name
         :type name: str
         """
-        tool = self.plugins.get(name)
+        tool = self.plugins.get(pluginName)
         if tool:
-            logger.debug("Loading Plugin -> {}".format(name))
+            logger.debug("Loading Plugin -> {}".format(pluginName))
             # pass the manager into the plugin, this is so we have access to any global info
-            kwargs["manager"] = self
-            self.loadedPlugins[name] = tool(**kwargs)
-            self.loadedPlugins[name].isLoaded = True
-            return self.loadedPlugins[name]
+            spec= inspect.getargspec(tool.__init__)
+            keywords = spec.keywords
+            args = spec.args
+
+            if (args and "manager" in args) or (keywords and "manager" in keywords):
+                kwargs["manager"] = self
+            self.loadedPlugins[pluginName] = tool(**kwargs)
+            self.loadedPlugins[pluginName].isLoaded = True
+            return self.loadedPlugins[pluginName]
 
     def loadAllPlugins(self):
         """Loops over all registered plugins and calls them eg. plugin(manager=self)

@@ -35,7 +35,7 @@ class StyleSheet(object):
         with open(path, "r") as f:
             styleSheet = cls(f.read())
         if kwargs:
-            styleSheet.format(**kwargs)
+            styleSheet.format(kwargs)
         return styleSheet
 
     def __init__(self, styleSheet=None):
