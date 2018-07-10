@@ -122,3 +122,11 @@ def fuzzyFinder(input, collection):
             suggestions.add((len(r.group()), r.start(), item))
 
     return (z[-1] for z in sorted(suggestions))
+
+
+def isIteratable(obj):
+    try:
+        for i in iter(obj):
+            return True
+    except TypeError:
+        return False

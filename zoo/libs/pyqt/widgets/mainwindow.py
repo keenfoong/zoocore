@@ -19,11 +19,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.docks = []
         self.toolBars = {}
         self.hasMainMenu = False
-        self.centralWidget = QtWidgets.QWidget()
-        self.setCentralWidget(self.centralWidget)
+        self.centralWidget = None
+        self.setCentralWidget(QtWidgets.QWidget())
 
         self.setDockOptions(QtWidgets.QMainWindow.AllowNestedDocks |
-                            QtWidgets.QMainWindow.AnimatedDocks)
+                            QtWidgets.QMainWindow.AnimatedDocks |
+                            QtWidgets.QMainWindow.AllowTabbedDocks)
         self.setTabPosition(QtCore.Qt.AllDockWidgetAreas,QtWidgets.QTabWidget.North)
         if icon:
             if isinstance(icon, QtGui.QIcon):
@@ -64,6 +65,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.viewMenu.addAction(i.toggleViewAction())
 
     def setCustomCentralWidget(self, widget):
+        self.centralWidget = widget
         self.setCentralWidget(widget)
 
     def createDock(self, mainWidget, area=QtCore.Qt.LeftDockWidgetArea,
@@ -72,7 +74,7 @@ class MainWindow(QtWidgets.QMainWindow):
         existing = self.findDock(dockName)
         if existing:
             existing.raise_()
-        dock = dockwidget.DockWidget(dockName, parent=self, floating=False)
+        dock = dockwidget.DockWidget(mainWidget.objectName(), parent=self, floating=False)
 
         dock.setObjectName(dockName)
         dock.setWidget(mainWidget)

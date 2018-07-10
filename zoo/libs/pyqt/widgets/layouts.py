@@ -305,23 +305,25 @@ class OkCancelButtons(QtWidgets.QWidget):
 
 
 class HRadioButtonGroup(QtWidgets.QWidget):
+    toggled = QtCore.Signal(int)
+
     def __init__(self, radioList=None, default=0, parent=None):
         super(HRadioButtonGroup, self).__init__(parent=parent)
         if radioList is None:
             radioList = []
 
         self.radioButtons = []
-
+        self.group = QtWidgets.QButtonGroup(parent=self)
         hRadioLayout = QtWidgets.QHBoxLayout()
-
         for radioName in radioList:
             newRadio = QtWidgets.QRadioButton(radioName, self)
+            self.group.addButton(newRadio)
             hRadioLayout.addWidget(newRadio)
             self.radioButtons.append(newRadio)
 
         if default is not None and default < len(self.radioButtons):
             self.radioButtons[default].setChecked(True)
-
+        self.group.buttonClicked.connect(self.toggled.emit)
         self.setLayout(hRadioLayout)
 
     def getChecked(self):
@@ -521,4 +523,3 @@ class CollapsableFrameLayout(QtWidgets.QWidget):
         """
         self.iconButton.clicked.connect(self.showHideWidget)
         self.titleFrame.mouseReleased.connect(self.showHideWidget)
-

@@ -1,6 +1,6 @@
 from PySide2.QtCore import QRegExp
 from PySide2.QtGui import QColor, QTextCharFormat, QFont, QSyntaxHighlighter
-
+from zoo.libs.utils import file
 
 def formatColor(color, style=None):
     """Return a QTextCharFormat with the given attributes.
@@ -19,6 +19,21 @@ def formatColor(color, style=None):
         _format.setFontItalic(True)
 
     return _format
+
+
+def highlighterFromJson(filePath, document):
+    """Generate's a python syntaxHighlighter from a json file containing the syntax and color information
+
+    :param filePath: Absolute path to the json file
+    :type filePath: str
+    :param document: The Document instance to apply to
+    :type document: ::class:`QtGui.QTextDocument`
+    :rtype: ::class:`PythonHighlighter`
+    """
+    if not filePath:
+        return
+    syntaxData = file.loadJson(filePath)
+    return PythonHighlighter(document, syntaxData)
 
 
 class PythonHighlighter(QSyntaxHighlighter):
@@ -126,7 +141,7 @@ class PythonHighlighter(QSyntaxHighlighter):
             # No; multi-line string
             else:
                 self.setCurrentBlockState(in_state)
-                length = text.length() - start + add
+                length = len(text) - start + add
             # Apply formatting
             self.setFormat(start, length, style)
             # Look for the next match
@@ -135,5 +150,4 @@ class PythonHighlighter(QSyntaxHighlighter):
         # Return True if still inside a multi-line string, False otherwise
         if self.currentBlockState() == in_state:
             return True
-        else:
-            return False
+        return False

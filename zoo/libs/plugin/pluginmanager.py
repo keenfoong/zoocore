@@ -18,8 +18,10 @@ class PluginManager(object):
      To return all plugins currently registry use the instance.plugins variable.
     """
 
-    def __init__(self, interface=plugin.Plugin):
+    def __init__(self, interface=plugin.Plugin, variableName=None):
         self.plugins = {}
+        # register the plugin names by the variable, if its missing fallback to the class name
+        self.variableName = variableName or ""
         self.interface = interface
         self.loadedPlugins = {}  # {className: instance}
         self.basePaths = []
@@ -77,22 +79,29 @@ class PluginManager(object):
         :type classObj: Plugin
         """
         if classObj not in self.plugins.values() and issubclass(classObj, self.interface):
-            logger.debug("registering plugin -> {}".format(classObj.__name__))
-            self.plugins[classObj.__name__] = classObj
+            name = getattr(classObj, self.variableName) if hasattr(classObj, self.variableName) else classObj.__name__
+            logger.debug("registering plugin -> {}".format(name))
+            self.plugins[name] = classObj
 
-    def loadPlugin(self, name):
+    def loadPlugin(self, pluginName, **kwargs):
         """Loads a given plugin by name. eg plugin(manager=self)
 
         :param name: the plugin to load by name
         :type name: str
         """
-        tool = self.plugins.get(name)
+        tool = self.plugins.get(pluginName)
         if tool:
-            logger.debug("Loading Plugin -> {}".format(name))
+            logger.debug("Loading Plugin -> {}".format(pluginName))
             # pass the manager into the plugin, this is so we have access to any global info
-            self.loadedPlugins[name] = tool(manager=self)
-            self.loadedPlugins[name].isLoaded = True
-            return self.loadedPlugins[name]
+            spec= inspect.getargspec(tool.__init__)
+            keywords = spec.keywords
+            args = spec.args
+
+            if (args and "manager" in args) or (keywords and "manager" in keywords):
+                kwargs["manager"] = self
+            self.loadedPlugins[pluginName] = tool(**kwargs)
+            self.loadedPlugins[pluginName].isLoaded = True
+            return self.loadedPlugins[pluginName]
 
     def loadAllPlugins(self):
         """Loops over all registered plugins and calls them eg. plugin(manager=self)

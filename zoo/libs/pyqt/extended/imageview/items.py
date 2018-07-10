@@ -21,15 +21,21 @@ class ThreadedIcon(QtCore.QRunnable):
         self.height = height
         self.placeHolderImage = QtGui.QImage(200, 200, QtGui.QImage.Format_ARGB32)
         self.placeHolderImage.fill(QtGui.qRgb(255, 0, 0))
+        self._finished = False
+
+    def finished(self, state):
+        self._finished = state
+        self.signals.finished.emit()
 
     @QtCore.Slot()
     def run(self):
-        self.signals.updated.emit(self.placeHolderImage)
-        if not self._path:
+        if not self._path or self._finished:
             return
+        self.signals.updated.emit(self.placeHolderImage)
+
         image = QtGui.QImage(self._path)
         self.signals.updated.emit(image)
-        self.signals.finished.emit()
+        self.finished(True)
 
 
 class BaseItem(object):
@@ -90,7 +96,8 @@ class TreeItem(QtGui.QStandardItem):
         self.iconSize = QtCore.QSize(256, 256)
         self.loaderThread = ThreadedIcon(item.iconPath)
         self.setEditable(False)
-
+    def item(self):
+        return self._item
     def applyFromImage(self, image):
         pixmap = QtGui.QPixmap()
         pixmap = pixmap.fromImage(image)

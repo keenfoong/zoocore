@@ -1,5 +1,3 @@
-import qdarkstyle
-
 from qt import QtWidgets, QtCore, QtGui
 from zoo.libs import iconlib
 
