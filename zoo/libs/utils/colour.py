@@ -161,13 +161,12 @@ def offsetSaturation(hsv, offset):
 def offsetColor(col, offset=0):
     """
     Returns a color with the offset in tuple form
-    :param col: tuple (255,255,255)
+    :param col: Color in form of tuple with 3 ints. eg tuple(255,255,255)
+    :type col: tuple(int,int,int)
     :param offset: The int to offset the color
-    :return: tuple (255,255,255)
+    :return: tuple (int,int,int)
     """
-    col = (clamp(col[0] + offset), clamp(col[1] + offset), clamp(col[2] + offset))
-
-    return col
+    return [clamp(c+offset) for c in col]
 
 
 def offsetValue(hsv, offset):
