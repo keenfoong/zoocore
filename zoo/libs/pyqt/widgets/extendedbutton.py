@@ -176,6 +176,11 @@ class ExtendedButton(QtWidgets.QPushButton):
             self.rightDoubleClicked.emit()
 
     def mouseDoubleClickEvent(self, event):
+        """
+        Detects Double click event.
+        :param event:
+        :return:
+        """
         self.lastClick = "Double Click"
 
     def enterEvent(self, event):
@@ -231,7 +236,6 @@ class ExtendedButton(QtWidgets.QPushButton):
             pos = self.mapToGlobal(point)
 
         return pos
-
 
     def getMenu(self, mouseMenu=QtCore.Qt.LeftButton, searchable=False, autoCreate=True):
         """

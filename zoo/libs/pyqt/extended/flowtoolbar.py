@@ -67,6 +67,7 @@ class FlowToolBar(QtWidgets.QWidget):
         :param iconName: Name of the icon to retrieve
         :param name: Name of the tool
         :param iconColor: Color of the icon for the tool
+        :param doubleClickEnabled: Enable doubleclick for button
         :return:
         """
         # Create an item with a caption
@@ -109,9 +110,14 @@ class FlowToolBar(QtWidgets.QWidget):
         if showIndicator:
             overlayName = self.menuIndicatorIcon
 
-        btn = iconmenu.IconMenuButton(icon=iconlib.iconColorized(iconName,size=self.iconSize,color=iconColor,overlayName=overlayName),
-                                      iconHover=iconlib.iconColorized(iconName, size=self.iconSize, color=colour.offsetColor(iconColor, 80),
+        btn = iconmenu.IconMenuButton(icon=iconlib.iconColorized(iconName,
+                                                                 size=self.iconSize,
+                                                                 color=iconColor,
                                                                  overlayName=overlayName),
+                                      iconHover=iconlib.iconColorized(iconName,
+                                                                      size=self.iconSize,
+                                                                      color=colour.offsetColor(iconColor, 80),
+                                                                      overlayName=overlayName),
                                       parent=self)
         btn.setProperty("name", name)
         btn.setIconSize(QtCore.QSize(self.iconSize + self.iconPadding,
@@ -152,5 +158,4 @@ class FlowToolBar(QtWidgets.QWidget):
 
     def setHeight(self, height):
         self.setFixedHeight(height)
-
 
