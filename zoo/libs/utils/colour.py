@@ -162,8 +162,8 @@ def offsetColor(col, offset=0):
     """
     Returns a color with the offset in tuple form
     :param col: tuple (255,255,255)
-    :param offset:
-    :return: tuple (255,255,255
+    :param offset: The int to offset the color
+    :return: tuple (255,255,255)
     """
     col = (clamp(col[0] + offset), clamp(col[1] + offset), clamp(col[2] + offset))
 
