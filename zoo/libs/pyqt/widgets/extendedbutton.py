@@ -2,7 +2,7 @@ from qt import QtWidgets, QtCore
 
 from zoo.libs import iconlib
 from zoo.libs.pyqt.extended import searchablemenu
-
+from zoo.libs.pyqt.extended.searchablemenu import action as taggedAction
 
 class ExtendedButton(QtWidgets.QPushButton):
     """
@@ -76,6 +76,9 @@ class ExtendedButton(QtWidgets.QPushButton):
         :return:
         """
         self.doubleClickEnabled = enabled
+
+    def setTearOffEnabled(self, mouseMenu=QtCore.Qt.LeftButton, tearoff=True):
+        self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu)).setTearOffEnabled(tearoff)
 
     def setMenu(self, menu, mouseButton=QtCore.Qt.LeftButton):
         """
@@ -199,13 +202,24 @@ class ExtendedButton(QtWidgets.QPushButton):
         :return:
         """
         menu = self.clickMenu[mouseButton]
+
+        # Set focus
+        if isinstance(menu, searchablemenu.SearchableMenu):
+            searchEdit = menu.searchEdit
+            searchEdit.setFocus()
+
+        # Show menu
         if menu is not None and self.menuActive[mouseButton]:
-            pos = self.menuPos(menu=menu, align=self.menuAlign)
+            pos = self.menuPos(widget=menu, align=self.menuAlign)
             menu.exec_(pos)
 
-    def menuPos(self, align=QtCore.Qt.AlignLeft, menu=None):
+    def menuPos(self, align=QtCore.Qt.AlignLeft, widget=None):
         """
         Get menu position based on the current widget position and perimeter
+        :param align: Align the menu left or right
+        :type align: QtCore.Qt.AlignLeft or QtCore.Qt.AlignRight
+        :param widget: The widget to calculate the width based off. Normally it is the menu
+        :type widget: QtWidgets.QWidget
         :return:
         """
         pos = 0
@@ -213,8 +227,75 @@ class ExtendedButton(QtWidgets.QPushButton):
             point = self.rect().bottomLeft() - QtCore.QPoint(0, -self.menuPadding)
             pos = self.mapToGlobal(point)
         elif align == QtCore.Qt.AlignRight:
-            point = self.rect().bottomRight() - QtCore.QPoint(menu.sizeHint().width(), -self.menuPadding)
+            point = self.rect().bottomRight() - QtCore.QPoint(widget.sizeHint().width(), -self.menuPadding)
             pos = self.mapToGlobal(point)
 
         return pos
+
+
+    def getMenu(self, mouseMenu=QtCore.Qt.LeftButton, searchable=False, autoCreate=True):
+        """
+        Get menu depending on the mouse button pressed
+        :param mouseMenu:
+        :return:
+        """
+
+        if self.clickMenu[mouseMenu] is None:
+            if searchable and autoCreate:
+                self.clickMenu[mouseMenu] = searchablemenu.SearchableMenu(objectName="extendedButton",
+                                                                          title="Extended Button")
+            else:
+                self.clickMenu[mouseMenu] = QtWidgets.QMenu()
+
+        return self.clickMenu[mouseMenu]
+
+    def addAction(self, name, mouseMenu=QtCore.Qt.LeftButton, connect=None, checkable=False, action=None):
+        """
+        Add a new menu item through an action
+        :param mouseMenu: Expects QtCore.Qt.LeftButton, QtCore.Qt.MidButton, or QtCore.Qt.RightButton
+        :param name: The text for the new menu item
+        :param connect: The function to connect when the menu item is pressed
+        :param checkable: If the menu item is checkable
+        :return:
+        """
+        menu = self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu))
+
+        if action is not None:
+            menu.addAction(action)
+            return
+
+        newAction = taggedAction.TaggedAction(name, parent=menu)
+        newAction.setCheckable(checkable)
+        newAction.tags = set(self.stringToTags(name))
+        menu.addAction(newAction)
+
+        if connect is not None:
+            if checkable:
+                newAction.triggered.connect(lambda: connect(newAction))
+            else:
+                newAction.triggered.connect(connect)
+
+        return newAction
+
+    def addSeparator(self, mouseMenu=QtCore.Qt.LeftButton):
+        """
+        Add a separator in the menu
+        :param mouseMenu:
+        :return:
+        """
+        menu = self.getMenu(mouseMenu)
+        menu.addSeparator()
+
+    def stringToTags(self, string):
+        """
+        Break down string to tags so it is easily searchable
+        :param string:
+        :return:
+        """
+        ret = []
+        ret += string.split(" ")
+        ret += [s.lower() for s in string.split(" ")]
+
+        return ret
+
 

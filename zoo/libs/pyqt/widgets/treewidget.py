@@ -61,7 +61,7 @@ class TreeWidgetFrame(QtWidgets.QWidget):
     def addGroup(self, name="", expanded=True):
         if self.treeWidget is not None:
             groupWgt = componentgroup.ComponentGroupWidget(name)
-            return self.treeWidget.addGroup(name, expanded=expanded, groupWgt=groupWgt)
+            return self.treeWidget.newGroup(name, expanded=expanded, groupWgt=groupWgt)
         else:
             print("TreeWidgetFrame.addGroup(): TreeWidget shouldn't be None!")
 

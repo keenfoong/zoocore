@@ -1,8 +1,6 @@
 from qt import QtWidgets,QtCore
 
-from zoo.libs.pyqt.extended import searchablemenu
 from zoo.libs.pyqt.widgets.extendedbutton import ExtendedButton
-from zoo.libs.pyqt.extended.searchablemenu import action as taggedAction
 
 class IconMenuButton(ExtendedButton):
     """
@@ -32,75 +30,4 @@ class IconMenuButton(ExtendedButton):
     def initUi(self):
         for m in self.clickMenu.values():
             if m is not None: m.setToolTipsVisible(True)
-
-    def setTearOffEnabled(self, mouseMenu=QtCore.Qt.LeftButton, tearoff=True):
-        self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu)).setTearOffEnabled(tearoff)
-
-    def addAction(self, name, mouseMenu=QtCore.Qt.LeftButton, connect=None, checkable=False, action=None):
-        """
-        Add a new menu item through an action
-        :param mouseMenu: Expects QtCore.Qt.LeftButton, QtCore.Qt.MidButton, or QtCore.Qt.RightButton
-        :param name: The text for the new menu item
-        :param connect: The function to connect when the menu item is pressed
-        :return:
-        """
-        menu = self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu))
-
-        if action is not None:
-            menu.addAction(action)
-            return
-
-        newAction = taggedAction.TaggedAction(name, parent=menu)
-        newAction.setCheckable(checkable)
-        newAction.tags = set(self.stringToTags(name))
-        menu.addAction(newAction)
-
-        if connect is not None:
-            if checkable:
-                newAction.triggered.connect(lambda: connect(checkable))
-            else:
-                newAction.triggered.connect(connect)
-
-    def stringToTags(self, string):
-        """
-        Break down string to tags so it is easily searchable
-        :param string:
-        :return:
-        """
-        ret = []
-        ret += string.split(" ")
-        ret += [s.lower() for s in string.split(" ")]
-
-        return ret
-
-    def addSeparator(self, mouseMenu=QtCore.Qt.LeftButton):
-        """
-        Add a separator in the menu
-        :param mouseMenu:
-        :return:
-        """
-        menu = self.getMenu(mouseMenu)
-        menu.addSeparator()
-
-    def getMenu(self, mouseMenu=QtCore.Qt.LeftButton, searchable=False, autoCreate=True):
-        """
-        Get menu depending on the mouse button pressed
-        :param mouseMenu:
-        :return:
-        """
-
-        if self.clickMenu[mouseMenu] is None:
-            if searchable and autoCreate:
-                self.clickMenu[mouseMenu] = searchablemenu.SearchableMenu(objectName="test", title="test menu")
-            else:
-                self.clickMenu[mouseMenu] = QtWidgets.QMenu()
-
-        return self.clickMenu[mouseMenu]
-
-    def contextMenu(self, mouseButton):
-        if isinstance(self.clickMenu[mouseButton], searchablemenu.SearchableMenu):
-            searchEdit = self.clickMenu[mouseButton].searchEdit
-            searchEdit.setFocus()
-
-        super(IconMenuButton, self).contextMenu(mouseButton)
 
