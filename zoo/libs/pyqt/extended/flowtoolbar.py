@@ -72,7 +72,9 @@ class FlowToolBar(QtWidgets.QWidget):
         """
         # Create an item with a caption
 
-        btn = iconmenu.IconMenuButton(icon=iconlib.iconColorized(iconName, size=self.iconSize, color=iconColor),
+        btn = iconmenu.IconMenuButton(icon=iconlib.iconColorized(iconName,
+                                                                 size=self.iconSize,
+                                                                 color=iconColor),
                                       iconHover=iconlib.iconColorized(iconName,
                                                                       size=self.iconSize,
                                                                       color=colour.offsetColor(iconColor, 40)),

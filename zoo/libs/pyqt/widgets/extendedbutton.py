@@ -3,6 +3,9 @@ from qt import QtWidgets, QtCore
 from zoo.libs import iconlib
 from zoo.libs.pyqt.extended import searchablemenu
 from zoo.libs.pyqt.extended.searchablemenu import action as taggedAction
+from zoo.libs.utils import zlogging
+
+logger = zlogging.getLogger(__name__)
 
 class ExtendedButton(QtWidgets.QPushButton):
     """
@@ -23,6 +26,9 @@ class ExtendedButton(QtWidgets.QPushButton):
     leftDoubleClicked = QtCore.Signal()
     middleDoubleClicked = QtCore.Signal()
     rightDoubleClicked = QtCore.Signal()
+
+    SINGLE_CLICK = 1
+    DOUBLE_CLICK = 2
 
     def __init__(self, icon=None, iconHover=None,
                  text=None, parent=None,
@@ -100,11 +106,10 @@ class ExtendedButton(QtWidgets.QPushButton):
         :param mouseMenu:
         :return:
         """
-
         if self.clickMenu[mouseMenu] is not None:
             return isinstance(self.clickMenu[mouseMenu], searchablemenu.SearchableMenu)
-        else:
-            return self.menuSearchable[mouseMenu]
+
+        return self.menuSearchable[mouseMenu]
 
     def setMenuAlign(self, align=QtCore.Qt.AlignLeft):
         self.menuAlign = align
@@ -124,7 +129,7 @@ class ExtendedButton(QtWidgets.QPushButton):
         elif event.button() == QtCore.Qt.RightButton:
             self.setDown(True)
 
-        self.lastClick = "Click"
+        self.lastClick = self.SINGLE_CLICK
 
     def mouseReleaseEvent(self, event):
         """
@@ -141,7 +146,7 @@ class ExtendedButton(QtWidgets.QPushButton):
             return
 
         # Double clicks
-        if self.lastClick == "Click":
+        if self.lastClick == self.SINGLE_CLICK:
             QtCore.QTimer.singleShot(self.doubleClickInterval,
                                      lambda: self.mouseSingleClickAction(button))
         else:
@@ -154,7 +159,7 @@ class ExtendedButton(QtWidgets.QPushButton):
         :return:
         """
 
-        if self.lastClick == "Click":
+        if self.lastClick == self.SINGLE_CLICK:
             if button == QtCore.Qt.LeftButton:
                 self.leftClicked.emit()
             elif button == QtCore.Qt.MidButton:
@@ -181,7 +186,7 @@ class ExtendedButton(QtWidgets.QPushButton):
         :param event:
         :return:
         """
-        self.lastClick = "Double Click"
+        self.lastClick = self.DOUBLE_CLICK
 
     def enterEvent(self, event):
         """

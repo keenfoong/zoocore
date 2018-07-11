@@ -3,7 +3,9 @@ from qt import QtCore, QtWidgets, QtGui
 from zoo.apps.hiveartistui.views import componentgroup
 from zoo.libs.pyqt import utils as qtutils
 from zoo.libs.pyqt.extended import expandedtooltip
+from zoo.libs.utils import zlogging
 
+logger = zlogging.getLogger(__name__)
 
 class TreeWidgetFrame(QtWidgets.QWidget):
     def __init__(self, parent=None, title=""):
@@ -62,8 +64,8 @@ class TreeWidgetFrame(QtWidgets.QWidget):
         if self.treeWidget is not None:
             groupWgt = componentgroup.ComponentGroupWidget(name)
             return self.treeWidget.newGroup(name, expanded=expanded, groupWgt=groupWgt)
-        else:
-            print("TreeWidgetFrame.addGroup(): TreeWidget shouldn't be None!")
+
+        logger.error("TreeWidgetFrame.addGroup(): TreeWidget shouldn't be None!")
 
     def updateTreeWidget(self):
         """
