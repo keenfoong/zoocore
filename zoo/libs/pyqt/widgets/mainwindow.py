@@ -19,8 +19,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.docks = []
         self.toolBars = {}
         self.hasMainMenu = False
-        self.centralWidget = None
-        self.setCentralWidget(QtWidgets.QWidget())
+        self.centralWidget = QtWidgets.QWidget(parent=self)
+        self.setCentralWidget(self.centralWidget)
 
         self.setDockOptions(QtWidgets.QMainWindow.AllowNestedDocks |
                             QtWidgets.QMainWindow.AnimatedDocks |

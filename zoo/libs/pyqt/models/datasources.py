@@ -32,7 +32,7 @@ class BaseDataSource(QtCore.QObject):
         :return:
         :rtype:
         """
-        return True if self.parent else False
+        return True if not self.parent else False
 
     def rowCount(self):
         """Returns the total row count for the dataSource defaults to the len of the dataSource children
@@ -67,6 +67,10 @@ class BaseDataSource(QtCore.QObject):
     def insertChild(self, index, child):
         if child not in self.children:
             self.children.insert(index, child)
+
+    def append(self, child):
+        if child not in self.children:
+            self.children.append(child)
 
     def setData(self, index, value):
         """Sets the text value of this node at the specified column
