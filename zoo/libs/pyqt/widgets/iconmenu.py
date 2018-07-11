@@ -2,6 +2,7 @@ from qt import QtWidgets,QtCore
 
 from zoo.libs.pyqt.widgets.extendedbutton import ExtendedButton
 
+
 class IconMenuButton(ExtendedButton):
     """
     IconMenuButton is a button that only takes an icon. Clicking it will pop up a context menu.
@@ -29,5 +30,5 @@ class IconMenuButton(ExtendedButton):
 
     def initUi(self):
         for m in self.clickMenu.values():
-            if m is not None: m.setToolTipsVisible(True)
-
+            if m is not None:
+                m.setToolTipsVisible(True)
