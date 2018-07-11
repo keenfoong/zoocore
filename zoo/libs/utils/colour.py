@@ -158,6 +158,17 @@ def offsetSaturation(hsv, offset):
     return hsv
 
 
+def offsetColor(col, offset=0):
+    """
+    Returns a color with the offset in tuple form
+    :param col: Color in form of tuple with 3 ints. eg tuple(255,255,255)
+    :type col: tuple(int,int,int)
+    :param offset: The int to offset the color
+    :return: tuple (int,int,int)
+    """
+    return [clamp(c+offset) for c in col]
+
+
 def offsetValue(hsv, offset):
     """Offsets the "value" (brightness/darkness) value (0-1) by the given `offset` amount
     keeps in range 0-1 by looping
