@@ -83,8 +83,26 @@ class ExtendedButton(QtWidgets.QPushButton):
         """
         self.doubleClickEnabled = enabled
 
+    def setWindowTitle(self, windowTitle, mouseMenu=QtCore.Qt.LeftButton):
+        """
+        Set the window title of the menu, if it gets teared off
+        :param windowTitle:
+        :param mouseMenu:
+        :return:
+        """
+        menu = self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu))
+        menu.setWindowTitle(windowTitle)
+
     def setTearOffEnabled(self, mouseMenu=QtCore.Qt.LeftButton, tearoff=True):
-        self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu)).setTearOffEnabled(tearoff)
+        """
+
+        :param mouseMenu:
+        :param tearoff:
+        :param windowTitle:
+        :return:
+        """
+        menu = self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu))
+        menu.setTearOffEnabled(tearoff)
 
     def setMenu(self, menu, mouseButton=QtCore.Qt.LeftButton):
         """
@@ -261,7 +279,7 @@ class ExtendedButton(QtWidgets.QPushButton):
 
         return self.clickMenu[mouseMenu]
 
-    def addAction(self, name, mouseMenu=QtCore.Qt.LeftButton, connect=None, checkable=False, action=None):
+    def addAction(self, name, mouseMenu=QtCore.Qt.LeftButton, connect=None, checkable=False, action=None, icon=None):
         """
         Add a new menu item through an action
         :param mouseMenu: Expects QtCore.Qt.LeftButton, QtCore.Qt.MidButton, or QtCore.Qt.RightButton
@@ -280,6 +298,9 @@ class ExtendedButton(QtWidgets.QPushButton):
         newAction.setCheckable(checkable)
         newAction.tags = set(self.stringToTags(name))
         menu.addAction(newAction)
+
+        if icon is not None:
+            newAction.setIcon(icon)
 
         if connect is not None:
             if checkable:
