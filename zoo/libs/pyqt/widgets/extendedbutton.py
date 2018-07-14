@@ -13,10 +13,10 @@ class ExtendedButton(QtWidgets.QPushButton):
 
     Each click allows for a menu
 
-    :Example:
+    .. code-block:: python
 
         You can use it in a similar fashion to QPushbutton
-        >>> ExtendedButton(icon=iconlib.iconColorized("magic", size=32, color=(255,255,255)))
+        ExtendedButton(icon=iconlib.iconColorized("magic", size=32, color=(255,255,255)))
 
     """
 

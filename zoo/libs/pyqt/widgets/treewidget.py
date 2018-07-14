@@ -571,9 +571,11 @@ class TreeWidget(QtWidgets.QTreeWidget):
     def iterator(self):
         """
         Iterator to iterate through the treeItems
-        example:
-        >>> for it in treeItemIterator:
-        >>>     treeItem = it.value()
+
+        .. code-block:: python
+
+            for it in treeItemIterator:
+                treeItem = it.value()
 
         """
         return QtWidgets.QTreeWidgetItemIterator(self)

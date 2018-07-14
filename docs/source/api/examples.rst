@@ -1,13 +1,9 @@
-zoo.libs.pyqt.examples package
-==============================
+Examples
+########################################
 
 
-.. automodule:: zoo.libs.pyqt.examples
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
-zoo.libs.pyqt.examples.graphics module
+Graphics
 --------------------------------------
 
 .. automodule:: zoo.libs.pyqt.examples.graphics
@@ -15,7 +11,7 @@ zoo.libs.pyqt.examples.graphics module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.examples.screengrabber module
+Screengrabber
 -------------------------------------------
 
 .. automodule:: zoo.libs.pyqt.examples.screengrabber
@@ -23,7 +19,7 @@ zoo.libs.pyqt.examples.screengrabber module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.examples.spinbox module
+Spinbox
 -------------------------------------
 
 .. automodule:: zoo.libs.pyqt.examples.spinbox
@@ -31,7 +27,7 @@ zoo.libs.pyqt.examples.spinbox module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.examples.tableview module
+Tableview
 ---------------------------------------
 
 .. automodule:: zoo.libs.pyqt.examples.tableview
@@ -39,7 +35,7 @@ zoo.libs.pyqt.examples.tableview module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.examples.thumbnailview module
+Thumbnailview
 -------------------------------------------
 
 .. automodule:: zoo.libs.pyqt.examples.thumbnailview

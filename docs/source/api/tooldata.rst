@@ -1,5 +1,5 @@
-zoo.libs.tooldata package
-=========================
+Tooldata
+########################################
 
 .. automodule:: zoo.libs.tooldata
     :members:

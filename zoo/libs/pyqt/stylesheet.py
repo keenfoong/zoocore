@@ -6,11 +6,11 @@ class StyleSheet(object):
 
     .. code-block:: python
 
-        >>> styleSheetStr = "QToolTip{background - color: rgb(BACK_COLOR_R, BACK_COLOR_G, BACK_COLOR_B);color: black;border: blacksolid 1px;margins: 2px;}"
-        >>> settings = {"BACK_COLOR_R": 251, "BACK_COLOR_G": 15, "BACK_COLOR_B": 10}
-        >>> sheet = StyleSheet(styleSheetStr)
-        >>> sheet.format(settings)
-        >>> print sheet.data
+        styleSheetStr = "QToolTip{background - color: rgb(BACK_COLOR_R, BACK_COLOR_G, BACK_COLOR_B);color: black;border: blacksolid 1px;margins: 2px;}"
+        settings = {"BACK_COLOR_R": 251, "BACK_COLOR_G": 15, "BACK_COLOR_B": 10}
+        sheet = StyleSheet(styleSheetStr)
+        sheet.format(settings)
+        print sheet.data
         # result
         QToolTip {
             background-color: rgb(251, 15, 10);

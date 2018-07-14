@@ -1,5 +1,5 @@
 Utilities
-=========
+########################################
 
 .. automodule:: zoo.libs.utils
     :members:
@@ -7,7 +7,7 @@ Utilities
     :show-inheritance:
 
 
-zoo.libs.utils.classtypes
+Classtypes
 -------------------------
 
 .. automodule:: zoo.libs.utils.classtypes
@@ -15,10 +15,8 @@ zoo.libs.utils.classtypes
     :undoc-members:
     :show-inheritance:
 
-utils.colors
-============
 
-zoo.libs.utils.colour
+Colour
 ---------------------
 
 .. automodule:: zoo.libs.utils.colour
@@ -26,7 +24,7 @@ zoo.libs.utils.colour
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.utils.colors.constants
+Constants
 -------------------------------
 
 .. automodule:: zoo.libs.utils.colors.constants
@@ -35,7 +33,7 @@ zoo.libs.utils.colors.constants
     :show-inheritance:
 
 
-zoo.libs.utils.commandline
+Commandline
 --------------------------
 
 .. automodule:: zoo.libs.utils.commandline
@@ -43,7 +41,7 @@ zoo.libs.utils.commandline
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.utils.env module
+Environment
 -------------------------
 
 .. automodule:: zoo.libs.utils.env
@@ -51,7 +49,7 @@ zoo.libs.utils.env module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.utils.file module
+File
 --------------------------
 
 .. automodule:: zoo.libs.utils.file
@@ -59,7 +57,7 @@ zoo.libs.utils.file module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.utils.filesystem module
+Filesystem
 --------------------------------
 
 .. automodule:: zoo.libs.utils.filesystem
@@ -67,7 +65,7 @@ zoo.libs.utils.filesystem module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.utils.flush module
+Flush
 ---------------------------
 
 .. automodule:: zoo.libs.utils.flush
@@ -75,7 +73,7 @@ zoo.libs.utils.flush module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.utils.general module
+General
 -----------------------------
 
 .. automodule:: zoo.libs.utils.general
@@ -83,7 +81,7 @@ zoo.libs.utils.general module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.utils.modules module
+Modules
 -----------------------------
 
 .. automodule:: zoo.libs.utils.modules
@@ -91,7 +89,7 @@ zoo.libs.utils.modules module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.utils.path module
+Path
 --------------------------
 
 .. automodule:: zoo.libs.utils.path
@@ -99,7 +97,7 @@ zoo.libs.utils.path module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.utils.profiling module
+Profiling
 -------------------------------
 
 .. automodule:: zoo.libs.utils.profiling
@@ -107,7 +105,7 @@ zoo.libs.utils.profiling module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.utils.thread module
+Thread
 ----------------------------
 
 .. automodule:: zoo.libs.utils.thread
@@ -115,7 +113,7 @@ zoo.libs.utils.thread module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.utils.timeutils module
+Timeutils
 -------------------------------
 
 .. automodule:: zoo.libs.utils.timeutils
@@ -123,7 +121,7 @@ zoo.libs.utils.timeutils module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.utils.zlogging module
+logging
 ------------------------------
 
 .. automodule:: zoo.libs.utils.zlogging
@@ -131,7 +129,7 @@ zoo.libs.utils.zlogging module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.utils.zoomath module
+Zoomath
 -----------------------------
 
 .. automodule:: zoo.libs.utils.zoomath

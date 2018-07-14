@@ -1,15 +1,15 @@
 """Searchable QMenu
 
-::example:
-    >>> men = SearchableMenu(objectName="test", title="test menu")
-    >>> subMenu = men.addMenu("helloworld")
-    >>> act = taggedAction.TaggedAction("test")
-    >>> act.tags = set(["test", "hello", "world"])
-    >>> a = taggedAction.TaggedAction("bob")
-    >>> a.tags = set(["bob"])
-    >>> subMenu.addAction(act)
-    >>> men.addAction(a)
-    >>> men.exec_(QtGui.QCursor.pos())
+.. code-block:: python
+    men = SearchableMenu(objectName="test", title="test menu")
+    subMenu = men.addMenu("helloworld")
+    act = taggedAction.TaggedAction("test")
+    act.tags = set(["test", "hello", "world"])
+    a = taggedAction.TaggedAction("bob")
+    a.tags = set(["bob"])
+    subMenu.addAction(act)
+    men.addAction(a)
+    men.exec_(QtGui.QCursor.pos())
 
 """
 from qt import QtWidgets

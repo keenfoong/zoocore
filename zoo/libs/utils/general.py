@@ -29,8 +29,8 @@ def numericalSort(data):
 
     .. code-block:: python
 
-        >>>data = ["ctrl1", "ctrl50", "ctrl2", "ctrl"]
-        >>> print numericalSort(data)
+        data = ["ctrl1", "ctrl50", "ctrl2", "ctrl"]
+        print numericalSort(data)
         # Result: ['joint', 'joint1', 'joint2', 'joint50'] #
     """
     return sorted(data, key=lambda key: [int(c) if c.isdigit() else c for c in re.split('([0-9]+)', key)])
@@ -54,21 +54,21 @@ def humanizeBytes(bytes, precision=1):
 
     .. code-block:: python
 
-        >>> humanizeBytes(1)
+        humanizeBytes(1)
         '1 byte'
-        >>> humanizeBytes(1024)
+        humanizeBytes(1024)
         '1.0 kB'
-        >>> humanizeBytes(1024*123)
+        humanizeBytes(1024*123)
         '123.0 kB'
-        >>> humanizeBytes(1024*12342)
+        humanizeBytes(1024*12342)
         '12.1 MB'
-        >>> humanizeBytes(1024*12342,2)
+        humanizeBytes(1024*12342,2)
         '12.05 MB'
-        >>> humanizeBytes(1024*1234,2)
+        humanizeBytes(1024*1234,2)
         '1.21 MB'
-        >>> humanizeBytes(1024*1234*1111,2)
+        humanizeBytes(1024*1234*1111,2)
         '1.31 GB'
-        >>> humanizeBytes(1024*1234*1111,1)
+        humanizeBytes(1024*1234*1111,1)
         '1.3 GB'
 
     """
@@ -117,7 +117,7 @@ def fuzzyFinder(input, collection):
 
     .. code-block:: python
 
-        >>> list(fuzzyFinder("te", ["gete", "test", "hello", "job", "lbsknasdvte", "3rya8d^&%()te)VHF"]))
+        list(fuzzyFinder("te", ["gete", "test", "hello", "job", "lbsknasdvte", "3rya8d^&%()te)VHF"]))
         # result ['test', 'gete', 'lbsknasdvte', '3rya8d^&%()te)VHF']
     """
     regex = re.compile('.*?'.join(map(re.escape, input)))

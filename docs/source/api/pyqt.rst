@@ -1,52 +1,44 @@
-zoo.libs.pyqt package
-=====================
-
-.. automodule:: zoo.libs.pyqt
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-Examples
-========
+PyQt
+########################################
 
 .. toctree::
 
-    zoo.libs.pyqt.examples
+    examples
 
-zoo.libs.pyqt.errors module
----------------------------
+Errors
+======
 
 .. automodule:: zoo.libs.pyqt.errors
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.stylesheet module
--------------------------------
+Stylesheets
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.stylesheet
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.thread module
----------------------------
+Threading
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.thread
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.uiconstants module
---------------------------------
+Constants
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.uiconstants
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.utils module
---------------------------
+Utils
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.utils
     :members:
@@ -54,8 +46,8 @@ zoo.libs.pyqt.utils module
     :show-inheritance:
 
 
-syntaxhighlighter
------------------
+Syntaxhighlighting
+---------------------------------
 .. automodule:: zoo.libs.pyqt.syntaxhighlighter
     :members:
     :undoc-members:
@@ -66,72 +58,68 @@ syntaxhighlighter
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.graphics package
-======================================
+Graphics
+========
 
-.. automodule:: zoo.libs.pyqt.widgets.graphics
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
-zoo.libs.pyqt.widgets.graphics.graphbackdrop module
----------------------------------------------------
+Graphbackdrop
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.graphics.graphbackdrop
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.graphics.graphicitems module
---------------------------------------------------
+graphicitems
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.graphics.graphicitems
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.graphics.graphicspixmap module
-----------------------------------------------------
+graphicspixmap
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.graphics.graphicspixmap
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.graphics.graphicsscene module
----------------------------------------------------
+graphicsscene
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.graphics.graphicsscene
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.graphics.graphicsthumbnail module
--------------------------------------------------------
+graphicsthumbnail
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.graphics.graphicsthumbnail
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.graphics.graphicsview module
---------------------------------------------------
+graphicsview
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.graphics.graphicsview
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.graphics.graphviewconfig module
------------------------------------------------------
+graphviewconfig
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.graphics.graphviewconfig
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.graphics.lineeditproxy module
----------------------------------------------------
+lineeditproxy
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.graphics.lineeditproxy
     :members:
@@ -139,81 +127,75 @@ zoo.libs.pyqt.widgets.graphics.lineeditproxy module
     :show-inheritance:
 
 
-zoo.libs.pyqt.widgets package
-=============================
+Widgets
+=======
 
 
-.. automodule:: zoo.libs.pyqt.widgets
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-zoo.libs.pyqt.widgets.action module
------------------------------------
+Action
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.action
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.buttonlist module
----------------------------------------
+Buttonlist
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.buttonlist
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.dialog module
------------------------------------
+Dialog
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.dialog
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.dockwidget module
----------------------------------------
+Dockwidget
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.dockwidget
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.extendedbutton module
--------------------------------------------
+Extendedbutton
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.extendedbutton
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.flowlayout module
----------------------------------------
+Flowlayout
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.flowlayout
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.frame module
-----------------------------------
+Frame
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.frame
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.headertoolbar module
-------------------------------------------
+Headertoolbar
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.headertoolbar
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.icon module
+Icon
 ---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.icon
@@ -221,119 +203,119 @@ zoo.libs.pyqt.widgets.icon module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.iconmenu module
--------------------------------------
+Iconmenu
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.iconmenu
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.layouts module
-------------------------------------
+Layouts
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.layouts
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.listview module
--------------------------------------
+Listview
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.listview
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.logoutput module
---------------------------------------
+Logoutput
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.logoutput
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.mainwindow module
----------------------------------------
+Mainwindow
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.mainwindow
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.messagebox module
----------------------------------------
+Messagebox
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.messagebox
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.pushbutton module
----------------------------------------
+Pushbutton
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.pushbutton
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.screengrabber module
-------------------------------------------
+screengrabber
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.screengrabber
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.sliderspinbox module
-------------------------------------------
+sliderspinbox
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.sliderspinbox
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.spinner module
-------------------------------------
+spinner
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.spinner
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.thumbnailwidget module
---------------------------------------------
+thumbnailwidget
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.thumbnailwidget
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.toolbutton module
----------------------------------------
+Toolbutton
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.toolbutton
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.toolsetwidget module
-------------------------------------------
+Toolsetwidget
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.toolsetwidget
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.treeview module
--------------------------------------
+Treeview
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.treeview
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.treewidget module
+Treewidget
 ---------------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.treewidget
@@ -341,209 +323,224 @@ zoo.libs.pyqt.widgets.treewidget module
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.widgets.videoplayer module
-----------------------------------------
+Videoplayer
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.widgets.videoplayer
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.models package
-============================
+Models
+======
 
 .. automodule:: zoo.libs.pyqt.models
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.models.constants module
--------------------------------------
+Constants
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.models.constants
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.models.datasources module
----------------------------------------
+Datasources
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.models.datasources
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.models.delegates module
--------------------------------------
+Delegates
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.models.delegates
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.models.listmodel module
--------------------------------------
+Listmodel
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.models.listmodel
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.models.sortmodel module
--------------------------------------
+Sortmodel
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.models.sortmodel
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.models.tablemodel module
---------------------------------------
+Tablemodel
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.models.tablemodel
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.models.treemodel module
--------------------------------------
+Treemodel
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.models.treemodel
     :members:
     :undoc-members:
     :show-inheritance:
 
-pyqt Extensions
-===============
-
+Extensions
+==========
 
 .. automodule:: zoo.libs.pyqt.extended
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.combobox module
---------------------------------------
+Searchable Menu
+---------------------------------
+
+.. automodule:: zoo.libs.pyqt.extended.searchablemenu
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+.. automodule:: zoo.libs.pyqt.extended.searchablemenu.action
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+.. automodule:: zoo.libs.pyqt.extended.searchablemenu.menu
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Combobox
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.extended.combobox
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.expandedtooltip module
----------------------------------------------
+Expandedtooltip
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.extended.expandedtooltip
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.flowtoolbar module
------------------------------------------
+Flowtoolbar
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.extended.flowtoolbar
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.listviewplus module
-------------------------------------------
+Listviewplus
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.extended.listviewplus
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.pythoneditor module
-------------------------------------------
+Pythoneditor
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.extended.pythoneditor
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.searchwidget module
-------------------------------------------
+Searchwidget
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.extended.searchwidget
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.spinbox module
--------------------------------------
+Spinbox
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.extended.spinbox
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.stackwidget module
------------------------------------------
+Stackwidget
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.extended.stackwidget
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.tableviewplus module
--------------------------------------------
+Tableviewplus
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.extended.tableviewplus
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.tabwidget module
----------------------------------------
+Tabwidget
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.extended.tabwidget
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.treeviewplus module
-------------------------------------------
+Treeviewplus
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.extended.treeviewplus
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.viewfilterwidget module
-----------------------------------------------
+Viewfilterwidget
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.extended.viewfilterwidget
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.imageview package
-========================================
+Imageview
+=========
 
-.. automodule:: zoo.libs.pyqt.extended.imageview
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-zoo.libs.pyqt.extended.imageview.items module
----------------------------------------------
+items
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.extended.imageview.items
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.imageview.model module
----------------------------------------------
+Model
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.extended.imageview.model
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.imageview.thumbwidget module
----------------------------------------------------
+Thumbwidget
+---------------------------------
 
 .. automodule:: zoo.libs.pyqt.extended.imageview.thumbwidget
     :members:
@@ -551,28 +548,26 @@ zoo.libs.pyqt.extended.imageview.thumbwidget module
     :show-inheritance:
 
 
-zoo.libs.pyqt.extended.searchablemenu package
-=============================================
+Iconlib
+=======
 
-
-.. automodule:: zoo.libs.pyqt.extended.searchablemenu
+.. automodule:: zoo.libs.iconlib
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.searchablemenu.action module
----------------------------------------------------
+Iconlib.Iconlib
+-------------------------------
 
-.. automodule:: zoo.libs.pyqt.extended.searchablemenu.action
+.. automodule:: zoo.libs.iconlib.iconlib
     :members:
     :undoc-members:
     :show-inheritance:
 
-zoo.libs.pyqt.extended.searchablemenu.menu module
--------------------------------------------------
+Icon UI
+------------------------------
 
-.. automodule:: zoo.libs.pyqt.extended.searchablemenu.menu
+.. automodule:: zoo.libs.iconlib.iconui
     :members:
     :undoc-members:
     :show-inheritance:
-

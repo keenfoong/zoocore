@@ -14,67 +14,74 @@ class ExpandedTooltipPopup(dialog.Dialog):
     ::examples:
 
     To install the tooltip on a PyQt widget:
-    >>> btn = QtWidgets.QPushButton()
-    >>> toolTip = componentWidgetExpand = \
-    >>>     {
-    >>>         "title": "Expand / Collapse Widget",
-    >>>         "icon": "magic",
-    >>>         "tooltip": "Expand / Collapse Widget",
-    >>>         "expanded": "Expand / Collapse Widget <p><b><i>Everything here can be customized using HTML tags.</i></b></p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis et cursus libero. </p><p>Etiam viverra quam sit amet eros volutpat, ac <span class=\"highlight\"><i>aliquam ligula fringilla</i></span>. In semper volutpat nunc, ac placerat nisi mollis a. Donec condimentum urna eu elementum hendrerit. Sed pellentesque.</p><p> <a href=\"http://create3dcharacters.com\">Click for full documentation</a>"
-    >>>     }
-    >>> installTooltips(btn, tooltipDict=toolTip)
+
+    .. code-block:: python
+
+        btn = QtWidgets.QPushButton()
+        toolTip = componentWidgetExpand = \
+            {
+                "title": "Expand / Collapse Widget",
+                "icon": "magic",
+                "tooltip": "Expand / Collapse Widget",
+                "expanded": "Expand / Collapse Widget <p><b><i>Everything here can be customized using HTML tags.</i></b></p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis et cursus libero. </p><p>Etiam viverra quam sit amet eros volutpat, ac <span class=\"highlight\"><i>aliquam ligula fringilla</i></span>. In semper volutpat nunc, ac placerat nisi mollis a. Donec condimentum urna eu elementum hendrerit. Sed pellentesque.</p><p> <a href=\"http://create3dcharacters.com\">Click for full documentation</a>"
+            }
+        installTooltips(btn, tooltipDict=toolTip)
 
     The "expanded" attribute allows for rich text:
-    >>> {"expanded":
-    >>>     ''' Expand / Collapse Widget
-    >>>         <p><b><i>Everything here can be customized using HTML tags.</i></b></p>
-    >>>         <p><span class=\"highlight\">Highlighted text with custom highlight color </span>
-    >>>         <p>Gifs can be used as well. <zoo gif=\"selectAllAnimCurvesInTheScene\" /></p>
-    >>>         <p> <a href=\"http://create3dcharacters.com\">Click for full documentation</a>"'''}
+
+    .. code-block:: python
+
+        {"expanded":
+            ''' Expand / Collapse Widget
+                <p><b><i>Everything here can be customized using HTML tags.</i></b></p>
+                <p><span class=\"highlight\">Highlighted text with custom highlight color </span>
+                <p>Gifs can be used as well. <zoo gif=\"selectAllAnimCurvesInTheScene\" /></p>
+                <p> <a href=\"http://create3dcharacters.com\">Click for full documentation</a>"'''}
 
     Gifs folders are set up in the package.json:
-    >>> "HIVE_UI_GIFS": "{self}/zoo/apps/hiveartistui/gifs"
+    "HIVE_UI_GIFS": "{self}/zoo/apps/hiveartistui/gifs"
 
     ExpandedTooltipPopup is just a dialogue box, so instantiate it then move it like a normal window:
-    >>> # On holding down control the popup (this class) will be displayed. ON Key release it will be closed
-    >>> def keyPressEvent(self, event):
-    >>>     if event.key() == QtCore.Qt.Key_Control:
-    >>>         pos = QtGui.QCursor.pos()
-    >>>         widgetAt = QtWidgets.QApplication.widgetAt(pos)
-    >>>         if expandedtooltip.hasExpandedTooltips(widgetAt):
-    >>>             self._popuptooltip = expandedtooltip.ExpandedTooltipPopup(widgetAt, keyRelease=QtCore.Qt.Key_Control)
-    >>>             self._popuptooltip.move(QtGui.QCursor.pos())
-    >>>
-    >>>         self.ctrlEvent = True
-    >>>
-    >>> def keyReleaseEvent(self, event):
-    >>>     if event.key() == QtCore.Qt.Key_Control:
-    >>>         self.ctrlEvent = False
+
+    .. code-block:: python
+
+        # On holding down control the popup (this class) will be displayed. ON Key release it will be closed
+        def keyPressEvent(self, event):
+            if event.key() == QtCore.Qt.Key_Control:
+                pos = QtGui.QCursor.pos()
+                widgetAt = QtWidgets.QApplication.widgetAt(pos)
+                if expandedtooltip.hasExpandedTooltips(widgetAt):
+                    self._popuptooltip = expandedtooltip.ExpandedTooltipPopup(widgetAt, keyRelease=QtCore.Qt.Key_Control)
+                    self._popuptooltip.move(QtGui.QCursor.pos())
+            self.ctrlEvent = True
+        def keyReleaseEvent(self, event):
+            if event.key() == QtCore.Qt.Key_Control:
+                self.ctrlEvent = False
 
     Example Stylesheet:
-    >>> style = '''
-    >>>    ExpandedTooltipPopup .QFrame {{
-    >>>        border-width: 1px;
-    >>>        border-style: solid;
-    >>>        border-radius: 3px;
-    >>>        border-color: rgba(255,255,255,0.5);
-    >>>        background-color: rgba(20,20,20,0.8);
-    >>>    }}
-    >>>
-    >>>    ExpandedTooltipPopup QLabel {{
-    >>>        border-width: 0px; background: transparent;
-    >>>        font-size: 11pt;
-    >>>    }}
-    >>>
-    >>>    ExpandedTooltipPopup QLabel#title {{
-    >>>        padding: 5px 0px 0px 0px;
-    >>>        font-size: 14pt;
-    >>>    }}
-    >>>
-    >>>    ExpandedTooltipPopup GifWidget {{
-    >>>        border-width: 0px; background: transparent;
-    >>>    }}
-    >>> '''
+
+    .. code-block:: python
+
+        style = '''
+           ExpandedTooltipPopup .QFrame {{
+               border-width: 1px;
+               border-style: solid;
+               border-radius: 3px;
+               border-color: rgba(255,255,255,0.5);
+               background-color: rgba(20,20,20,0.8);
+           }}
+           ExpandedTooltipPopup QLabel {{
+               border-width: 0px; background: transparent;
+               font-size: 11pt;
+           }}
+           ExpandedTooltipPopup QLabel#title {{
+               padding: 5px 0px 0px 0px;
+               font-size: 14pt;
+           }}
+           ExpandedTooltipPopup GifWidget {{
+               border-width: 0px; background: transparent;
+           }}
+        '''
 
     """
 
