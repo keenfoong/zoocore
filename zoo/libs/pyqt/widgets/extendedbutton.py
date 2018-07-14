@@ -13,9 +13,10 @@ class ExtendedButton(QtWidgets.QPushButton):
 
     Each click allows for a menu
 
-    :example:
-    You can use it in a similar fashion to QPushbutton
-    >>> ExtendedButton(icon=iconlib.iconColorized("magic", size=32, color=(255,255,255)))
+    :Example:
+
+        You can use it in a similar fashion to QPushbutton
+        >>> ExtendedButton(icon=iconlib.iconColorized("magic", size=32, color=(255,255,255)))
 
     """
 
@@ -76,8 +77,8 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.doubleClickInterval = interval
 
     def setDoubleClickEnabled(self, enabled):
-        """
-        Enables double click signals for this widget
+        """Enables double click signals for this widget
+
         :param enabled:
         :return:
         """
@@ -87,8 +88,8 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu)).setTearOffEnabled(tearoff)
 
     def setMenu(self, menu, mouseButton=QtCore.Qt.LeftButton):
-        """
-        Set the menu based
+        """Set the menu based
+
         :param menu:
         :type menu: QtWidgets.QMenu
         :param mouseButton:
@@ -101,8 +102,8 @@ class ExtendedButton(QtWidgets.QPushButton):
         # todo set searchable for existing menus
 
     def isSearchable(self, mouseMenu=QtCore.Qt.LeftButton):
-        """
-        Checks if the button menu is searchable or not
+        """Checks if the button menu is searchable or not.
+
         :param mouseMenu:
         :return:
         """
@@ -115,8 +116,8 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.menuAlign = align
 
     def mousePressEvent(self, event):
-        """
-        Mouse set down button visuals
+        """Mouse set down button visuals
+
         :param event:
         :return:
         """
@@ -132,8 +133,8 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.lastClick = self.SINGLE_CLICK
 
     def mouseReleaseEvent(self, event):
-        """
-        Mouse release event plays the menus
+        """Mouse release event plays the menus
+
         :param event:
         :return:
         """
@@ -153,8 +154,8 @@ class ExtendedButton(QtWidgets.QPushButton):
             self.mouseDoubleClickAction(event.button())
 
     def mouseSingleClickAction(self, button):
-        """
-        The actual single click action
+        """The actual single click action
+
         :param button:
         :return:
         """
@@ -168,8 +169,8 @@ class ExtendedButton(QtWidgets.QPushButton):
                 self.rightClicked.emit()
 
     def mouseDoubleClickAction(self, button):
-        """
-        The actual double click Action
+        """The actual double click Action
+
         :param button:
         :return:
         """

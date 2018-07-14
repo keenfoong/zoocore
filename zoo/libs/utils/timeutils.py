@@ -17,13 +17,17 @@ def formatModifiedDateTime(dateTime):
 
     :param dateTime: The datetime instance to be formatted
     :type dateTime: ::class:`datatime`
+
     :returns A string representing the datetime in a nice format
     :rtype: str
-    ::example:
-        >>> from datetime import datetime
-        >>> now = datetime.now()
-        >>> format_modified_date_time_str(now)
+
+    .. code-block:: python
+
+        from datetime import datetime
+        now = datetime.now()
+        format_modified_date_time_str(now)
         # result: 'Today, 9:23am'
+
     """
     date = dateTime.date()
     timeDiff = datetime.now().date() - date
@@ -51,7 +55,7 @@ def daySuffix(day):
 
     :param day: The day of the month
     :type day: int
-    :returns:   A string containing the shorthand suffix for the day of the month
+    :returns: A string containing the shorthand suffix for the day of the month
     :rtype: str
     """
     return ["th", "st", "nd", "rd"][day % 10 if not 11 <= day <= 13 and day % 10 < 4 else 0]

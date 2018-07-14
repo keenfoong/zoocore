@@ -6,15 +6,20 @@ from zoo.libs import iconlib
 
 class ViewSearchWidget(QtWidgets.QWidget):
     """Specialize widget for column row views eg. table view,
-    contains:
+
+    contains::
+    
         column Visibility combobox,
         column Filter combobox,
         Search Widget
-    Signals
+
+    Signals::
+
         ColumnVisibilityIndexChanged
         ColumnFilterIndexChanged
         SearchTextedChanged
         SearchTextedCleared
+
     """
     columnVisibilityIndexChanged = QtCore.Signal(int, str)
     columnFilterIndexChanged = QtCore.Signal(int, str)

@@ -11,7 +11,7 @@ ENV_REGEX = re.compile("\%[^%]+\%")
 UDIM_PATTERN = "u\d+_v\d+"
 PATCH_PATTERN = "\d{4,}"
 VERSION_REGEX = re.compile("(.*)([._-])v(\d+)\.?([^.]+)?$", re.IGNORECASE)
-
+FRAME_REGEX = re.compile("(.*)([._-])(\d+)\.([^.]+)$", re.IGNORECASE)
 
 class Path(str):
     """Wrapper class around file and folder paths providing compability with unc
@@ -133,11 +133,15 @@ class Path(str):
         return self._passed
 
     def isEqual(self, other):
-        """compares two paths after all variables have been resolved, and case sensitivity has been
-        taken into account - the idea being that two paths are only equal if they refer to the
+        """Compares two paths after all variables have been resolved, and case sensitivity has been
+        taken into account.
+        The idea being that two paths are only equal if they refer to the
         same filesystem object.
 
-        :note: this doesn't take into account any sort of linking on *nix systems
+        .. note::
+
+            This doesn't take into account any sort of linking on *nix systems.
+
         """
         if not isinstance(other, Path):
             other = Path(other, self.caseMatters)
@@ -920,19 +924,22 @@ def getTexturesNames(textures, input="zbrush", output="mari", prefix=None):
     :type prefix: str
     :return: Converted textures names.
     :rtype: list
-    Usage::
+
+    .. code-block:: python
+
         >>> getTexturesNames(["Diffuse_u0_v0.exr", "Diffuse_u9_v0.exr"])
-        [(u'Diffuse_u0_v0.exr', u'Diffuse_1001.exr'), (u'Diffuse_u9_v0.exr', u'Diffuse_1010.exr')]
+        #[(u'Diffuse_u0_v0.exr', u'Diffuse_1001.exr'), (u'Diffuse_u9_v0.exr', u'Diffuse_1010.exr')]
         >>> getTexturesNames(["Diffuse_u0_v0.exr", "Diffuse_u9_v0.exr"], "zbrush", "mudbox")
-        [(u'Diffuse_u9_v0.exr', u'Diffuse_u10_v1.exr'), (u'Diffuse_u0_v0.exr', u'Diffuse_u1_v1.exr')]
+        #[(u'Diffuse_u9_v0.exr', u'Diffuse_u10_v1.exr'), (u'Diffuse_u0_v0.exr', u'Diffuse_u1_v1.exr')]
         >>> getTexturesNames(["Diffuse_1001.exr", "Diffuse_1010.exr"], "mari", "zbrush")
-        [(u'Diffuse_1001.exr', u'Diffuse_u0_v0.exr'), (u'Diffuse_1010.exr', u'Diffuse_u9_v0.exr')]
+        #[(u'Diffuse_1001.exr', u'Diffuse_u0_v0.exr'), (u'Diffuse_1010.exr', u'Diffuse_u9_v0.exr')]
         >>> getTexturesNames(["Diffuse_1001.exr", "Diffuse_1010.exr"], "mari", "mudbox")
-        [(u'Diffuse_1001.exr', u'Diffuse_u1_v1.exr'), (u'Diffuse_1010.exr', u'Diffuse_u10_v1.exr')]
+        #[(u'Diffuse_1001.exr', u'Diffuse_u1_v1.exr'), (u'Diffuse_1010.exr', u'Diffuse_u10_v1.exr')]
         >>> getTexturesNames(["Diffuse_u0_v0.exr", "Diffuse_u9_v0.exr"], prefix="")
-        [(u'Diffuse_u0_v0.exr', u'1001.exr'), (u'Diffuse_u9_v0.exr', u'1010.exr')]
+        #[(u'Diffuse_u0_v0.exr', u'1001.exr'), (u'Diffuse_u9_v0.exr', u'1010.exr')]
         >>> getTexturesNames(["Diffuse_u0_v0.exr", "Diffuse_u9_v0.exr"], prefix="Color_")
-        [(u'Diffuse_u0_v0.exr', u'Color_1001.exr'), (u'Diffuse_u9_v0.exr', u'Color_1010.exr')]
+        #[(u'Diffuse_u0_v0.exr', u'Color_1001.exr'), (u'Diffuse_u9_v0.exr', u'Color_1010.exr')]
+
     """
 
     inputMethod = "udim" if input in ("mudbox", "zbrush") else "patch"
@@ -986,9 +993,11 @@ def patchFromUdim(udim):
     :type udim: tuple
     :return: Patch.
     :rtype: int
-    Example::
-        >>> patchFromUdim((0, 0))
-        1001
+
+    .. code-block:: python
+
+        patchFromUdim((0, 0))
+        #1001
     """
 
     return 1000 + (udim[0] + 1) + (udim[1] * 10)
@@ -1001,9 +1010,11 @@ def udimFromPatch(patch):
     :type patch: int
     :return: Udim.
     :rtype: tuple(int,int)
-    Example::
-        >>> udimFromPatch(1001)
-        (0, 0)
+
+    .. code-block:: python
+
+        udimFromPatch(1001)
+        #(0, 0)
     """
     patchMinus = patch - 1000
     u = patchMinus % 10
@@ -1042,14 +1053,12 @@ def getFrameSequencePath(path, frameSpec=None):
     return os.path.join(os.path.dirname(path), newSeqName)
 
 
-
 def getVersionNumber(path):
     """
     Extract a version number from the supplied path.
 
     :param path: The path to a file, likely one to be published.
-
-    :return: An integer representing the version number in the supplied
+    :return: An integer representing the version number in the supplied \
         path. If no version found, ``None`` will be returned.
     """
 

@@ -3,13 +3,12 @@ import os
 
 class StyleSheet(object):
     """
-    ::example:
-        >>> styleSheetStr = 'QToolTip { \n\tbackground-color: rgb(BACK_COLOR_R, BACK_COLOR_G, BACK_COLOR_B);\n\tcolor: black;\n\tborder: black solid 1px;\n\tmargins: 2px;\n}\n'
-        >>> settings = {"BACK_COLOR_R": 251,
-                    "BACK_COLOR_G": 15,
-                    "BACK_COLOR_B": 10}
 
-        >>> sheet = stylesheet.StyleSheet(styleSheetStr)
+    .. code-block:: python
+
+        >>> styleSheetStr = "QToolTip{background - color: rgb(BACK_COLOR_R, BACK_COLOR_G, BACK_COLOR_B);color: black;border: blacksolid 1px;margins: 2px;}"
+        >>> settings = {"BACK_COLOR_R": 251, "BACK_COLOR_G": 15, "BACK_COLOR_B": 10}
+        >>> sheet = StyleSheet(styleSheetStr)
         >>> sheet.format(settings)
         >>> print sheet.data
         # result
@@ -19,6 +18,7 @@ class StyleSheet(object):
             border: black solid 1px;
             margins: 2px;
         }
+
     """
 
     @classmethod

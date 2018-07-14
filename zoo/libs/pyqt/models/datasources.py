@@ -42,7 +42,7 @@ class BaseDataSource(QtCore.QObject):
         return len(self.children)
 
     def columnCount(self):
-        return 0
+        return 1
 
     def parentSource(self):
         """Returns the parent of this node
@@ -67,6 +67,7 @@ class BaseDataSource(QtCore.QObject):
     def insertChild(self, index, child):
         if child not in self.children:
             self.children.insert(index, child)
+            child.parent = self
 
     def append(self, child):
         if child not in self.children:
@@ -135,11 +136,12 @@ class BaseDataSource(QtCore.QObject):
 
     def headerVerticalText(self, index):
         """The Vertical header text, if the return type is None then no text is displayed, an empty string will
-        produce a gap in the header
+        produce a gap in the header.
 
         :param index: The column index for the item
         :type index: int
-        :rtype str or None
+        :rtype: str or None
+
         """
         return None
 

@@ -18,7 +18,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     def reload(self):
         """Hard reloads the model, we do this by the modelReset slot, the reason why we do this instead of insertRows()
         is because we expect that the tree structure has already been rebuilt with its children so by calling insertRows
-         we would in turn create duplicates.
+        we would in turn create duplicates.
         """
         self.modelReset.emit()
 
@@ -54,11 +54,11 @@ class TreeModel(QtCore.QAbstractItemModel):
         elif role == QtCore.Qt.BackgroundRole:
             color = item.backgroundColor(column)
             if color:
-                return QtGui.QColor(*color)
+                return color
         elif role == QtCore.Qt.ForegroundRole:
             color = item.foregroundColor(column)
             if color:
-                return QtGui.QColor(color)
+                return color
         elif role == QtCore.Qt.FontRole:
             return item.font(column)
         elif role in (TreeModel.sortRole, TreeModel.filterRole):

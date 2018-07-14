@@ -35,7 +35,7 @@ def convertRgbToHsv(rgb):
 
 
 def convertSingleSrgbToLinear(colorValue):
-    """Changes a single rgb color (so say red only) to linear space
+    """Changes a single rgb color (so say red only) to linear space.
 
     :param colorValue: a single color value, expects a value from 0-1
     :type colorValue: float
@@ -50,7 +50,7 @@ def convertSingleSrgbToLinear(colorValue):
 
 def convertSingleLinearToSrgb(colorValue):
     """Changes a single rgb color (so say red only) in linear so the resulting color is displayed
-    in srgb color space
+    in srgb color space.
 
     :param colorValue: a single color value, expects a value from 0-1
     :type colorValue: float
@@ -81,8 +81,8 @@ def convertColorLinearToSrgb(linearRgb):
 
     :param linearRgb: a rgb color list/tuple, expects values from 0-1
     :type linearRgb: list of floats
-    :return the new color gamma converted to srgb
-    :rtype tuple(float)
+    :return: the new color gamma converted to srgb
+    :rtype: tuple(float)
     """
     return (convertSingleLinearToSrgb(linearRgb[0]),
             convertSingleLinearToSrgb(linearRgb[1]),
@@ -159,8 +159,8 @@ def offsetSaturation(hsv, offset):
 
 
 def offsetColor(col, offset=0):
-    """
-    Returns a color with the offset in tuple form
+    """Returns a color with the offset in tuple form
+
     :param col: Color in form of tuple with 3 ints. eg tuple(255,255,255)
     :type col: tuple(int,int,int)
     :param offset: The int to offset the color

@@ -1,8 +1,4 @@
 """This flush module is a hardcore deletion of modules that live in sys.modules dict
-functions:
-flushUnder(dirPath): removes all imported modules that live under that directory, recursive function
-reloadZoo(): explicit reload of zoo code using the environment variable ZOO_BASE
-reloadHard(moduleName): Deletes any module in sys.modules that startswith the given name
 """
 import os
 import inspect
@@ -44,8 +40,10 @@ def reloadZoo():
     This makes it trivial to make changes to plugin that have potentially
     complex reload dependencies.
 
-    Example::
+    .. code-block:: python
+
         import flush;flush.reloadZoo()
+
     The above will force all zoo modules to be reloaded by loops over all base packages path in the environment variable
     "ZOO_BASE" then calling flushUnder(basePath)
     """

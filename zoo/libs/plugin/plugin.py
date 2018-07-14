@@ -6,7 +6,9 @@ from zoo.libs.utils import env
 class Plugin(object):
     """Base plugin class that all plugins inherent from. The client should subclass this to provide a standard
     interface when needed.
-    ::example
+
+    .. code-block:: python
+
         Class CustomPlugin(Plugin):
             id = "CustomPlugin.example"
             def execute(self):
@@ -33,7 +35,7 @@ class PluginStats(object):
 
     def _init(self):
         """Initializes some basic info about the plugin and the use environment
-        Internal use only:
+        Internal use only.
         """
         self.info.update({"name": self.plugin.__class__.__name__,
                           "creator": self.plugin.creator,
@@ -45,7 +47,7 @@ class PluginStats(object):
         self.info.update(env.machineInfo())
 
     def finish(self, tb=None):
-        """Called when the plugin has finish executing
+        """Called when the plugin has finish executing.
 
         :param tb:
         :type tb:

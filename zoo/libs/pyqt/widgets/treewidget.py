@@ -31,9 +31,9 @@ class TreeWidgetFrame(QtWidgets.QWidget):
         self.setLayout(self.mainLayout)
 
     def setupToolbar(self):
-        """
-        The toolbar for the ComponentTreeView which will have widgets such as the searchbar,
+        """The toolbar for the ComponentTreeView which will have widgets such as the searchbar,
         and other useful buttons.
+
         :return:
         """
         self.toolbarLayout.addWidget(self.searchEdit)
@@ -182,9 +182,9 @@ class TreeWidget(QtWidgets.QTreeWidget):
         return QtCore.Qt.MoveAction | QtCore.Qt.CopyAction
 
     def dropMimeData(self, parent, index, data, action):
-        """
-        Dropping data from one spot to another.
+        """Dropping data from one spot to another.
         TODO: Wip
+
         :param parent:
         :param index:
         :param data:
@@ -259,7 +259,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
         ITEMTYPE_WIDGETS wont have children.
 
         May merge with self.addNewItem()
-        :param name: Name of the new Item, generally put into the text field of the TreeWidgetItem. This is the text
+
+        :param name: Name of the new Item, generally put into the text field of the TreeWidgetItem. This is the text \
                      that is used for the search bar if it is active.
 
         :param widget: Expects ItemWidget or any subclass of QtWidgets.QWidget.
@@ -303,7 +304,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         May merge with self.insertNewItem()
 
-        :param name: Name of the new Item, generally put into the text field of the TreeWidgetItem. This is the text
+        :param name: Name of the new Item, generally put into the text field of the TreeWidgetItem. This is the text \
                      that is used for the search bar if it is active.
         :param widget: Expects ItemWidget or any subclass of QtWidgets.QWidget.
         :param itemType: The type of widget being set for the new Item.
@@ -407,6 +408,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
         """
         Updates the tree widget so the row heights of the TreeWidgetItems matches what the ComponentWidgets ask for
         in terms of the sizeHint() asks for
+
         :return:
         """
         # Super hacky way to update the TreeWidget, add an empty object and then remove it

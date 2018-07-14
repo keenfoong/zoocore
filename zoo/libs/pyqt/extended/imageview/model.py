@@ -51,11 +51,14 @@ class ItemModel(QtGui.QStandardItemModel):
     def loadData(self):
         """Intended to be overridden by subclasses, This method should deal with loading a chunk of the items to display.
         Use self.loadedCount and self.chunkCount variable to determine the amount to load
-        eg.
+
+        :Example:
+
             if len(self.currentFilesList) < self.loadedCount:
                 filesToLoad = self.mylist
             else:
                 filesToLoad = self.mylist[self.loadedCount: self.loadedCount + self.chunkCount]
+
         :rtype: None
         """
         raise NotImplementedError()

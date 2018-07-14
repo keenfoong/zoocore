@@ -2,7 +2,7 @@ from qt import QtWidgets, QtCore
 
 
 class TreeView(QtWidgets.QTreeView):
-    contextMenuRequested = QtWidgets.Signal(object)
+    contextMenuRequested = QtCore.Signal(object)
 
     def __init__(self, parent=None):
         super(TreeView, self).__init__(parent)

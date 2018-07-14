@@ -1,5 +1,5 @@
 Welcome to ZooCore's documentation!
-================================
+===================================
 
 .. toctree::
    :maxdepth: 2
@@ -12,12 +12,3 @@ Welcome to ZooCore's documentation!
    zoo.libs.pyqt
    zoo.libs.tooldata
    zoo.libs.utils
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

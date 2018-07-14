@@ -18,6 +18,7 @@
 #
 import os
 import sys
+from sphinx.ext.autodoc import importer
 
 sys.path.insert(0, os.path.abspath('.'))
 root = os.path.abspath(os.path.join("..", "..", ".."))
@@ -29,18 +30,6 @@ import packageresolver
 resolved, cfg = packageresolver.resolveFromConfigFile(os.getenv("ZOO_PRESET_PATH"), bakeEnv=True)
 
 
-# Napoleon settings
-# -----------------
-napoleon_google_docstring = False
-napoleon_numpy_docstring = False
-napoleon_include_private_with_doc = False
-napoleon_include_special_with_doc = True
-napoleon_use_admonition_for_examples = False
-napoleon_use_admonition_for_notes = False
-napoleon_use_admonition_for_references = False
-napoleon_use_ivar = False
-napoleon_use_param = True
-napoleon_use_rtype = True
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -56,9 +45,31 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.coverage',
               'sphinx.ext.viewcode',
               'sphinx.ext.githubpages',
-              'sphinxcontrib.napoleon'
               ]
-autodoc_mock_imports = ["maya", "qt", "PySide2", "QtWidgets", "QtCore", 'QtGui']
+
+
+class MockExt(importer._MockObject):
+    """Extend the sphinx mock class to handle QtCore.Qt.UserRole operators
+    """
+    def __mul__(self, other):
+        return MockExt()
+
+    def __rmul__(self, other):
+        return MockExt()
+
+    def __pow__(self, other):
+        return MockExt()
+
+    def __div__(self, other):
+        return MockExt()
+
+    def __add__(self, other):
+        return MockExt()
+
+    def __radd__(self, other):
+        return MockExt()
+
+sys.modules.update((mod_name, MockExt()) for mod_name in ["qt"])
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -122,11 +133,6 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # documentation.
 #
 # html_theme_options = {}
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.

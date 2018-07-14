@@ -1,12 +1,13 @@
 """
-root
-    |-hotkeys
-    |-tools
-        |- toolName
-                |-settingOne.json
-                |SettingTwoFolder
-                            |-setting.json
+Folder Hierarchy::
 
+    root
+        |-hotkeys
+        |-tools
+            |- toolName
+                    |-settingOne.json
+                    |SettingTwoFolder
+                                |-setting.json
 
 """
 import os
@@ -38,20 +39,21 @@ class InvalidRootError(Exception):
 
 class ToolSet(object):
     """
-    Example::
+    .. code-block:: python
+
         Create some roots
-        >>> tset = ToolSet()
+        tset = ToolSet()
         # the order you add roots is important
-        >>> tset.addRoot(os.path.expanduser("~/Documents/maya/2018/scripts/zootools_preferences"), "userPreferences")
+        tset.addRoot(os.path.expanduser("~/Documents/maya/2018/scripts/zootools_preferences"), "userPreferences")
         # create a settings instance, if one exists already within one of the roots that setting will be used unless you
         # specify the root to use, in which the associated settingsObject for the root will be returned
-        >>> newSetting = tset.createSetting(relative="tools/tests/helloworld",
-        ...                                root="userPreferences",
-        ...                                data={"someData": "hello"})
-        >>> print os.path.exists(newSetting.path())
-        >>> print newSetting.path()
+        newSetting = tset.createSetting(relative="tools/tests/helloworld",
+                                        root="userPreferences",
+                                        data={"someData": "hello"})
+        print os.path.exists(newSetting.path())
+        print newSetting.path()
         # lets open a setting
-        >>> foundSetting = tset.findSetting(relative="tools/tests/helloworld", root="userPreferences")
+        foundSetting = tset.findSetting(relative="tools/tests/helloworld", root="userPreferences")
 
     """
 
@@ -69,14 +71,14 @@ class ToolSet(object):
         self.roots[name] = path.Path(fullPath)
 
     def findSetting(self, relativePath, root=None, extension=None):
-        """ finds a settings object by searching the roots in reverse order.
+        """Finds a settings object by searching the roots in reverse order.
 
         The first path to exist will be the one to be resolved. If a root is specified
         and the root+relativePath exists then that will be returned instead
 
         :param relativePath:
         :type relativePath: str
-        :param root: The Root name to search if root is None then all roots in reverse order will be search until a
+        :param root: The Root name to search if root is None then all roots in reverse order will be search until a \
         settings is found.
         :type root: str or None
         :return:
