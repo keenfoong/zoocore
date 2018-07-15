@@ -1,5 +1,5 @@
 import os
-
+from qt import QtGui
 
 class StyleSheet(object):
     """
@@ -94,3 +94,14 @@ def stylesheetsFromDirectory(directory):
                 path = os.path.join(root, f)
                 sheets.append((StyleSheet.fromPath(path), path))
     return sheets
+
+def loadFonts(fontPaths):
+    """Load's the given '.ttf' font files into the QtGui.QFontDatabase
+
+    :param fontPaths: A list of font files
+    :type fontPaths: list(str)
+    :return: the list of registered font ids from qt
+    :rtype: list(str)
+    """
+    return [QtGui.QFontDatabase.addApplicationFont(font) for font in fontPaths]
+

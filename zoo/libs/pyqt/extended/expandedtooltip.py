@@ -148,15 +148,12 @@ class ExpandedTooltipPopup(dialog.Dialog):
         self.setText(self.widget._expandedTooltips_.text)
 
     def center(self):
-        """
-        Override the center from parent class and ignore everything.
-        :return:
+        """Override the center from parent class and ignore everything.
         """
         pass
 
     def setText(self, text, applyStyle=True):
-        """
-        Sets the text for the ExpandedTooltip. It will parse through the text and split it up into
+        """Sets the text for the ExpandedTooltip. It will parse through the text and split it up into
         Labels and GifWidgets and add it to the layout if need be.
 
         :param text:
@@ -172,8 +169,7 @@ class ExpandedTooltipPopup(dialog.Dialog):
         self.addWidgets(parser.widgets())
 
     def applyStyle(self, text):
-        """
-        Apply our own custom style to the text. A bit hacky but it replaces the text to
+        """Apply our own custom style to the text. A bit hacky but it replaces the text to
         what we want. Until we figure a way to apply custom classes to the rich text inside
         labels
 
@@ -182,7 +178,9 @@ class ExpandedTooltipPopup(dialog.Dialog):
         etc..
 
         :param text:
+        :type text: str
         :return:
+        :rtype: str
         """
         # Not sure how to add styles in qt css so I'm going to add my hacky way here.. Maybe QTextBrowser better?
         text = text.replace("class=\"link\"", "style=\"color: rgb{}\" ".format(self.linkColour))
@@ -192,28 +190,24 @@ class ExpandedTooltipPopup(dialog.Dialog):
         return text
 
     def addWidgets(self, wlist):
-        """
-        Adds the list of widgets into our layout
+        """Adds the list of widgets into our layout
+
         :param wlist:
         :type wlist: list(QtWidgets.QWidget)
-        :return:
         """
         for w in wlist:
             self.frameLayout.addWidget(w)
 
     def clear(self):
-        """
-        Clear all the widgets in the frameLayout
-        :return:
+        """Clear all the widgets in the frameLayout
         """
         for i in reversed(range(self.frameLayout.count())):
             self.frameLayout.itemAt(i).widget().setParent(None)
 
     def setIcon(self, icon):
-        """
-        Sets the large icon of this tooltip dialogue window
+        """Sets the large icon of this tooltip dialogue window
+
         :param icon:
-        :return:
         """
         icon = icon or self.defaultIcon
         qicon = iconlib.iconColorized(icon, self.iconSize, self.iconColour)
@@ -224,21 +218,19 @@ class ExpandedTooltipPopup(dialog.Dialog):
         self.tooltipIcon = iconWgt
 
     def setTitle(self, title, applyStyle=True):
-        """
-        Set the title text and apply our style by replacing text if we need to.
+        """Set the title text and apply our style by replacing text if we need to.
+
         :param title:
         :param applyStyle:
-        :return:
         """
         if applyStyle:
             title = self.applyStyle(title)
         self.titleLabel.setText(title)
 
     def keyReleaseEvent(self, event):
-        """
-        Close the dialogue on expanded tooltip key release
+        """Close the dialogue on expanded tooltip key release
+
         :param event:
-        :return:
         """
 
         if event.key() == self.popupKey:
@@ -288,32 +280,30 @@ class WidgetsFromTextParser(HTMLParser):
         self.feed(text)
 
     def feed(self, data):
-        """
-        Goes through the string and throws out handle events as it comes across
+        """Goes through the string and throws out handle events as it comes across
         tags.
+
         :param data:
-        :return:
         """
         HTMLParser.feed(self, data)
         self.addLabelFromConstructed()
 
     def widgets(self):
-        """
-        Return the widgets generated from the string that is fed in.
-        :return:
+        """Return the widgets generated from the string that is fed in.
+
+        :return: list
         """
         return self._widgets
 
     def handle_starttag(self, tag, attrs):
-        """
-        Every time it finds a start tag eg. <a>, <img>, <span> this function is run
+        """Every time it finds a start tag eg. <a>, <img>, <span> this function is run
         along with the data.
 
         Here we add our own tags eg. <zoo gif="example" />.
         Create a label from all the previous text, and create a new GifWidget for this gif
+
         :param tag:
         :param attrs:
-        :return:
         """
         startTag = self.get_starttag_text()
         self.constructed += startTag
@@ -327,11 +317,11 @@ class WidgetsFromTextParser(HTMLParser):
                 self.addGifWidget(attrs[0][1])
 
     def handle_endtag(self, tag):
-        """
-        Close tags
+        """Close tags
         eg. </span> </b> </div>
+
         :param tag:
-        :return:
+        :type tag: str
         """
 
         if tag == 'zoo':
@@ -340,27 +330,23 @@ class WidgetsFromTextParser(HTMLParser):
         self.constructed += "</{}>".format(tag)
 
     def handle_data(self, data):
-        """
-        Data in between tags
+        """Data in between tags
         eg. <span>data in between tags</span>
+
         :param data:
-        :return:
         """
         self.constructed += data
 
     def addGifWidget(self, file):
-        """
-        Add a GifWidget when gif tag is found
+        """Add a GifWidget when gif tag is found
+
         :param file:
-        :return:
         """
         gifWidget = GifWidget(file)
         self._widgets.append(gifWidget)
 
     def addLabelFromConstructed(self):
-        """
-        Add a label with the current text in constructed.
-        :return:
+        """Add a label with the current text in constructed.
         """
         label = QtWidgets.QLabel(self.constructed)
         label.setOpenExternalLinks(True)
@@ -382,15 +368,13 @@ class WidgetsFromTextParser(HTMLParser):
 
 
 def installTooltips(widget, tooltipDict):
-    """
-    Installs the expanded tooltip onto a widget. Works in conjunction with
+    """Installs the expanded tooltip onto a widget. Works in conjunction with
     artistui.keyPressEvent() to display a popup (zoo.apps.hiveartistui.views.expandedtooltip.ExpandedTooltipPopup)
 
     :param widget:
     :type widget: QtWidgets.QWidget
     :param tooltipDict:
     :type tooltipDict:
-    :return:
     """
     tooltip = tooltipDict['tooltip']
     widget.setToolTip(tooltip)
@@ -398,20 +382,18 @@ def installTooltips(widget, tooltipDict):
 
 
 def hasExpandedTooltips(widget):
-    """
-    Returns whether the widget has the injected _expandedTooltips_ object present in the widget
+    """Returns whether the widget has the injected _expandedTooltips_ object present in the widget
+
     :param widget:
-    :return:
     """
     return hasattr(widget, "_expandedTooltips_") and widget._expandedTooltips_.text != ""
 
 
 def copyExpandedTooltips(source, dest):
-    """
-    Copy the _expandedTooltips_ from source widget to destination
+    """Copy the _expandedTooltips_ from source widget to destination
+
     :param source:
     :param dest:
-    :return:
     """
     dest._expandedTooltips_ = source._expandedTooltips_
 
@@ -428,8 +410,8 @@ class ExpandedTooltips(QtCore.QObject):
     title = ""
 
     def __init__(self, dict):
-        """
-        Distribute the data into the strings
+        """Distribute the data into the strings
+
         :param dict:
         """
         try:

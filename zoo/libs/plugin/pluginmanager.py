@@ -1,4 +1,5 @@
-""""This module house's the base class of a plugin manager"""
+"""This module house's the base class of a plugin manager"""
+
 import inspect
 import os
 

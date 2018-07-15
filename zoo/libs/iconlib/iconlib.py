@@ -1,14 +1,19 @@
 import os
 
 from qt import QtGui, QtCore
-from zoo.libs.utils import env
+from zoo.libs.utils import env, classtypes
 
 
 class Icon(object):
     """This class acts as a uniform interface to manipulate, create, retrieve Qt icons from the zoo library.
     """
+    __metaclass__ = classtypes.Singleton
+
     iconCollection = {}
     iconPaths = []
+
+    def __init__(self):
+        Icon.reload()
 
     @classmethod
     def reload(cls):
@@ -39,7 +44,8 @@ class Icon(object):
                     else:
                         cls.iconCollection[name] = {"sizes": {size: {"path": os.path.join(root, f),
                                                                      'icon': None}},
-                                                    "name": name}
+                                                    "name": name,
+                                                    "icon": None}
 
     @classmethod
     def icon(cls, iconName, size=16):
@@ -208,6 +214,3 @@ class Icon(object):
         painter.setCompositionMode(QtGui.QPainter.CompositionMode_SourceOver)
         painter.drawPixmap(0, 0, overlayPixmap.width(), overlayPixmap.height(), overlayPixmap)
         painter.end()
-
-
-Icon.reload()

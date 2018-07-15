@@ -126,7 +126,7 @@ class MainWindow(QtWidgets.QMainWindow):
         qsettings.setValue("geometry", self.saveGeometry())
         qsettings.setValue("saveState", self.saveState())
         qsettings.setValue("maximized", self.isMaximized())
-        if not self.isMaximized() == True:
+        if not self.isMaximized():
             qsettings.setValue("pos", self.pos())
             qsettings.setValue("size", self.size())
         qsettings.endGroup()
@@ -149,7 +149,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.restoreState(qsettings.value("saveState", self.saveState()))
         self.move(qsettings.value("pos", self.pos()))
         self.resize(qsettings.value("size", self.size()))
-        if qsettings.value("maximized", self.isMaximized()):
+        if qsettings.value("maximized", False):
             self.showMaximized()
 
         qsettings.endGroup()

@@ -1,6 +1,7 @@
 """Searchable QMenu
 
 .. code-block:: python
+
     men = SearchableMenu(objectName="test", title="test menu")
     subMenu = men.addMenu("helloworld")
     act = taggedAction.TaggedAction("test")

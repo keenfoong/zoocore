@@ -36,15 +36,13 @@ class FlowToolBar(QtWidgets.QWidget):
     def initUi(self):
         """
         Overridden by subclass
-        :return:
         """
         pass
 
     def setIconSize(self, size):
-        """
-        Set the size of the icons of the tools and toolmenus
+        """Set the size of the icons of the tools and toolmenus
+
         :param size:
-        :return:
         """
         self.iconSize = size
 
@@ -54,16 +52,15 @@ class FlowToolBar(QtWidgets.QWidget):
             widget.setIconSize(self.getIconSize())
 
     def setIconPadding(self, padding):
-        """
-        Sets the padding for the icons of the tools and the tool menus
+        """Sets the padding for the icons of the tools and the tool menus
+
         :param padding:
-        :return:
         """
         self.iconPadding = padding
 
     def addTool(self, iconName, name, iconColor=(255, 255, 255), doubleClickEnabled=False):
-        """
-        Creates a new tool button based on the icon name, and the name.
+        """Creates a new tool button based on the icon name, and the name.
+
         :param iconName: Name of the icon to retrieve
         :param name: Name of the tool
         :param iconColor: Color of the icon for the tool
@@ -90,23 +87,21 @@ class FlowToolBar(QtWidgets.QWidget):
         return btn
 
     def getIconSize(self):
-        """
-        Returns the icon generated QSize
-        :return:
+        """Returns the icon generated QSize
+
+        :rtype: ::class:`QtCore.QSize`
         """
         return QtCore.QSize(self.iconSize + self.iconPadding,
                             self.iconSize + self.iconPadding)
 
     def addToolMenu(self, iconName, name, actions, iconColor=(255, 255, 255), showIndicator=True):
-        """
-        Adds a new tool menu.
+        """Adds a new tool menu.
+
         :param iconName: Name of the icon to retrieve
         :param name: Name of the tool
-        :param actions: Actions is a list of tuples with the name and function to run
-        eg ('Name', self.menuItemPressed)
+        :param actions: Actions is a list of tuples with the name and function to run eg ('Name', self.menuItemPressed)
         :param iconColor: The icon color
         :param showIndicator: Show the menu indicator (the arrow in the corner)
-        :return:
         """
         overlayName = None
         if showIndicator:
@@ -133,28 +128,22 @@ class FlowToolBar(QtWidgets.QWidget):
         return btn
 
     def clear(self):
-        """
-        Clear all widgets
-        :return:
+        """Clear all widgets
         """
         self.mainLayout.clear()
 
     def toolsClicked(self):
-        """
-        All buttons will run through here. It will then run a separate function telling which
+        """All buttons will run through here. It will then run a separate function telling which
         button was pressed, along with some other details
-
-        :return:
         """
         data = self.sender().property("name")
         self.buttonClicked(self.sender(), data)
 
     def buttonClicked(self, wgt, name):
-        """
-        Overridden by the subclass
+        """Overridden by the subclass
+
         :param wgt: The widget that was pressed, typically a button
         :param name: The name of the tool
-        :return:
         """
         pass
 

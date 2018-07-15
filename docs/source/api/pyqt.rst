@@ -334,11 +334,6 @@ Videoplayer
 Models
 ======
 
-.. automodule:: zoo.libs.pyqt.models
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 Constants
 ---------------------------------
 
