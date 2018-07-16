@@ -1,17 +1,16 @@
 import os
-
+from qt import QtGui
 
 class StyleSheet(object):
     """
-    ::example:
-        >>> styleSheetStr = 'QToolTip { \n\tbackground-color: rgb(BACK_COLOR_R, BACK_COLOR_G, BACK_COLOR_B);\n\tcolor: black;\n\tborder: black solid 1px;\n\tmargins: 2px;\n}\n'
-        >>> settings = {"BACK_COLOR_R": 251,
-                    "BACK_COLOR_G": 15,
-                    "BACK_COLOR_B": 10}
 
-        >>> sheet = stylesheet.StyleSheet(styleSheetStr)
-        >>> sheet.format(settings)
-        >>> print sheet.data
+    .. code-block:: python
+
+        styleSheetStr = "QToolTip{background - color: rgb(BACK_COLOR_R, BACK_COLOR_G, BACK_COLOR_B);color: black;border: blacksolid 1px;margins: 2px;}"
+        settings = {"BACK_COLOR_R": 251, "BACK_COLOR_G": 15, "BACK_COLOR_B": 10}
+        sheet = StyleSheet(styleSheetStr)
+        sheet.format(settings)
+        print sheet.data
         # result
         QToolTip {
             background-color: rgb(251, 15, 10);
@@ -19,6 +18,7 @@ class StyleSheet(object):
             border: black solid 1px;
             margins: 2px;
         }
+
     """
 
     @classmethod
@@ -94,3 +94,14 @@ def stylesheetsFromDirectory(directory):
                 path = os.path.join(root, f)
                 sheets.append((StyleSheet.fromPath(path), path))
     return sheets
+
+def loadFonts(fontPaths):
+    """Load's the given '.ttf' font files into the QtGui.QFontDatabase
+
+    :param fontPaths: A list of font files
+    :type fontPaths: list(str)
+    :return: the list of registered font ids from qt
+    :rtype: list(str)
+    """
+    return [QtGui.QFontDatabase.addApplicationFont(font) for font in fontPaths]
+

@@ -1,4 +1,5 @@
-""""This module house's the base class of a plugin manager"""
+"""This module house's the base class of a plugin manager"""
+
 import inspect
 import os
 
@@ -12,10 +13,11 @@ logger = zlogging.zooLogger
 class PluginManager(object):
     """This class manages a group of plugin instance's.
     use registerPlugin(instance) to registry a instance, automatically discover plugin classes use registerByModule or
-     registerByPackage(pkg.path).
-     To register a list of paths use instance.registerTools()
-     To find out what current plugins are loaded in memory use the instance.loadedPlugins variable to return a dictionary.
-     To return all plugins currently registry use the instance.plugins variable.
+    registerByPackage(pkg.path).
+
+    To register a list of paths use instance.registerTools()
+    To find out what current plugins are loaded in memory use the instance.loadedPlugins variable to return a dictionary.
+    To return all plugins currently registry use the instance.plugins variable.
     """
 
     def __init__(self, interface=plugin.Plugin, variableName=None):

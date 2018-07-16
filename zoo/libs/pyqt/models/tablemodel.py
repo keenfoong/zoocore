@@ -5,6 +5,7 @@ class TableModel(QtCore.QAbstractTableModel):
 
     def __init__(self, parent=None):
         """first element is the rowDataSource
+
         :param parent:
         :type parent:
         """
@@ -34,7 +35,7 @@ class TableModel(QtCore.QAbstractTableModel):
     def reload(self):
         """Hard reloads the model, we do this by the modelReset slot, the reason why we do this instead of insertRows()
         is because we expect that the tree structure has already been rebuilt with its children so by calling insertRows
-         we would in turn create duplicates.
+        we would in turn create duplicates.
         """
         self.modelReset.emit()
 

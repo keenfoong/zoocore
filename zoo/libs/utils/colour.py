@@ -159,8 +159,8 @@ def offsetSaturation(hsv, offset):
 
 
 def offsetColor(col, offset=0):
-    """
-    Returns a color with the offset in tuple form.
+    """Returns a color with the offset in tuple form.
+
     :param col: Color in form of tuple with 3 ints. eg tuple(255,255,255)
     :type col: tuple(int,int,int)
     :param offset: The int to offset the color
@@ -190,8 +190,8 @@ def offsetValue(hsv, offset):
 
 
 def hueShift(col, shift):
-    """
-    Shifts the hue of the given colour
+    """Shifts the hue of the given colour
+
     :param col: Colour to shift
     :type col: tuple(int,int,int)
     :param shift: The distance and direction of the colour to shift
@@ -212,8 +212,8 @@ def clamp(v):
 
 
 class RGBRotate(object):
-    """
-    Hue Rotation, using the matrix rotation method. From here
+    """Hue Rotation, using the matrix rotation method. From here
+
     https://stackoverflow.com/questions/8507885/shift-hue-of-an-rgb-color
     """
     def __init__(self):

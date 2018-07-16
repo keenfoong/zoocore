@@ -109,7 +109,7 @@ def copyFile(src, dst, permissions=0666):
 
     :param src: Source file
     :param dst: destination 
-    :param permissions: Permissions to use for target file. Default permissions will
+    :param permissions: Permissions to use for target file. Default permissions will \
                         be readable and writable for all users.
     """
     dirname = os.path.dirname(dst)
@@ -161,11 +161,14 @@ def copyDirectoy(src, dst, ignorePattern=None):
 class MoveFileContext(object):
     """With context utility to ensures that files that were moved within the scope are moved to their
     original location if an exception was raised during that scope.
-    :example:
-        >>> with MoveFileContext() as FileContext:
-        ...     someSourcePath = os.path.expandUser("~/soemfile.config")
-        ...     FileContext.move(sourceSourcePath, os.path.join(os.path.dirname(sourcePath), "destination.config"))
-        ...     ValueError("raise an error so we revert")
+
+    .. code-block:: python
+
+        with MoveFileContext() as FileContext:
+            someSourcePath = os.path.expandUser("~/soemfile.config")
+                FileContext.move(sourceSourcePath, os.path.join(os.path.dirname(sourcePath), "destination.config"))
+                ValueError("raise an error so we revert")
+
     """
 
     def __init__(self):
@@ -248,9 +251,10 @@ def createValidfilename(name):
     """Sanitizer for file names which everyone tends to screw up, this function replace spaces and random character with
     underscore.
 
-    :example:
-    >>> createValidFilename("Some random file name")
-    #result: "Some_random_file_name"
+    .. code-block:: python
+
+        createValidFilename("Some random file name")
+        #result: "Some_random_file_name"
 
     :param name: the name to convert
     :type name: str
@@ -334,7 +338,7 @@ if os.name == "nt" and sys.version_info[0] < 3:
         :type source: str
         :param linkname: symlink path
         :type linkname: str
-        :raises: WindowsError, raises when it fails to create the symlink if the user permissions
+        :raises: WindowsError, raises when it fails to create the symlink if the user permissions \
          are incorrect
         """
         import ctypes

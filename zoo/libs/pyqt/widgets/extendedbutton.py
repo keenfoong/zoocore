@@ -13,9 +13,16 @@ class ExtendedButton(QtWidgets.QPushButton):
 
     Each click allows for a menu
 
+<<<<<<< HEAD
     :example:
     You can use it in a similar fashion to QPushbutton
     >>> ExtendedButton(icon=iconlib.iconColorized("magic", size=32, color=(255,255,255)))
+=======
+    .. code-block:: python
+
+        You can use it in a similar fashion to QPushbutton
+        ExtendedButton(icon=iconlib.iconColorized("magic", size=32, color=(255,255,255)))
+>>>>>>> upstream/master
 
     """
 
@@ -76,16 +83,17 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.doubleClickInterval = interval
 
     def setDoubleClickEnabled(self, enabled):
-        """
-        Enables double click signals for this widget
+        """Enables double click signals for this widget
+
         :param enabled:
         :return:
         """
         self.doubleClickEnabled = enabled
 
+
     def setWindowTitle(self, windowTitle, mouseMenu=QtCore.Qt.LeftButton):
-        """
-        Set the window title of the menu, if it gets teared off
+        """Set the window title of the menu, if it gets teared off
+
         :param windowTitle:
         :param mouseMenu:
         :return:
@@ -94,7 +102,7 @@ class ExtendedButton(QtWidgets.QPushButton):
         menu.setWindowTitle(windowTitle)
 
     def setTearOffEnabled(self, mouseMenu=QtCore.Qt.LeftButton, tearoff=True):
-        """
+        """Set the tear off enabled
 
         :param mouseMenu:
         :param tearoff:
@@ -105,8 +113,8 @@ class ExtendedButton(QtWidgets.QPushButton):
         menu.setTearOffEnabled(tearoff)
 
     def setMenu(self, menu, mouseButton=QtCore.Qt.LeftButton):
-        """
-        Set the menu based
+        """Set the menu based
+
         :param menu:
         :type menu: QtWidgets.QMenu
         :param mouseButton:
@@ -119,27 +127,26 @@ class ExtendedButton(QtWidgets.QPushButton):
         # todo set searchable for existing menus
 
     def isSearchable(self, mouseMenu=QtCore.Qt.LeftButton):
-        """
-        Checks if the button menu is searchable or not
+        """Checks if the button menu is searchable or not.
+
         :param mouseMenu:
         :return:
         """
-
         if self.clickMenu[mouseMenu] is not None:
             return isinstance(self.clickMenu[mouseMenu], searchablemenu.SearchableMenu)
 
         return self.menuSearchable[mouseMenu]
 
-
     def setMenuAlign(self, align=QtCore.Qt.AlignLeft):
         self.menuAlign = align
 
     def mousePressEvent(self, event):
-        """
-        Mouse set down button visuals
+        """Mouse set down button visuals
+
         :param event:
         :return:
         """
+
         if not QtCore.Qt:
             return
 
@@ -150,10 +157,9 @@ class ExtendedButton(QtWidgets.QPushButton):
 
         self.lastClick = self.SINGLE_CLICK
 
-
     def mouseReleaseEvent(self, event):
-        """
-        Mouse release event plays the menus
+        """Mouse release event plays the menus
+
         :param event:
         :return:
         """
@@ -166,7 +172,6 @@ class ExtendedButton(QtWidgets.QPushButton):
             return
 
         # Double clicks
-
         if self.lastClick == self.SINGLE_CLICK:
             QtCore.QTimer.singleShot(self.doubleClickInterval,
                                      lambda: self.mouseSingleClickAction(button))
@@ -174,12 +179,11 @@ class ExtendedButton(QtWidgets.QPushButton):
             self.mouseDoubleClickAction(event.button())
 
     def mouseSingleClickAction(self, button):
-        """
-        The actual single click action
+        """The actual single click action
+
         :param button:
         :return:
         """
-
 
         if self.lastClick == self.SINGLE_CLICK:
             if button == QtCore.Qt.LeftButton:
@@ -190,8 +194,8 @@ class ExtendedButton(QtWidgets.QPushButton):
                 self.rightClicked.emit()
 
     def mouseDoubleClickAction(self, button):
-        """
-        The actual double click Action
+        """The actual double click Action
+
         :param button:
         :return:
         """
@@ -234,6 +238,7 @@ class ExtendedButton(QtWidgets.QPushButton):
         :return:
         """
         menu = self.clickMenu[mouseButton]
+
         # Set focus
         if isinstance(menu, searchablemenu.SearchableMenu):
             searchEdit = menu.searchEdit
@@ -263,9 +268,10 @@ class ExtendedButton(QtWidgets.QPushButton):
 
         return pos
 
+
     def getMenu(self, mouseMenu=QtCore.Qt.LeftButton, searchable=False, autoCreate=True):
-        """
-        Get menu depending on the mouse button pressed
+        """Get menu depending on the mouse button pressed
+
         :param mouseMenu:
         :return:
         """
@@ -280,8 +286,8 @@ class ExtendedButton(QtWidgets.QPushButton):
         return self.clickMenu[mouseMenu]
 
     def addAction(self, name, mouseMenu=QtCore.Qt.LeftButton, connect=None, checkable=False, action=None, icon=None):
-        """
-        Add a new menu item through an action
+        """Add a new menu item through an action
+
         :param mouseMenu: Expects QtCore.Qt.LeftButton, QtCore.Qt.MidButton, or QtCore.Qt.RightButton
         :param name: The text for the new menu item
         :param connect: The function to connect when the menu item is pressed
@@ -320,8 +326,8 @@ class ExtendedButton(QtWidgets.QPushButton):
         menu.addSeparator()
 
     def stringToTags(self, string):
-        """
-        Break down string to tags so it is easily searchable
+        """Break down string to tags so it is easily searchable
+
         :param string:
         :return:
         """

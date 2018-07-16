@@ -85,7 +85,7 @@ def isDottedPath(path):
 
 
 def iterSubclassesFromModule(module, classType):
-    """Iterates all classes within a module object returning subclasses of type ::arg`classType`.
+    """Iterates all classes within a module object returning subclasses of type `classType`.
 
     :param module: the module object to iterate on
     :type module: module object
@@ -101,7 +101,9 @@ def iterSubclassesFromModule(module, classType):
 
 def asDottedPath(path):
     """ Returns a dotted path relative to the python path.
-    example:
+
+    .. code-block:: python
+
         import sys
         currentPath = os.path.expanduser("somerandomPath")
         sys.path.append(currentPath)

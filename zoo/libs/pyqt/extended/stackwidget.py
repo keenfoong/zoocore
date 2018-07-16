@@ -6,8 +6,7 @@ from zoo.libs.pyqt import utils as qtutils
 
 
 class StackWidget(QtWidgets.QWidget):
-    """
-    The overall layout widget. The table underneath (self.stackTableWgt) holds all the stack items.
+    """The overall layout widget. The table underneath (self.stackTableWgt) holds all the stack items.
 
     StackWidget is the overall view, StackTableWidget is the actual widget that holds the StackItems themselves.
     """
@@ -92,23 +91,17 @@ class StackWidget(QtWidgets.QWidget):
         self.expandBtn.clicked.connect(self.expandClicked)
 
     def collapseClicked(self):
-        """
-        Collapse all the StackItems in the Table
-        :return:
+        """Collapse all the StackItems in the Table
         """
         self.stackTableWgt.collapseAll()
 
     def expandClicked(self):
-        """
-        Expand all the StackItems in the Table
-        :return:
+        """Expand all the StackItems in the Table
         """
         self.stackTableWgt.expandAll()
 
     def onStackSearchChanged(self):
-        """
-        Filter the results based on the text inputted into the search bar
-        :return:
+        """Filter the results based on the text inputted into the search bar
         """
 
         text = self.stackSearchEdit.text().lower()
@@ -116,59 +109,50 @@ class StackWidget(QtWidgets.QWidget):
         self.stackTableWgt.updateSize()
 
     def clearStack(self):
-        """
-        Clear all the items in the stack
-        :return:
+        """Clear all the items in the stack
         """
         self.stackTableWgt.clearStack()
 
     def addStackItem(self, item):
-        """
-        Add item to the StackTableWidget
+        """Add item to the StackTableWidget
+
         :param item: StackItem to add to the table
-        :return:
         """
         item.setArrowsVisible(self.showArrows)
         self.stackTableWgt.addStackItem(item)
 
     def replaceStackItems(self, items):
-        """
-        Clear all items and replace it with the items
+        """Clear all items and replace it with the items
+
         :param items: List of items to add to the stack table
-        :return:
         """
         self.clearStack()
         for i in items:
             self.stackTableWgt.addStackItem(i)
 
     def clearSearchEdit(self):
-        """
-        Clear the search bar
-        :return:
+        """Clear the search bar
         """
         self.stackSearchEdit.setText("")
 
     def shiftItem(self, wgt, dir):
-        """
-        Shift the item up or down in the table
+        """Shift the item up or down in the table
+
         :param wgt: The StackItem to shift
         :param dir: The direction to shift -1 is upwards, 1 is downwards
-        :return:
         """
         self.stackTableWgt.shiftTableItem(wgt, dir)
 
     def deleteItem(self, wgt):
-        """
-        Delete the stack item from the table
+        """Delete the stack item from the table
+
         :param wgt:
-        :return:
         """
         self.stackTableWgt.deleteTableItem(wgt)
 
 
 class StackTableWidget(QtWidgets.QTableWidget):
-    """
-    The Table with the actual stack and items. Maybe should merge with StackWidget
+    """The Table with the actual stack and items. Maybe should merge with StackWidget
     """
 
     def __init__(self, showArrows=True, showClose=True, parent=None, itemTint=tuple([60, 60, 60])):
@@ -276,11 +260,10 @@ class StackTableWidget(QtWidgets.QTableWidget):
         return self.stackItems
 
     def updateSize(self, widget=None):
-        """
-        Updates the size based on the widget who sent the request.
+        """Updates the size based on the widget who sent the request.
         Can be forced by setting the widget parameter
-        :param widget:
-        :return:
+
+        :param widget: None or ::class:`QtWidgets.QWidget`
         """
 
         if widget is not None:
@@ -308,8 +291,7 @@ class StackTableWidget(QtWidgets.QTableWidget):
 
 
 class StackItem(QtWidgets.QWidget):
-    """
-    The item in each StackTableWidget.
+    """The item in each StackTableWidget.
     """
     _downIcon = iconlib.icon("arrowSingleDown")
     _upIcon = iconlib.icon("arrowSingleUp")
@@ -388,10 +370,9 @@ class StackItem(QtWidgets.QWidget):
             self.expand()
 
     def setArrowsVisible(self, visible):
-        """
-        Set the shift arrows to be visible or not. These arrows allow the StackItem to be shifted upwards or downwards.
-        :param visible:
-        :return:
+        """Set the shift arrows to be visible or not. These arrows allow the StackItem to be shifted upwards or downwards.
+
+        :param visible: bool
         """
         if visible:
             self.shiftDownBtn.show()
@@ -491,9 +472,7 @@ class StackItem(QtWidgets.QWidget):
         self.widgetHider.setObjectName("stackbody")
 
     def onCollapsed(self, emit=True):
-        """
-        Collapse and hide the item contents
-        :return:
+        """Collapse and hide the item contents
         """
         self.widgetHider.setHidden(True)
         self.expandToggleButton.setIcon(self._collapsedIcon)
@@ -502,9 +481,7 @@ class StackItem(QtWidgets.QWidget):
         self.collapsed = 1
 
     def onExpand(self, emit=True):
-        """
-        Expand the contents and show all the widget data
-        :return:
+        """Expand the contents and show all the widget data
         """
         self.widgetHider.setHidden(False)
         self.expandToggleButton.setIcon(self._expandIcon)
@@ -539,49 +516,40 @@ class StackItem(QtWidgets.QWidget):
         return self.collapsed
 
     def setComboToText(self, combobox, text):
-        """
-        Find the text in the combobox and sets it to active.
+        """Find the text in the combobox and sets it to active.
+
         :param combobox:
         :param text:
-        :return:
+        :type text: str
         """
         index = combobox.findText(text, QtCore.Qt.MatchFixedString)
         combobox.setCurrentIndex(index)
 
     def deleteEvent(self):
-        """
-        Delete Button Pressed
-        :return:
+        """Delete Button Pressed
         """
         self.deletePressed.emit()
 
     def updateSize(self):
-        """
-        Update the size of the widget. Usually called by collapse or expand for when the widget contents are hidden
+        """Update the size of the widget. Usually called by collapse or expand for when the widget contents are hidden
         or shown.
-        :return:
         """
         self.updateRequested.emit()
 
     def getTitle(self):
-        """
-        Get method for the title text
-        :return:
+        """Get method for the title text
         """
         return self.stackTitleWgt.text()
 
     def setTitle(self, text):
-        """
-        Set method to get the title text
+        """Set method to get the title text
+
         :param text:
-        :return:
         """
         self.stackTitleWgt.setText(text)
 
     def titleValidate(self):
-        """
-        Removes invalid characters and replaces spaces with underscores
-        :return:
+        """Removes invalid characters and replaces spaces with underscores
         """
         if self.spacesToUnderscore:
             nameWgt = self.stackTitleWgt
@@ -631,8 +599,7 @@ class StackItem(QtWidgets.QWidget):
 
 
 class LineClickEdit(QtWidgets.QLineEdit):
-    """
-    Creates a line edit that becomes editable on click or doubleclick
+    """Creates a line edit that becomes editable on click or doubleclick
     """
 
     def __init__(self, text, single=False, double=True, passThroughClicks=True):

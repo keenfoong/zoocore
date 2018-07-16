@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from functools import partial
 
 from qt import QtWidgets, QtCore, QtGui
 from zoo.libs import iconlib
@@ -189,6 +188,8 @@ class Vector(QtWidgets.QWidget):
 
 
 class Matrix(QtWidgets.QWidget):
+    valueChanged = QtCore.Signal(tuple)
+
     def __init__(self, label, matrix, min, max, parent=None):
         """
 
@@ -225,7 +226,7 @@ class Matrix(QtWidgets.QWidget):
         """
         :rtype: tuple(tuple(float))
         """
-        self.valueChanged.emit(tuple([tuple([float(t.value()) for t in c]) for c in self._widgets.values()]))
+        self.valueChanged.emit(tuple(self._widgets.values()))
 
     def widget(self, column):
         return self._widgets.get(column)
@@ -235,6 +236,7 @@ class Transformation(QtWidgets.QWidget):
     # @todo setup signals
     rotOrders = ("XYZ", "YZX", "ZXY", "XZY", "XYZ", "ZYX")
     axis = ("X", "Y", "Z")
+    valueChanged = QtCore.Signal(list, list, list, str)
 
     def __init__(self, parent=None):
         super(Transformation, self).__init__(parent=parent)
@@ -252,7 +254,14 @@ class Transformation(QtWidgets.QWidget):
         self.layout.addWidget(self.rotationVec)
         self.layout.addWidget(self.scaleVec)
         self.layout.addWidget(self.rotationOrderBox)
+
         self.setLayout(self.layout)
+
+    def onValueChanged(self, value):
+        self.valueChanged.emit(self.translationVec.value(),
+                               self.rotationVec.value(),
+                               self.scaleVec.value(),
+                               self.rotationOrderBox.value())
 
     def translation(self):
         return self.translationVec.value()

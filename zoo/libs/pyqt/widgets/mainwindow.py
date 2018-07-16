@@ -19,8 +19,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.docks = []
         self.toolBars = {}
         self.hasMainMenu = False
-        self.centralWidget = None
-        self.setCentralWidget(QtWidgets.QWidget())
+        self.centralWidget = QtWidgets.QWidget(parent=self)
+        self.setCentralWidget(self.centralWidget)
 
         self.setDockOptions(QtWidgets.QMainWindow.AllowNestedDocks |
                             QtWidgets.QMainWindow.AnimatedDocks |
@@ -126,7 +126,7 @@ class MainWindow(QtWidgets.QMainWindow):
         qsettings.setValue("geometry", self.saveGeometry())
         qsettings.setValue("saveState", self.saveState())
         qsettings.setValue("maximized", self.isMaximized())
-        if not self.isMaximized() == True:
+        if not self.isMaximized():
             qsettings.setValue("pos", self.pos())
             qsettings.setValue("size", self.size())
         qsettings.endGroup()
@@ -149,7 +149,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.restoreState(qsettings.value("saveState", self.saveState()))
         self.move(qsettings.value("pos", self.pos()))
         self.resize(qsettings.value("size", self.size()))
-        if qsettings.value("maximized", self.isMaximized()):
+        if qsettings.value("maximized", False):
             self.showMaximized()
 
         qsettings.endGroup()

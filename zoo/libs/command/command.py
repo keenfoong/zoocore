@@ -6,6 +6,7 @@ from zoo.libs.command import errors
 
 class CommandInterface(object):
     """The standard ZooCommand meta class interface. Each command must implement doIt, id, creator, isUndoable, description
+
     """
     __metaclass__ = ABCMeta
     uiData = {"icon": "",
@@ -24,27 +25,32 @@ class CommandInterface(object):
     def initialize(self):
         """Intended for overriding by the subclasses, intention here is if the subclass needs __init__ functionality
         then this function should be used instead to avoid any mishaps in any uncalled data.
+
         """
         pass
 
     @abstractmethod
     def doIt(self, **kwargs):
         """Main method to implemented the command operation. all subclasses must a doIt method
-        The DoIt method only support Kwargs meaning that every argument must have a default, this is by design to maintain
-        clarity in people implementation.
+        The DoIt method only support Kwargs meaning that every argument must have a default, this is by design to
+        maintain clarity in people implementation.
 
-        :param kwargs: key value pairs, values can be any type , we are not restricted by types including custom
-        objects or DCC dependent objects eg.MObjects
+        :param kwargs: key value pairs, values can be any type , we are not restricted by types including custom \
+        objects or DCC dependent objects eg.MObjects.
         :param kwargs: dict
-        :return This method should if desire by the developer return a value, this value can be anything including
-        maya api MObject etc.
 
-        ::Example
+        :return This method should if desired by the developer return a value, this value can be anything \
+        including maya api MObject etc.
+
+        :Example:
+
             # correct
             doIt(source=None, target=None, translate=True)
             # incorrect
             doIt(source, target=None, translate=True)
+
         """
+
         pass
 
     def undoIt(self):
@@ -53,6 +59,7 @@ class CommandInterface(object):
 
         :return:
         :rtype:
+
         """
         pass
 
@@ -64,6 +71,7 @@ class CommandInterface(object):
         :type arguments: dict
         :return: Should always return a dict with the same key value pairs as the arguments param
         :rtype: dict
+
         """
         return {}
 
@@ -73,6 +81,7 @@ class CommandInterface(object):
 
         :return: the Command id
         :rtype: str
+
         """
         pass
 
@@ -81,6 +90,7 @@ class CommandInterface(object):
         """Returns the developer name of this command
 
         :rtype: str
+
         """
         pass
 
@@ -90,12 +100,14 @@ class CommandInterface(object):
 
         :return: Defaults to False
         :rtype: bool
+
         """
         return False
 
     def commandUi(self):
         """Method to launch dialogs for this command instance, When a command is run the client can specify 
         if the ui is require
+
         """
         pass
 
@@ -180,6 +192,7 @@ def generateCommandTemplate(className, id, doItContent, undoItContent, filePath,
     :type doitArgs: dict
     :return:
     :rtype:
+
     """
     code = """
 from zoo.libs.command import command

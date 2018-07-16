@@ -1,9 +1,11 @@
+from functools import partial
 from qt import QtWidgets, QtCore
 
 
 class TabWidget(QtWidgets.QTabWidget):
     # allow for custom actions, the qmenu instance is passed to the signal
     contextMenuRequested = QtCore.Signal(object)
+    newTabRequested = QtCore.Signal(object)
 
     def __init__(self, name="", parent=None):
         super(TabWidget, self).__init__(parent=parent)
@@ -11,6 +13,21 @@ class TabWidget(QtWidgets.QTabWidget):
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._contextMenu)
         self.setDocumentMode(True)
+        self.setTabsClosable(True)
+        self.setMovable(True)
+        self.newTabBtn = QtWidgets.QPushButton("+", parent=self)
+        self.newTabBtn.setMaximumWidth(40)
+        self.newTabBtn.setToolTip("Add New Tab")
+        self.setCornerWidget(self.newTabBtn, QtCore.Qt.TopLeftCorner)
+        self.newTabBtn.clicked.connect(partial(self.addTabWidget, None, True))
+
+    def onAddTab(self, widget, name):
+
+        # Add tab
+        self.addTab(widget, name)
+
+        # Set new tab active
+        self.setCurrentIndex(self.count() - 1)
 
     def addTabWidget(self, childWidget=None, dialog=False, name=None):
         """Will open dialog to get tab name and create a new tab with the childWidget set as the child of the
@@ -29,12 +46,7 @@ class TabWidget(QtWidgets.QTabWidget):
                                                       self.tr(''))
             if not (ok and name):
                 return
-
-        # Add tab
-        self.addTab(childWidget, name)
-
-        # Set new tab active
-        self.setCurrentIndex(self.count() - 1)
+        self.newTabRequested.emit(childWidget)
 
     def tabCloseRequested(self, event):
         """Creates a inputDialog for removing the tab
