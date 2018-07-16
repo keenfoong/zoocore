@@ -1,6 +1,6 @@
 from functools import partial
 
-from qt import QtWidgets, QtGui
+from qt import QtWidgets, QtGui, QtCore
 from zoo.libs.utils import zlogging
 
 
@@ -157,3 +157,70 @@ def updateStyle(widget):
     """
     widget.setStyle(widget.style())
 
+
+def windowFlagsString(windowFlags):
+    """
+    Returns a nice string that describes whats inside a windowFlags object
+
+    Example:
+        >>> print(windowFlagsString(self.windowFlags()))
+
+        Prints out:
+        QtCore.Qt.Dialog
+            | QtCore.Qt.WindowTitleHint
+            | QtCore.Qt.WindowSystemMenuHint
+            | QtCore.Qt.WindowCloseButtonHint
+            | QtCore.Qt.WindowContextHelpButtonHint
+
+    :param windowFlags:
+    :return:
+    """
+    flag_type = (windowFlags & QtCore.Qt.WindowType_Mask)
+
+    if flag_type == QtCore.Qt.Window:
+        text = "QtCore.Qt.Window"
+    elif flag_type == QtCore.Qt.Dialog:
+        text = "QtCore.Qt.Dialog"
+    elif flag_type == QtCore.Qt.Sheet:
+        text = "QtCore.Qt.Sheet"
+    elif flag_type == QtCore.Qt.Drawer:
+        text = "QtCore.Qt.Drawer"
+    elif flag_type == QtCore.Qt.Popup:
+        text = "QtCore.Qt.Popup"
+    elif flag_type == QtCore.Qt.Tool:
+        text = "QtCore.Qt.Tool"
+    elif flag_type == QtCore.Qt.ToolTip:
+        text = "QtCore.Qt.ToolTip"
+    elif flag_type == QtCore.Qt.SplashScreen:
+        text = "QtCore.Qt.SplashScreen"
+    else:
+        text = ""
+
+    if windowFlags & QtCore.Qt.MSWindowsFixedSizeDialogHint:
+        text += "\n| QtCore.Qt.MSWindowsFixedSizeDialogHint"
+    if windowFlags & QtCore.Qt.X11BypassWindowManagerHint:
+        text += "\n| QtCore.Qt.X11BypassWindowManagerHint"
+    if windowFlags & QtCore.Qt.FramelessWindowHint:
+        text += "\n| QtCore.Qt.FramelessWindowHint"
+    if windowFlags & QtCore.Qt.WindowTitleHint:
+        text += "\n| QtCore.Qt.WindowTitleHint"
+    if windowFlags & QtCore.Qt.WindowSystemMenuHint:
+        text += "\n| QtCore.Qt.WindowSystemMenuHint"
+    if windowFlags & QtCore.Qt.WindowMinimizeButtonHint:
+        text += "\n| QtCore.Qt.WindowMinimizeButtonHint"
+    if windowFlags & QtCore.Qt.WindowMaximizeButtonHint:
+        text += "\n| QtCore.Qt.WindowMaximizeButtonHint"
+    if windowFlags & QtCore.Qt.WindowCloseButtonHint:
+        text += "\n| QtCore.Qt.WindowCloseButtonHint"
+    if windowFlags & QtCore.Qt.WindowContextHelpButtonHint:
+        text += "\n| QtCore.Qt.WindowContextHelpButtonHint"
+    if windowFlags & QtCore.Qt.WindowShadeButtonHint:
+        text += "\n| QtCore.Qt.WindowShadeButtonHint"
+    if windowFlags & QtCore.Qt.WindowStaysOnTopHint:
+        text += "\n| QtCore.Qt.WindowStaysOnTopHint"
+    if windowFlags & QtCore.Qt.WindowStaysOnBottomHint:
+        text += "\n| QtCore.Qt.WindowStaysOnBottomHint"
+    if windowFlags & QtCore.Qt.CustomizeWindowHint:
+        text += "\n| QtCore.Qt.CustomizeWindowHint"
+
+    return text
