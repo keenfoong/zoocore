@@ -11,7 +11,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setContentsMargins(2, 2, 2, 2)
         self.setDockNestingEnabled(True)
         self.setDocumentMode(True)
-        self.title = title
+        self.title = title or 'mainwindow'
         self.setObjectName(title)
         self.setWindowTitle(title)
         self.resize(width, height)
@@ -122,7 +122,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         qsettings = QtCore.QSettings()
 
-        qsettings.beginGroup("mainWindow")
+        qsettings.beginGroup(self.objectName())
         qsettings.setValue("geometry", self.saveGeometry())
         qsettings.setValue("saveState", self.saveState())
         qsettings.setValue("maximized", self.isMaximized())
@@ -142,14 +142,14 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         qsettings = QtCore.QSettings()
 
-        qsettings.beginGroup("mainWindow")
+        qsettings.beginGroup(self.objectName())
 
         # No need for toPoint, etc. : PySide converts types
         self.restoreGeometry(qsettings.value("geometry", self.saveGeometry()))
         self.restoreState(qsettings.value("saveState", self.saveState()))
         self.move(qsettings.value("pos", self.pos()))
         self.resize(qsettings.value("size", self.size()))
-        if qsettings.value("maximized", False):
+        if qsettings.value("maximized", False) == 'true':
             self.showMaximized()
 
         qsettings.endGroup()
