@@ -11,8 +11,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setContentsMargins(2, 2, 2, 2)
         self.setDockNestingEnabled(True)
         self.setDocumentMode(True)
-        self.title = title or 'mainwindow'
-        self.setObjectName(title)
+        self.title = title
+        self.setObjectName(title or self.__class__.__name__)
         self.setWindowTitle(title)
         self.resize(width, height)
 
