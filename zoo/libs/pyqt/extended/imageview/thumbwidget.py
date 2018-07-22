@@ -34,7 +34,7 @@ class ListView(listview.ListView):
     def wheelEvent(self, event):
         """ Overridden to deal with scaling the listview.
 
-        :type event: ::class:`QEvent`
+        :type event: :class:`QEvent`
         """
         modifiers = event.modifiers()
         if self.zoomable and modifiers == QtCore.Qt.ControlModifier:

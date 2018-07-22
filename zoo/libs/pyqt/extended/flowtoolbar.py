@@ -89,7 +89,7 @@ class FlowToolBar(QtWidgets.QWidget):
     def getIconSize(self):
         """Returns the icon generated QSize
 
-        :rtype: ::class:`QtCore.QSize`
+        :rtype: :class:`QtCore.QSize`
         """
         return QtCore.QSize(self.iconSize + self.iconPadding,
                             self.iconSize + self.iconPadding)

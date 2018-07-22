@@ -16,7 +16,7 @@ def formatModifiedDateTime(dateTime):
     """Format a data/time into a nice human-friendly string.
 
     :param dateTime: The datetime instance to be formatted
-    :type dateTime: ::class:`datatime`
+    :type dateTime: :class:`datatime`
 
     :returns A string representing the datetime in a nice format
     :rtype: str

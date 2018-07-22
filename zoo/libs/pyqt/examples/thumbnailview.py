@@ -79,12 +79,12 @@ class ExampleThumbnailViewerModel(model.ItemModel):
         self.currentFilesList = results
 
     def createItem(self, item):
-        """Custom wrapper Method to create a ::class`items.TreeItem`, add it to the model items and class appendRow()
+        """Custom wrapper Method to create a :class:`items.TreeItem`, add it to the model items and class appendRow()
 
         :param item:
-        :type item: ::class:`baseItem`
+        :type item: :class:`baseItem`
         :return:
-        :rtype: ::class:`items.TreeItem`
+        :rtype: :class:`items.TreeItem`
         """
         tItem = items.TreeItem(item=item)
         self.items.append(tItem)
@@ -120,7 +120,7 @@ class ExampleThumbnailViewerModel(model.ItemModel):
         """Custom method that gets called by the thread
 
         :param item:
-        :type item: ::class:`TreeItem`
+        :type item: :class:`TreeItem`
         :param image: The Loaded QImage
         :type image: QtGui.QImage
         :return:

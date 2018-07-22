@@ -263,7 +263,7 @@ class StackTableWidget(QtWidgets.QTableWidget):
         """Updates the size based on the widget who sent the request.
         Can be forced by setting the widget parameter
 
-        :param widget: None or ::class:`QtWidgets.QWidget`
+        :param widget: None or :class:`QtWidgets.QWidget`
         """
 
         if widget is not None:
