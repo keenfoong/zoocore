@@ -12,7 +12,7 @@ from qt import QtWidgets, QtCore
 class FlowLayout(QtWidgets.QLayout):
     """Custom layout that mimics the behaviour of a flow layout"""
 
-    def __init__(self, parent=None, margin=0, spacing=2):
+    def __init__(self, parent=None, margin=0, spacingX=2, spacingY=2):
         """Create a new FlowLayout instance.
         This layout will reorder the items automatically.
 
@@ -24,7 +24,9 @@ class FlowLayout(QtWidgets.QLayout):
         # Set margin and spacing
         if parent is not None:
             self.setMargin(margin)
-        self.setSpacing(spacing)
+        self.setSpacing(spacingX)
+        self.setSpacingX(spacingX)
+        self.setSpacingY(spacingY)
         self.itemList = []
 
     def __del__(self):
@@ -122,13 +124,19 @@ class FlowLayout(QtWidgets.QLayout):
 
         :return (QSize)"""
         # Calculate the size
-        if QtCore is not None:  # QtCore errors driving me insane
+        if QtCore is not None:
             size = QtCore.QSize()
             for item in self.itemList:
                 size = size.expandedTo(item.minimumSize())
             # Add the margins
             size += QtCore.QSize(2, 2)
             return size
+
+    def setSpacingX(self, spacing):
+        self.spacingX = spacing
+
+    def setSpacingY(self, spacing):
+        self.spacingY = spacing
 
     def doLayout(self, rect, testOnly):
         """Layout all the items
@@ -140,12 +148,12 @@ class FlowLayout(QtWidgets.QLayout):
         lineHeight = 0
 
         for item in self.itemList:
-            spaceX = self.spacing()
-            spaceY = self.spacing()
+            spaceX = self.spacingX
+            spaceY = self.spacingY
             nextX = x + item.sizeHint().width() + spaceX
             if nextX - spaceX > rect.right() and lineHeight > 0:
                 x = rect.x()
-                y = y + lineHeight + spaceY
+                y = y + lineHeight + (spaceY * 2)
                 nextX = x + item.sizeHint().width() + spaceX
                 lineHeight = 0
             if not testOnly:

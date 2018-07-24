@@ -224,3 +224,27 @@ def windowFlagsString(windowFlags):
         text += "\n| QtCore.Qt.CustomizeWindowHint"
 
     return text
+
+
+def dpiScale(value):
+    """
+    Resize by value based on current DPI
+
+    :param value:
+    :return:
+    """
+    DEFAULT_DPI = 96
+    mult = QtWidgets.QApplication.desktop().logicalDpiY() / DEFAULT_DPI
+    return value * mult
+
+
+def sizeByDpi(size):
+    """Scales the QSize by the current dpi scaling from maya.
+
+    :param size: The QSize to Scale by the dpi setting from maya
+    :type size: QSize
+    :return: The newly scaled QSize
+    :rtype: QSize
+    """
+    return QtCore.QSize(dpiScale(size.width()), dpiScale(size.height()))
+

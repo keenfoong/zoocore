@@ -1,6 +1,7 @@
 from qt import QtWidgets, QtCore, QtGui
 
 from zoo.libs import iconlib
+from zoo.libs.pyqt import utils
 from zoo.libs.pyqt.widgets import flowlayout, iconmenu
 from zoo.libs.utils import colour
 
@@ -25,7 +26,10 @@ class FlowToolBar(QtWidgets.QWidget):
     def __init__(self, parent=None, menuIndicatorIcon="arrowmenu"):
         super(FlowToolBar, self).__init__(parent)
         self.artistUi = parent
-        self.mainLayout = flowlayout.FlowLayout(margin=0, spacing=1)
+        self.mainLayout = utils.vBoxLayout(self)
+
+        self.flowLayout = flowlayout.FlowLayout(margin=0, spacingX=1, spacingY=1)
+        self.mainLayout.addLayout(self.flowLayout)
         self.setLayout(self.mainLayout)
         self.iconSize = 22
         self.iconPadding = 2
@@ -47,8 +51,8 @@ class FlowToolBar(QtWidgets.QWidget):
         self.iconSize = size
 
         # Set the icon size, possibly will need to get them to get a new icon through iconColorized
-        for i in range(0, self.mainLayout.count()):
-            widget = self.mainLayout.itemAt(i).widget()
+        for i in range(0, self.flowLayout.count()):
+            widget = self.flowLayout.itemAt(i).widget()
             widget.setIconSize(self.getIconSize())
 
     def setIconPadding(self, padding):
@@ -83,7 +87,7 @@ class FlowToolBar(QtWidgets.QWidget):
         btn.setIconSize(self.getIconSize())
         btn.leftClicked.connect(self.toolsClicked)
 
-        self.mainLayout.addWidget(btn)
+        self.flowLayout.addWidget(btn)
         return btn
 
     def getIconSize(self):
@@ -124,13 +128,13 @@ class FlowToolBar(QtWidgets.QWidget):
         for a in actions:
             btn.addAction(a[0], connect=a[1])
 
-        self.mainLayout.addWidget(btn)
+        self.flowLayout.addWidget(btn)
         return btn
 
     def clear(self):
         """Clear all widgets
         """
-        self.mainLayout.clear()
+        self.flowLayout.clear()
 
     def toolsClicked(self):
         """All buttons will run through here. It will then run a separate function telling which

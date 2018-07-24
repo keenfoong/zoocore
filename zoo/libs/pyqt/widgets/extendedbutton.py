@@ -74,16 +74,39 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.doubleClickEnabled = doubleClickEnabled
         self.lastClick = None
 
+
+    def setIconIdle(self, icon):
+        """
+        Set the button Icon when idle or default.
+
+        :param icon:
+        :return:
+        """
+        self.buttonIcon = icon
+        self.setIcon(icon)
+
+    def setIconHover(self, iconHover):
+        """
+        Set the button icon for when mouse hovers over
+
+        :param iconHover:
+        :return:
+        """
+        self.buttonIconHover = iconHover
+
+
     def setDoubleClickInterval(self, interval=150):
         """
         Sets the interval of the double click, defaults to 150
+
         :param interval:
         :return:
         """
         self.doubleClickInterval = interval
 
     def setDoubleClickEnabled(self, enabled):
-        """Enables double click signals for this widget
+        """
+        Enables double click signals for this widget
 
         :param enabled:
         :return:
