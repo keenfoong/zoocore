@@ -7,6 +7,7 @@ Comments added by Jos Balcaen(http://josbalcaen.com/)
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 from qt import QtWidgets, QtCore
+import shiboken2
 
 
 class FlowLayout(QtWidgets.QLayout):
@@ -28,6 +29,7 @@ class FlowLayout(QtWidgets.QLayout):
         self.setSpacingX(spacingX)
         self.setSpacingY(spacingY)
         self.itemList = []
+        self.overflow = None
 
     def __del__(self):
         """Delete all the items in this layout"""
@@ -102,9 +104,9 @@ class FlowLayout(QtWidgets.QLayout):
         """Get the preferred height a layout item with the given width
 
         :param width (int)"""
-        if QtCore is not None:  # QtCore errors driving me insane
-            height = self.doLayout(QtCore.QRect(0, 0, width, 0), True)
-            return height
+
+        height = self.doLayout(QtCore.QRect(0, 0, width, 0), True)
+        return height
 
     def setGeometry(self, rect):
         """Set the geometry of this layout
@@ -112,6 +114,9 @@ class FlowLayout(QtWidgets.QLayout):
         :param rect (QRect)"""
         super(FlowLayout, self).setGeometry(rect)
         self.doLayout(rect, False)
+
+    def allowOverflow(self, allow):
+        self.overflow = allow
 
     def sizeHint(self):
         """Get the preferred size of this layout
@@ -143,22 +148,28 @@ class FlowLayout(QtWidgets.QLayout):
 
         :param rect (QRect) Rect where in the items have to be laid out
         :param testOnly (boolean) Do the actual layout"""
+
         x = rect.x()
         y = rect.y()
         lineHeight = 0
-
         for item in self.itemList:
+            if not shiboken2.isValid(item):
+                continue
+
             spaceX = self.spacingX
             spaceY = self.spacingY
             nextX = x + item.sizeHint().width() + spaceX
             if nextX - spaceX > rect.right() and lineHeight > 0:
-                x = rect.x()
-                y = y + lineHeight + (spaceY * 2)
-                nextX = x + item.sizeHint().width() + spaceX
-                lineHeight = 0
+                if not self.overflow:
+                    x = rect.x()
+                    y = y + lineHeight + (spaceY * 2)
+                    nextX = x + item.sizeHint().width() + spaceX
+                    lineHeight = 0
+
             if not testOnly:
                 item.setGeometry(
                         QtCore.QRect(QtCore.QPoint(x, y), item.sizeHint()))
             x = nextX
             lineHeight = max(lineHeight, item.sizeHint().height())
+
         return y + lineHeight - rect.y()

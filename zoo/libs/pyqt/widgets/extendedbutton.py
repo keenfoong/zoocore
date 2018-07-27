@@ -74,7 +74,6 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.doubleClickEnabled = doubleClickEnabled
         self.lastClick = None
 
-
     def setIconIdle(self, icon):
         """
         Set the button Icon when idle or default.
@@ -94,7 +93,6 @@ class ExtendedButton(QtWidgets.QPushButton):
         """
         self.buttonIconHover = iconHover
 
-
     def setDoubleClickInterval(self, interval=150):
         """
         Sets the interval of the double click, defaults to 150
@@ -112,7 +110,6 @@ class ExtendedButton(QtWidgets.QPushButton):
         :return:
         """
         self.doubleClickEnabled = enabled
-
 
     def setWindowTitle(self, windowTitle, mouseMenu=QtCore.Qt.LeftButton):
         """Set the window title of the menu, if it gets teared off
@@ -232,6 +229,7 @@ class ExtendedButton(QtWidgets.QPushButton):
     def mouseDoubleClickEvent(self, event):
         """
         Detects Double click event.
+
         :param event:
         :return:
         """
@@ -240,6 +238,7 @@ class ExtendedButton(QtWidgets.QPushButton):
     def enterEvent(self, event):
         """
         Button Hover on mouse enter
+
         :param event:
         :return:
         """
@@ -249,14 +248,15 @@ class ExtendedButton(QtWidgets.QPushButton):
     def leaveEvent(self, event):
         """
         Button Hover on mouse leave
+
         :param event:
         :return:
         """
         self.setIcon(self.buttonIcon)
 
     def contextMenu(self, mouseButton):
-        """
-        Run context menu depending on mouse button
+        """Run context menu depending on mouse button
+        
         :param mouseButton:
         :return:
         """
@@ -282,6 +282,7 @@ class ExtendedButton(QtWidgets.QPushButton):
         :return:
         """
         pos = 0
+
         if align == QtCore.Qt.AlignLeft:
             point = self.rect().bottomLeft() - QtCore.QPoint(0, -self.menuPadding)
             pos = self.mapToGlobal(point)
@@ -290,7 +291,6 @@ class ExtendedButton(QtWidgets.QPushButton):
             pos = self.mapToGlobal(point)
 
         return pos
-
 
     def getMenu(self, mouseMenu=QtCore.Qt.LeftButton, searchable=False, autoCreate=True):
         """Get menu depending on the mouse button pressed
