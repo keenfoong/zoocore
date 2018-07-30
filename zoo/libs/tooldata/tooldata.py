@@ -82,7 +82,7 @@ class ToolSet(object):
         settings is found.
         :type root: str or None
         :return:
-        :rtype: ::class:`SettingObject`
+        :rtype: :class:`SettingObject`
         """
         relativePath = path.Path(relativePath)
         if not relativePath.getExtension(True):

@@ -130,13 +130,13 @@ class ZooCommand(CommandInterface):
         unacceptedArgs = []
         for arg, value in iter(arguments.items()):
             if arg not in kwargs:
-                unacceptedArgs.append(arg)
+                continue
             kwargs[arg] = value
         if unacceptedArgs:
             raise ValueError("unaccepted arguments({}) for command -> {}".format(unacceptedArgs, self.id))
         results = self.resolveArguments(kwargs)
         kwargs.update(results)
-        self.arguments = kwargs
+        self.arguments.update(results)
         return True
 
     def _prepareCommand(self):

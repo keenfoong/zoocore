@@ -27,8 +27,8 @@ def highlighterFromJson(filePath, document):
     :param filePath: Absolute path to the json file
     :type filePath: str
     :param document: The Document instance to apply to
-    :type document: ::class:`QtGui.QTextDocument`
-    :rtype: ::class:`PythonHighlighter`
+    :type document: :class:`QtGui.QTextDocument`
+    :rtype: :class:`PythonHighlighter`
     """
     if not filePath:
         return

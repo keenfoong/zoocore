@@ -22,7 +22,7 @@ class ItemModel(QtGui.QStandardItemModel):
         super(ItemModel, self).__init__(parent)
         self.rootItem = QtGui.QStandardItem('root')
         # items list , all items to show in the view should be in this one dimensional list
-        self.items = []  # ::class:`item.TreeItem`
+        self.items = []  # :class:`item.TreeItem`
         self.loadedCount = 0
 
     def canFetchMore(self, index=QtCore.QModelIndex()):

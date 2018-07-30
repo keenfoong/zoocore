@@ -29,7 +29,7 @@ class StyleSheet(object):
         :type path: str
         :param kwargs: The settings to replace in the style sheet
         :type kwargs: dict
-        :rtype: ::class:`StyleSheet`
+        :rtype: :class:`StyleSheet`
         """
 
         with open(path, "r") as f:
@@ -63,14 +63,14 @@ class StyleSheet(object):
 
 
 def stylesheetFromDirectory(directory, name):
-    """Recursively searches directory until the name.css file is found and a ::class:`Stylesheet` instance is returned
+    """Recursively searches directory until the name.css file is found and a :class:`Stylesheet` instance is returned
 
     :param directory: The absolute path to the directory to search
     :type directory: str
     :param name: the file name to find
     :type name: str
     :return: The style sheet instance or None if no matching file is found
-    :rtype: tuple(::class:`StyleSheet`, str)
+    :rtype: tuple(:class:`StyleSheet`, str)
     """
     for root, dirs, files in os.walk(directory):
         for f in files:
@@ -80,12 +80,12 @@ def stylesheetFromDirectory(directory, name):
 
 
 def stylesheetsFromDirectory(directory):
-    """Recursively searches the directory for all .css files and returns ::class:`StyleSheet` instances and file paths
+    """Recursively searches the directory for all .css files and returns :class:`StyleSheet` instances and file paths
 
     :param directory: The absolute path to the directory to search
     :type directory: str
     :return:
-    :rtype: list(tuple(::class:`StyleSheet`, str))
+    :rtype: list(tuple(:class:`StyleSheet`, str))
     """
     sheets = list()
     for root, dirs, files in os.walk(directory):

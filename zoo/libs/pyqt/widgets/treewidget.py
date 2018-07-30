@@ -33,7 +33,7 @@ class TreeWidgetFrame(QtWidgets.QWidget):
         and other useful buttons.
 
         :return: The toolbar Qlayout
-        :rtype: ::class:`QtWidgets.QHBoxlayout`
+        :rtype: :class:`QtWidgets.QHBoxlayout`
         """
         self.toolbarLayout.addWidget(self.searchEdit)
         self.searchEdit.setPlaceholderText("Search...")
