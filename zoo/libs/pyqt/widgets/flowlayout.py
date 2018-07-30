@@ -89,6 +89,15 @@ class FlowLayout(QtWidgets.QLayout):
         item = QtWidgets.QWidgetItem(widget)
         self.itemList.insert(index, item)
 
+    def items(self):
+        remove = []
+        for item in self.itemList:
+            if not shiboken2.isValid(item):
+                remove.append(item)
+
+        [self.itemList.remove(r) for r in remove]
+        return self.itemList
+
     def expandingDirections(self):
         """This layout grows only in the horizontal dimension"""
         if QtCore is not None:  # QtCore errors driving me insane
@@ -153,8 +162,6 @@ class FlowLayout(QtWidgets.QLayout):
         y = rect.y()
         lineHeight = 0
         for item in self.itemList:
-            if not shiboken2.isValid(item):
-                continue
 
             spaceX = self.spacingX
             spaceY = self.spacingY

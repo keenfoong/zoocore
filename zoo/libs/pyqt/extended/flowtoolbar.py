@@ -28,7 +28,7 @@ class FlowToolBar(QtWidgets.QWidget):
         self.artistUi = parent
         self.mainLayout = utils.hBoxLayout(self)
 
-        self.flowLayout = flowlayout.FlowLayout(margin=0, spacingX=1, spacingY=1)
+        self.flowLayout = flowlayout.FlowLayout(margin=0, spacingX=utils.dpiScale(1), spacingY=utils.dpiScale(1))
         self.mainLayout.addLayout(self.flowLayout)
         self.setLayout(self.mainLayout)
         self.iconSize = 20
@@ -185,7 +185,6 @@ class FlowToolBar(QtWidgets.QWidget):
         """
         self.flowLayout.removeWidget(self.overflowMenuBtn)
 
-
         self.flowLayout.clear()
 
 
@@ -218,7 +217,7 @@ class FlowToolBar(QtWidgets.QWidget):
         self.setUpdatesEnabled(False)
 
         spacing = self.flowLayout.spacingX
-        nextX = sum([item.sizeHint().width() + spacing for item in self.flowLayout.itemList])
+        nextX = sum([item.sizeHint().width() + spacing for item in self.flowLayout.items()])
 
         # Move buttons to dialog layout
         for item in reversed(self.flowLayout.itemList[:-1]):  # overflow button is last we dont want to remove that one

@@ -256,7 +256,7 @@ class ExtendedButton(QtWidgets.QPushButton):
 
     def contextMenu(self, mouseButton):
         """Run context menu depending on mouse button
-        
+
         :param mouseButton:
         :return:
         """
