@@ -159,13 +159,13 @@ def updateStyle(widget):
 
 
 def windowFlagsString(windowFlags):
-    """
-    Returns a nice string that describes whats inside a windowFlags object
+    """Returns a nice string that describes whats inside a windowFlags object
 
-    Example:
+    .. code-block:: python
         >>> print(windowFlagsString(self.windowFlags()))
 
-        Prints out:
+    Prints out:
+    .. code-block:: python
         QtCore.Qt.Dialog
             | QtCore.Qt.WindowTitleHint
             | QtCore.Qt.WindowSystemMenuHint
@@ -227,8 +227,7 @@ def windowFlagsString(windowFlags):
 
 
 def dpiScale(value):
-    """
-    Resize by value based on current DPI
+    """Resize by value based on current DPI
 
     :param value:
     :return:
@@ -241,7 +240,7 @@ def dpiScale(value):
 def sizeByDpi(size):
     """Scales the QSize by the current dpi scaling from maya.
 
-    :param size: The QSize to Scale by the dpi setting from maya
+    :param size: The QSize to Scale by the current dpi settings
     :type size: QSize
     :return: The newly scaled QSize
     :rtype: QSize
