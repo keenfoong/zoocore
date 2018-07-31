@@ -25,6 +25,9 @@ class FlowLayout(QtWidgets.QLayout):
         # Set margin and spacing
         if parent is not None:
             self.setMargin(margin)
+
+        self.spacingX = 0
+        self.spacingY = 0
         self.setSpacing(spacingX)
         self.setSpacingX(spacingX)
         self.setSpacingY(spacingY)
@@ -147,9 +150,19 @@ class FlowLayout(QtWidgets.QLayout):
             return size
 
     def setSpacingX(self, spacing):
+        """X Spacing for each item
+
+        :param spacing:
+        :return:
+        """
         self.spacingX = spacing
 
     def setSpacingY(self, spacing):
+        """Y Spacing for each item
+
+        :param spacing:
+        :return:
+        """
         self.spacingY = spacing
 
     def doLayout(self, rect, testOnly):

@@ -22,6 +22,7 @@ class FlowToolBar(QtWidgets.QWidget):
             pass
 
     """
+    overflowIcon = "sortDown"
 
     def __init__(self, parent=None, menuIndicatorIcon="arrowmenu"):
         super(FlowToolBar, self).__init__(parent)
@@ -33,29 +34,22 @@ class FlowToolBar(QtWidgets.QWidget):
         self.setLayout(self.mainLayout)
         self.iconSize = 20
         self.iconPadding = 2
+        self.overflowBtnColor = (128,128,128)
         self.menuIndicatorIcon = menuIndicatorIcon
 
         self.overflowMenu = False
         self.overflowMenuBtn = None
-
-
         self.overflowMenuDlg = FlowToolbarMenu(self)
-        #self.dialogWidget.setStyleSheet(self.styleSheet())
         self.overflowLayout = self.overflowMenuDlg.layout()
-
 
         self.initUi()
 
     def initUi(self):
         """
-        Overridden by subclass
+        Initialise flow toolbar ui
         """
 
         self.overflowMenuBtn = self.setupOverflowMenu()
-
-
-        #self.flowLayout.addWidget(self.overflowMenuBtn)
-
 
     def setIconSize(self, size):
         """Set the size of the icons of the tools and toolmenus
@@ -82,9 +76,22 @@ class FlowToolBar(QtWidgets.QWidget):
         self.overflowMenu = active
         self.flowLayout.allowOverflow(active)
 
+    def setOverflowButtonColor(self, col):
+        """Sets the color for the overflow button
+
+        :param col:
+        :return:
+        """
+        self.overflowBtnColor = col
+
     def setupOverflowMenu(self, btn=None):
-        col = (128, 128, 128)
-        icon = "sortDown"
+        """Setup the overflow menu and connect it to btn. If there's no button yet create one.
+
+        :param btn:
+        :return:
+        """
+        col = self.overflowBtnColor
+        icon = self.overflowIcon
 
         iconIdle = iconlib.iconColorized(icon, size=self.iconSize, color=col)
         iconHover = iconlib.iconColorized(icon, size=self.iconSize, color=colour.offsetColor(col, 40))
@@ -102,11 +109,13 @@ class FlowToolBar(QtWidgets.QWidget):
         return btn
 
     def showOverflowMenu(self):
+        """Display the menu. Set the position based on the button.
+
+        :return:
+        """
         self.overflowMenuDlg.show()
         pos = self.overflowMenuBtn.menuPos(QtCore.Qt.AlignRight, self.overflowMenuBtn)
         self.overflowMenuDlg.move(pos)
-
-
 
     def addTool(self, iconName, name, iconColor=(255, 255, 255), doubleClickEnabled=False):
         """Creates a new tool button based on the icon name, and the name.
@@ -118,8 +127,6 @@ class FlowToolBar(QtWidgets.QWidget):
         :return:
         """
         # Create an item with a caption
-
-
         btn = iconmenu.IconMenuButton(icon=iconlib.iconColorized(iconName,
                                                                  size=self.iconSize,
                                                                  color=iconColor),
@@ -196,24 +203,22 @@ class FlowToolBar(QtWidgets.QWidget):
         self.buttonClicked(self.sender(), data)
 
     def resizeEvent(self, event):
-        self.updateWidgets(self.width())
-        return
-        baseY = self.flowLayout.itemList[0].widget().y()
+        self.updateWidgetsOverflow(self.width())
 
-        for w in self.flowLayout.itemList:
-            widget = w.widget()
+    def updateWidgetsOverflow(self, width):
+        """Hide or show widgets based on the size of the flow toolbar.
 
-            if not widget.isVisible():
-                widget.show()
+        If the flow toolbar is too small it will move widgets it to the overflow menu.
 
-            #print(widget.y())
+        If there are widgets in the overflow menu, place it back into the flow toolbar if there is space.
 
-            if widget.y() != baseY:
-                widget.hide()
+        :param width:
+        :return:
+        """
+        if not self.overflowMenuBtn:
+            return
 
-    def updateWidgets(self, width):
-
-        # Stop the flickering
+        # Stop the flickering by disabling updates
         self.setUpdatesEnabled(False)
 
         spacing = self.flowLayout.spacingX
@@ -237,7 +242,7 @@ class FlowToolBar(QtWidgets.QWidget):
 
                     nextX += itemWidth
 
-        # If the dialog has 1 or more widgets show the overflow menu
+        # Show Overflow menu button, If the dialog has 1 or more widgets
         if self.overflowLayout.count() > 0:
             self.overflowMenuBtn.show()
         else:
