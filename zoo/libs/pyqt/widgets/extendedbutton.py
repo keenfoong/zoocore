@@ -68,24 +68,63 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.doubleClickEnabled = doubleClickEnabled
         self.lastClick = None
 
+    def setIconIdle(self, icon):
+        """
+        Set the button Icon when idle or default.
+
+        :param icon:
+        :return:
+        """
+        self.buttonIcon = icon
+        self.setIcon(icon)
+
+    def setIconHover(self, iconHover):
+        """
+        Set the button icon for when mouse hovers over
+
+        :param iconHover:
+        :return:
+        """
+        self.buttonIconHover = iconHover
+
     def setDoubleClickInterval(self, interval=150):
         """
         Sets the interval of the double click, defaults to 150
+
         :param interval:
         :return:
         """
         self.doubleClickInterval = interval
 
     def setDoubleClickEnabled(self, enabled):
-        """Enables double click signals for this widget
+        """
+        Enables double click signals for this widget
 
         :param enabled:
         :return:
         """
         self.doubleClickEnabled = enabled
 
+    def setWindowTitle(self, windowTitle, mouseMenu=QtCore.Qt.LeftButton):
+        """Set the window title of the menu, if it gets teared off
+
+        :param windowTitle:
+        :param mouseMenu:
+        :return:
+        """
+        menu = self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu))
+        menu.setWindowTitle(windowTitle)
+
     def setTearOffEnabled(self, mouseMenu=QtCore.Qt.LeftButton, tearoff=True):
-        self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu)).setTearOffEnabled(tearoff)
+        """Set the tear off enabled
+
+        :param mouseMenu:
+        :param tearoff:
+        :param windowTitle:
+        :return:
+        """
+        menu = self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu))
+        menu.setTearOffEnabled(tearoff)
 
     def setMenu(self, menu, mouseButton=QtCore.Qt.LeftButton):
         """Set the menu based
@@ -184,6 +223,7 @@ class ExtendedButton(QtWidgets.QPushButton):
     def mouseDoubleClickEvent(self, event):
         """
         Detects Double click event.
+
         :param event:
         :return:
         """
@@ -192,6 +232,7 @@ class ExtendedButton(QtWidgets.QPushButton):
     def enterEvent(self, event):
         """
         Button Hover on mouse enter
+
         :param event:
         :return:
         """
@@ -201,14 +242,15 @@ class ExtendedButton(QtWidgets.QPushButton):
     def leaveEvent(self, event):
         """
         Button Hover on mouse leave
+
         :param event:
         :return:
         """
         self.setIcon(self.buttonIcon)
 
     def contextMenu(self, mouseButton):
-        """
-        Run context menu depending on mouse button
+        """Run context menu depending on mouse button
+
         :param mouseButton:
         :return:
         """
@@ -234,6 +276,7 @@ class ExtendedButton(QtWidgets.QPushButton):
         :return:
         """
         pos = 0
+
         if align == QtCore.Qt.AlignLeft:
             point = self.rect().bottomLeft() - QtCore.QPoint(0, -self.menuPadding)
             pos = self.mapToGlobal(point)
@@ -244,8 +287,8 @@ class ExtendedButton(QtWidgets.QPushButton):
         return pos
 
     def getMenu(self, mouseMenu=QtCore.Qt.LeftButton, searchable=False, autoCreate=True):
-        """
-        Get menu depending on the mouse button pressed
+        """Get menu depending on the mouse button pressed
+
         :param mouseMenu:
         :return:
         """
@@ -259,9 +302,9 @@ class ExtendedButton(QtWidgets.QPushButton):
 
         return self.clickMenu[mouseMenu]
 
-    def addAction(self, name, mouseMenu=QtCore.Qt.LeftButton, connect=None, checkable=False, action=None):
-        """
-        Add a new menu item through an action
+    def addAction(self, name, mouseMenu=QtCore.Qt.LeftButton, connect=None, checkable=False, action=None, icon=None):
+        """Add a new menu item through an action
+
         :param mouseMenu: Expects QtCore.Qt.LeftButton, QtCore.Qt.MidButton, or QtCore.Qt.RightButton
         :param name: The text for the new menu item
         :param connect: The function to connect when the menu item is pressed
@@ -278,6 +321,9 @@ class ExtendedButton(QtWidgets.QPushButton):
         newAction.setCheckable(checkable)
         newAction.tags = set(self.stringToTags(name))
         menu.addAction(newAction)
+
+        if icon is not None:
+            newAction.setIcon(icon)
 
         if connect is not None:
             if checkable:
@@ -297,8 +343,8 @@ class ExtendedButton(QtWidgets.QPushButton):
         menu.addSeparator()
 
     def stringToTags(self, string):
-        """
-        Break down string to tags so it is easily searchable
+        """Break down string to tags so it is easily searchable
+
         :param string:
         :return:
         """
