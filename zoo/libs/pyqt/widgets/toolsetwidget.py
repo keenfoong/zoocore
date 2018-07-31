@@ -190,9 +190,7 @@ class ToolSetWidgetItem(QtWidgets.QWidget):
         Widget can be toggled so it's a container for the layout
         """
         self.widgetHider.setContentsMargins(0, 0, 0, 0)
-
         self.widgetHider.setHidden(self.collapsed)
-        self.widgetHider.setStyleSheet(".QFrame {{background-color: rgb{};}}".format(str(self.itemTint)))
 
     def onCollapsed(self):
         """

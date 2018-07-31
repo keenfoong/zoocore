@@ -203,24 +203,22 @@ class FlowToolBar(QtWidgets.QWidget):
         self.buttonClicked(self.sender(), data)
 
     def resizeEvent(self, event):
-        self.updateWidgets(self.width())
-        return
-        baseY = self.flowLayout.itemList[0].widget().y()
+        self.updateWidgetsOverflow(self.width())
 
-        for w in self.flowLayout.itemList:
-            widget = w.widget()
+    def updateWidgetsOverflow(self, width):
+        """Hide or show widgets based on the size of the flow toolbar.
 
-            if not widget.isVisible():
-                widget.show()
+        If the flow toolbar is too small it will move widgets it to the overflow menu.
 
-            #print(widget.y())
+        If there are widgets in the overflow menu, place it back into the flow toolbar if there is space.
 
-            if widget.y() != baseY:
-                widget.hide()
+        :param width:
+        :return:
+        """
+        if not self.overflowMenuBtn:
+            return
 
-    def updateWidgets(self, width):
-
-        # Stop the flickering
+        # Stop the flickering by disabling updates
         self.setUpdatesEnabled(False)
 
         spacing = self.flowLayout.spacingX
@@ -244,7 +242,7 @@ class FlowToolBar(QtWidgets.QWidget):
 
                     nextX += itemWidth
 
-        # If the dialog has 1 or more widgets show the overflow menu
+        # Show Overflow menu button, If the dialog has 1 or more widgets
         if self.overflowLayout.count() > 0:
             self.overflowMenuBtn.show()
         else:

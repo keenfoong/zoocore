@@ -69,8 +69,7 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.lastClick = None
 
     def setIconIdle(self, icon):
-        """
-        Set the button Icon when idle or default.
+        """Set the button Icon when idle or default.
 
         :param icon:
         :return:
@@ -79,8 +78,7 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.setIcon(icon)
 
     def setIconHover(self, iconHover):
-        """
-        Set the button icon for when mouse hovers over
+        """Set the button icon for when mouse hovers over
 
         :param iconHover:
         :return:
