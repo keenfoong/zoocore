@@ -1,9 +1,9 @@
-from qt import QtWidgets, QtCore
+from qt import QtWidgets, QtCore, QtGui
 
 from zoo.libs import iconlib
 from zoo.libs.pyqt.extended import searchablemenu
 from zoo.libs.pyqt.extended.searchablemenu import action as taggedAction
-from zoo.libs.utils import zlogging
+from zoo.libs.utils import zlogging, colour
 
 logger = zlogging.getLogger(__name__)
 
@@ -15,8 +15,11 @@ class ExtendedButton(QtWidgets.QPushButton):
 
     .. code-block:: python
 
-        You can use it in a similar fashion to QPushbutton
-        ExtendedButton(icon=iconlib.iconColorized("magic", size=32, color=(255,255,255)))
+        # You can use it in a similar fashion to QPushbutton
+        ExtendedButton(icon=iconlib.iconColorized("magic", size=32, color=(128,128,128)),
+                       iconHover=iconlib.iconColorized("magic", size=32, color=(255,255,255)))
+
+        # Set the hover through the constructor like above or simply set the iconName and offset
 
     """
 
@@ -67,6 +70,40 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.doubleClickInterval = QtWidgets.QApplication.instance().doubleClickInterval()  # 500
         self.doubleClickEnabled = doubleClickEnabled
         self.lastClick = None
+        self.iconName = None
+        self.highlightOffset = 40
+        self.iconColor = None
+
+    def setIconByName(self, iconName, color, size, colorOffset=None):
+        """Set up both icons in a simple function
+
+        :param iconName:
+        :param color:
+        :param size:
+        :param colorOffset:
+        :return:
+        """
+        self.setIconSize(QtCore.QSize(size, size))
+
+        if colorOffset is not None:
+            self.highlightOffset = colorOffset
+
+        self.iconName = iconName
+        self.setIconColor(color, update=False)
+
+        self.updateIcons()
+
+    def setIconColor(self, color, update=True):
+        self.iconColor = color
+
+        if update:
+            self.updateIcons()
+
+    def updateIcons(self):
+        hoverCol = colour.offsetColor(self.iconColor, self.highlightOffset)
+        self.buttonIcon = iconlib.iconColorized(self.iconName, size=self.iconSize().width(), color=self.iconColor)
+        self.buttonIconHover = iconlib.iconColorized(self.iconName, size=self.iconSize().width(), color=hoverCol)
+        self.setIcon(self.buttonIcon)
 
     def setIconIdle(self, icon):
         """Set the button Icon when idle or default.

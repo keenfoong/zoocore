@@ -1,7 +1,7 @@
 from qt import QtWidgets, QtCore, QtGui
 from zoo.libs import iconlib
 from zoo.libs.pyqt import uiconstants
-from zoo.libs.pyqt.widgets import frame
+from zoo.libs.pyqt.widgets import frame, extendedbutton
 from zoo.libs.pyqt import utils as qtutils
 
 
@@ -300,6 +300,12 @@ class StackItem(QtWidgets.QWidget):
     _collapsedIcon = iconlib.icon("sortClosed")
     _expandIcon = iconlib.icon("sortDown")
 
+    _deleteIconName = "xMark"
+    _collapsedIconName = "sortClosed"
+    _expandIconName = "sortDown"
+    _downIconName = "arrowSingleDown"
+    _upIconName = "arrowSingleUp"
+
     closeRequested = QtCore.Signal()
     openRequested = QtCore.Signal()
     toggleExpandRequested = QtCore.Signal(bool)
@@ -322,9 +328,9 @@ class StackItem(QtWidgets.QWidget):
 
         # Init
         self.itemIcon = QtWidgets.QToolButton(parent=self)
-        self.shiftDownBtn = QtWidgets.QToolButton(parent=self)
-        self.shiftUpBtn = QtWidgets.QToolButton(parent=self)
-        self.deleteBtn = QtWidgets.QToolButton(parent=self)
+        self.shiftDownBtn = extendedbutton.ExtendedButton(parent=self)
+        self.shiftUpBtn = extendedbutton.ExtendedButton(parent=self)
+        self.deleteBtn = extendedbutton.ExtendedButton(parent=self)
         self.stackTitleWgt = LineClickEdit(title)
         self.titleExtrasLayout = qtutils.hBoxLayout()
         self.horizontalLayout = qtutils.hBoxLayout()
@@ -345,7 +351,6 @@ class StackItem(QtWidgets.QWidget):
         self.widgetHider = frame.QFrame(parent=self)
         self._contentsLayout = qtutils.vBoxLayout(self.widgetHider)
 
-
         if not shiftArrowsEnabled:
             self.shiftDownBtn.hide()
             self.shiftUpBtn.hide()
@@ -357,7 +362,6 @@ class StackItem(QtWidgets.QWidget):
             self.stackTitleWgt.setReadOnly(True)
 
         self.initUi()
-
         self.connections()
 
         if not collapsable:  # if not collapsable must be open
@@ -404,22 +408,21 @@ class StackItem(QtWidgets.QWidget):
         self.layout.addWidget(self.widgetHider)
 
         self.itemIcon.setIcon(self._itemIcon)
-        self.shiftDownBtn.setIcon(self._downIcon)
-        self.shiftUpBtn.setIcon(self._upIcon)
-        self.deleteBtn.setIcon(self._deleteIcon)
         self.itemIcon.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
 
-        iconSize = QtCore.QSize(12, 12)
+        iconSize = 12
+        highlightOffset = 40
+        col = (128,128,128)
 
-        self.deleteBtn.setIconSize(iconSize)
-        self.shiftUpBtn.setIconSize(iconSize)
-        self.shiftDownBtn.setIconSize(iconSize)
+        self.deleteBtn.setIconByName(self._deleteIconName, col, iconSize, highlightOffset)
+        self.shiftUpBtn.setIconByName(self._upIconName, col, iconSize, highlightOffset)
+        self.shiftDownBtn.setIconByName(self._downIconName, col, iconSize, highlightOffset)
 
     def buildTitleFrame(self):
         """Builds the title part of the layout with a QFrame widget
         """
 
-        self.titleFrame.setContentsMargins(1,1,1,1)
+        self.titleFrame.setContentsMargins(1, 1, 1, 1)
 
         # the horizontal layout
         self.horizontalLayout = qtutils.hBoxLayout(self.titleFrame)
@@ -591,9 +594,9 @@ class StackItem(QtWidgets.QWidget):
 
         self.expandToggleButton.clicked.connect(self.toggleContents)
 
-        self.shiftUpBtn.clicked.connect(self.shiftUp)
-        self.shiftDownBtn.clicked.connect(self.shiftDown)
-        self.deleteBtn.clicked.connect(self.deleteEvent)
+        self.shiftUpBtn.leftClicked.connect(self.shiftUp)
+        self.shiftDownBtn.leftClicked.connect(self.shiftDown)
+        self.deleteBtn.leftClicked.connect(self.deleteEvent)
 
         self.stackTitleWgt.textChanged.connect(self.titleValidate)
 
