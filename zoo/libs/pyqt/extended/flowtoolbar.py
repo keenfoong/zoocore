@@ -39,7 +39,7 @@ class FlowToolBar(QtWidgets.QWidget):
 
         self.overflowMenu = False
         self.overflowMenuBtn = None
-        self.overflowMenuDlg = FlowToolbarMenu(self)
+        self.overflowMenuDlg = FlowToolbarMenu(parent=self)
         self.overflowLayout = self.overflowMenuDlg.layout()
 
         self.initUi()
@@ -271,7 +271,7 @@ class FlowToolBar(QtWidgets.QWidget):
 
 class FlowToolbarMenu(dialog.Dialog):
     def __init__(self, parent=None):
-        super(FlowToolbarMenu, self).__init__(parent=parent)
+        super(FlowToolbarMenu, self).__init__(parent=parent, showOnInitialize=False)
         self.mainLayout = utils.vBoxLayout(self)
         self.initUi()
 
