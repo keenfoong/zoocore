@@ -73,7 +73,7 @@ class CommandInterface(object):
         :rtype: dict
 
         """
-        return {}
+        return arguments
 
     @abstractproperty
     def id(self):
@@ -127,16 +127,10 @@ class ZooCommand(CommandInterface):
 
     def _resolveArguments(self, arguments):
         kwargs = self.arguments
-        unacceptedArgs = []
-        for arg, value in iter(arguments.items()):
-            if arg not in kwargs:
-                continue
+        results = self.resolveArguments(ArgumentParser(**arguments))
+        for arg, value in iter(results.items()):
             kwargs[arg] = value
-        if unacceptedArgs:
-            raise ValueError("unaccepted arguments({}) for command -> {}".format(unacceptedArgs, self.id))
-        results = self.resolveArguments(kwargs)
-        kwargs.update(results)
-        self.arguments.update(results)
+
         return True
 
     def _prepareCommand(self):

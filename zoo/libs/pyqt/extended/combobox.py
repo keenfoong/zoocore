@@ -46,7 +46,6 @@ class ExtendedComboBox(QtWidgets.QComboBox):
             self.parent().setFocus()
         elif event.key() in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
             self.itemSelected.emit(self.currentText())
-            self.close()
             self.parent().setFocus()
 
     def onCompleterActivated(self, text):
