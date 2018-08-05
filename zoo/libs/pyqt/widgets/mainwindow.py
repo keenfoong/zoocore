@@ -12,7 +12,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setDockNestingEnabled(True)
         self.setDocumentMode(True)
         self.title = title
-        self.setObjectName(title)
+        self.setObjectName(title or self.__class__.__name__)
         self.setWindowTitle(title)
         self.resize(width, height)
 
@@ -25,7 +25,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setDockOptions(QtWidgets.QMainWindow.AllowNestedDocks |
                             QtWidgets.QMainWindow.AnimatedDocks |
                             QtWidgets.QMainWindow.AllowTabbedDocks)
-        self.setTabPosition(QtCore.Qt.AllDockWidgetAreas,QtWidgets.QTabWidget.North)
+        self.setTabPosition(QtCore.Qt.AllDockWidgetAreas, QtWidgets.QTabWidget.North)
         if icon:
             if isinstance(icon, QtGui.QIcon):
                 self.setWindowIcon(icon)
@@ -70,6 +70,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def createDock(self, mainWidget, area=QtCore.Qt.LeftDockWidgetArea,
                    tabify=True):
+
         dockName = "".join([mainWidget.objectName(), "Dock"])
         existing = self.findDock(dockName)
         if existing:
@@ -122,7 +123,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         qsettings = QtCore.QSettings()
 
-        qsettings.beginGroup("mainWindow")
+        qsettings.beginGroup(self.objectName())
         qsettings.setValue("geometry", self.saveGeometry())
         qsettings.setValue("saveState", self.saveState())
         qsettings.setValue("maximized", self.isMaximized())
@@ -142,14 +143,14 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         qsettings = QtCore.QSettings()
 
-        qsettings.beginGroup("mainWindow")
+        qsettings.beginGroup(self.objectName())
 
         # No need for toPoint, etc. : PySide converts types
         self.restoreGeometry(qsettings.value("geometry", self.saveGeometry()))
         self.restoreState(qsettings.value("saveState", self.saveState()))
         self.move(qsettings.value("pos", self.pos()))
         self.resize(qsettings.value("size", self.size()))
-        if qsettings.value("maximized", False):
+        if qsettings.value("maximized", False) == 'true':
             self.showMaximized()
 
         qsettings.endGroup()
