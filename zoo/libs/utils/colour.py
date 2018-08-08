@@ -35,7 +35,7 @@ def convertRgbToHsv(rgb):
 
 
 def convertSingleSrgbToLinear(colorValue):
-    """Changes a single rgb color (so say red only) to linear space
+    """Changes a single rgb color (so say red only) to linear space.
 
     :param colorValue: a single color value, expects a value from 0-1
     :type colorValue: float
@@ -50,7 +50,7 @@ def convertSingleSrgbToLinear(colorValue):
 
 def convertSingleLinearToSrgb(colorValue):
     """Changes a single rgb color (so say red only) in linear so the resulting color is displayed
-    in srgb color space
+    in srgb color space.
 
     :param colorValue: a single color value, expects a value from 0-1
     :type colorValue: float
@@ -81,8 +81,8 @@ def convertColorLinearToSrgb(linearRgb):
 
     :param linearRgb: a rgb color list/tuple, expects values from 0-1
     :type linearRgb: list of floats
-    :return the new color gamma converted to srgb
-    :rtype tuple(float)
+    :return: the new color gamma converted to srgb
+    :rtype: tuple(float)
     """
     return (convertSingleLinearToSrgb(linearRgb[0]),
             convertSingleLinearToSrgb(linearRgb[1]),
@@ -196,7 +196,8 @@ def hueShift(col, shift):
     :type col: tuple(int,int,int)
     :param shift: The distance and direction of the colour to shift
     :type shift: int
-    :return:
+    :return: the colour with the shifted hue
+    :rtype: tuple(int,int,int)
     """
     rgbRotator = RGBRotate()
     rgbRotator.set_hue_rotation(shift)
