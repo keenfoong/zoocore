@@ -44,6 +44,7 @@ class FlowToolBar(QtWidgets.QWidget):
         self.overflowMenuBtn = None  # type: iconmenu.IconMenuButton
         self.overflowMenuDlg = FlowToolbarMenu(parent=self)
         self.overflowLayout = self.overflowMenuDlg.layout()
+        self.overflowMenuType = self.MENUTYPE_DEFAULT
 
         self.initUi()
         self.setOverflowMenuType(self.MENUTYPE_DEFAULT)
@@ -81,6 +82,11 @@ class FlowToolBar(QtWidgets.QWidget):
         self.overflowMenu = active
         self.flowLayout.allowOverflow(active)
 
+        if self.overflowMenuType == self.MENUTYPE_DEFAULT:
+            self.overflowMenuBtn.menuActive[QtCore.Qt.LeftButton] = active
+        else:
+            self.overflowMenuBtn.menuActive[QtCore.Qt.LeftButton] = False
+
     def setOverflowButtonColor(self, col):
         """Sets the color for the overflow button
 
@@ -103,10 +109,6 @@ class FlowToolBar(QtWidgets.QWidget):
 
         if btn is None:
             btn = iconmenu.IconMenuButton(icon=iconIdle, iconHover=iconHover, parent=self)
-            try:
-                btn.leftClicked.disconnect()
-            except Exception:
-                pass
             btn.leftClicked.connect(self.showOverflowMenu)
         else:
             btn.setIconIdle(iconIdle)

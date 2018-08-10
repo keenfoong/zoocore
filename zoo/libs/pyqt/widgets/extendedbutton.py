@@ -155,7 +155,7 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
 
         self.menuAlign = QtCore.Qt.AlignLeft
 
-        self.clicked.connect(lambda: self.leftClicked.emit())
+        #self.clicked.connect(lambda: self.leftClicked.emit())
         self.leftClicked.connect(lambda: self.contextMenu(QtCore.Qt.LeftButton))
         self.middleClicked.connect(lambda: self.contextMenu(QtCore.Qt.MidButton))
         self.rightClicked.connect(lambda: self.contextMenu(QtCore.Qt.RightButton))
