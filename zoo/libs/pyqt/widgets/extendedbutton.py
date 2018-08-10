@@ -7,7 +7,99 @@ from zoo.libs.utils import zlogging, colour
 
 logger = zlogging.getLogger(__name__)
 
-class ExtendedButton(QtWidgets.QPushButton):
+
+class ButtonIcons(QtWidgets.QAbstractButton):
+    """Set up the icons that change on mouse over, press and release. Inherit from this class to have icons
+
+    .. code-block:: python
+
+        class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
+        class ExtendedButton(QtWidgets.QToolButton, ButtonIcons):
+
+    Must be placed after the button
+
+    """
+    highlightOffset = 40
+    iconName = None
+    iconColor = (128, 128, 128)
+
+    buttonIcon = None
+    buttonIconHover = None
+
+    def setHighlight(self, highlight):
+        self.highlightOffset = highlight
+
+    def setIconByName(self, iconName, color=None, size=None, colorOffset=None):
+        """Set up both icons in a simple function
+
+        :param iconName:
+        :param color:
+        :param size:
+        :param colorOffset:
+        :return:
+        """
+        if size is not None:
+            self.setIconSize(QtCore.QSize(size, size))
+
+        if colorOffset is not None:
+            self.highlightOffset = colorOffset
+
+        color = color or self.iconColor
+
+        self.iconName = iconName
+        self.setIconColor(color, update=False)
+
+        self.updateIcons()
+
+    def setIconColor(self, color, update=True):
+        self.iconColor = color
+
+        if update and self.buttonIcon is not None:
+            self.updateIcons()
+
+    def updateIcons(self):
+        hoverCol = colour.offsetColor(self.iconColor, self.highlightOffset)
+        self.buttonIcon = iconlib.iconColorized(self.iconName, size=self.iconSize().width(), color=self.iconColor)
+        self.buttonIconHover = iconlib.iconColorized(self.iconName, size=self.iconSize().width(), color=hoverCol)
+        self.setIcon(self.buttonIcon)
+
+    def setIconIdle(self, icon):
+        """Set the button Icon when idle or default.
+
+        :param icon:
+        :return:
+        """
+        self.buttonIcon = icon
+        self.setIcon(icon)
+
+    def setIconHover(self, iconHover):
+        """Set the button icon for when mouse hovers over
+
+        :param iconHover:
+        :return:
+        """
+        self.buttonIconHover = iconHover
+
+    def enterEvent(self, event):
+        """
+        Button Hover on mouse enter
+
+        :param event:
+        :return:
+        """
+        if self.buttonIconHover is not None:
+            self.setIcon(self.buttonIconHover)
+
+    def leaveEvent(self, event):
+        """Button Hover on mouse leave
+
+        :param event:
+        :return:
+        """
+        self.setIcon(self.buttonIcon)
+
+
+class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
     """
     Push Button that allows you to have the left click, middle click, and right click.
 
@@ -73,54 +165,6 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.iconName = None
         self.highlightOffset = 40
         self.iconColor = None
-
-    def setIconByName(self, iconName, color, size, colorOffset=None):
-        """Set up both icons in a simple function
-
-        :param iconName:
-        :param color:
-        :param size:
-        :param colorOffset:
-        :return:
-        """
-        self.setIconSize(QtCore.QSize(size, size))
-
-        if colorOffset is not None:
-            self.highlightOffset = colorOffset
-
-        self.iconName = iconName
-        self.setIconColor(color, update=False)
-
-        self.updateIcons()
-
-    def setIconColor(self, color, update=True):
-        self.iconColor = color
-
-        if update:
-            self.updateIcons()
-
-    def updateIcons(self):
-        hoverCol = colour.offsetColor(self.iconColor, self.highlightOffset)
-        self.buttonIcon = iconlib.iconColorized(self.iconName, size=self.iconSize().width(), color=self.iconColor)
-        self.buttonIconHover = iconlib.iconColorized(self.iconName, size=self.iconSize().width(), color=hoverCol)
-        self.setIcon(self.buttonIcon)
-
-    def setIconIdle(self, icon):
-        """Set the button Icon when idle or default.
-
-        :param icon:
-        :return:
-        """
-        self.buttonIcon = icon
-        self.setIcon(icon)
-
-    def setIconHover(self, iconHover):
-        """Set the button icon for when mouse hovers over
-
-        :param iconHover:
-        :return:
-        """
-        self.buttonIconHover = iconHover
 
     def setDoubleClickInterval(self, interval=150):
         """
@@ -263,25 +307,6 @@ class ExtendedButton(QtWidgets.QPushButton):
         :return:
         """
         self.lastClick = self.DOUBLE_CLICK
-
-    def enterEvent(self, event):
-        """
-        Button Hover on mouse enter
-
-        :param event:
-        :return:
-        """
-        if self.buttonIconHover is not None:
-            self.setIcon(self.buttonIconHover)
-
-    def leaveEvent(self, event):
-        """
-        Button Hover on mouse leave
-
-        :param event:
-        :return:
-        """
-        self.setIcon(self.buttonIcon)
 
     def contextMenu(self, mouseButton):
         """Run context menu depending on mouse button
