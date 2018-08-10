@@ -16,7 +16,7 @@ class ButtonIcons(QtWidgets.QAbstractButton):
         class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
         class ExtendedButton(QtWidgets.QToolButton, ButtonIcons):
 
-    Must be placed after the button
+    Must be placed after the button.
 
     """
     highlightOffset = 40
@@ -24,6 +24,7 @@ class ButtonIcons(QtWidgets.QAbstractButton):
     iconColor = (128, 128, 128)
 
     buttonIcon = None
+    buttonIconPressed = None
     buttonIconHover = None
 
     def setHighlight(self, highlight):
@@ -233,6 +234,16 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
     def setMenuAlign(self, align=QtCore.Qt.AlignLeft):
         self.menuAlign = align
 
+    def clearMenu(self, mouseMenu):
+        """Clears specified menu
+
+        :param mouseMenu: QtCore.Qt.LeftButton, QtCore.Qt.MidButton, QtCore.Qt.RightButton
+        :return:
+        """
+
+        if self.clickMenu[mouseMenu] is not None:
+            self.clickMenu[mouseMenu].clear()
+
     def mousePressEvent(self, event):
         """Mouse set down button visuals
 
@@ -350,7 +361,8 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
         """Get menu depending on the mouse button pressed
 
         :param mouseMenu:
-        :return:
+        :return: The requested menu
+        :rtype: QtWidgets.QMenu
         """
 
         if self.clickMenu[mouseMenu] is None:

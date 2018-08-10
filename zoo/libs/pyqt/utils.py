@@ -66,11 +66,13 @@ def colorStr(c):
     """Generate a hex string code from a QColor"""
     return ('%02x' * 4) % (c.red(), c.green(), c.blue(), c.alpha())
 
+
 def hBoxLayout(parent=None):
     layout = QtWidgets.QHBoxLayout(parent)
     layout.setContentsMargins(2, 2, 2, 2)
     layout.setSpacing(1)
     return layout
+
 
 def hframeLayout(parent=None):
     subFrame = QtWidgets.QFrame(parent=parent)
@@ -247,3 +249,17 @@ def sizeByDpi(size):
     """
     return QtCore.QSize(dpiScale(size.width()), dpiScale(size.height()))
 
+def clearLayout(layout):
+    """Clear the elements of a layout
+
+    :param layout:
+    :return:
+    """
+
+    item = layout.takeAt(0)
+    while item:
+        widget = item.widget()
+        if widget is not None:
+            widget.deleteLater()
+
+        item = layout.takeAt(0)
