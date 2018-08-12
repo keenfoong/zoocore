@@ -1,6 +1,8 @@
 from functools import partial
 
-from qt import QtWidgets, QtGui
+from qt import QtWidgets, QtGui, QtCore
+
+from zoo.libs.pyqt import uiconstants
 from zoo.libs.utils import zlogging
 
 
@@ -149,11 +151,92 @@ def desktopPixmapFromRect(rect):
 
 
 def updateStyle(widget):
-    """
-    Updates a widget after an style object name change.
+    """Updates a widget after an style object name change.
     eg. widget.setObjectName()
+
     :param widget:
     :return:
     """
     widget.setStyle(widget.style())
+
+
+def windowFlagsString(windowFlags):
+    """Returns a nice string that describes whats inside a windowFlags object
+
+    .. code-block:: python
+
+        print(windowFlagsString(self.windowFlags()))
+
+    Prints out:
+
+    .. code-block:: python
+
+        QtCore.Qt.Dialog
+            | QtCore.Qt.WindowTitleHint
+            | QtCore.Qt.WindowSystemMenuHint
+            | QtCore.Qt.WindowCloseButtonHint
+            | QtCore.Qt.WindowContextHelpButtonHint
+
+    :param windowFlags:
+    :return:
+    """
+    flagTypes = [QtCore.Qt.Window,
+                 QtCore.Qt.Dialog,
+                 QtCore.Qt.Sheet,
+                 QtCore.Qt.Drawer,
+                 QtCore.Qt.Popup,
+                 QtCore.Qt.Tool,
+                 QtCore.Qt.ToolTip,
+                 QtCore.Qt.SplashScreen]
+
+    # Window Flag types
+    windowFlagTypes = [QtCore.Qt.MSWindowsFixedSizeDialogHint,
+                       QtCore.Qt.X11BypassWindowManagerHint,
+                       QtCore.Qt.FramelessWindowHint,
+                       QtCore.Qt.WindowTitleHint,
+                       QtCore.Qt.WindowSystemMenuHint,
+                       QtCore.Qt.WindowMinimizeButtonHint,
+                       QtCore.Qt.WindowMaximizeButtonHint,
+                       QtCore.Qt.WindowCloseButtonHint,
+                       QtCore.Qt.WindowContextHelpButtonHint,
+                       QtCore.Qt.WindowShadeButtonHint,
+                       QtCore.Qt.WindowStaysOnTopHint,
+                       QtCore.Qt.WindowStaysOnBottomHint,
+                       QtCore.Qt.CustomizeWindowHint]
+    text = ""
+
+    # Add to text if flag type found
+    flagType = (windowFlags & QtCore.Qt.WindowType_Mask)
+    for t in flagTypes:
+        if t == flagType:
+            text += str(t)
+            break
+
+    # Add to text if the flag is found
+    for wt in windowFlagTypes:
+        if windowFlags & wt:
+            text += "\n| {}".format(str(wt))
+
+    return text
+
+
+def dpiScale(value):
+    """Resize by value based on current DPI
+
+    :param value:
+    :return:
+    """
+    mult = QtWidgets.QApplication.desktop().logicalDpiY() / uiconstants.DEFAULT_DPI
+    return value * mult
+
+
+def sizeByDpi(size):
+    """Scales the QSize by the current dpi scaling from maya.
+
+    :param size: The QSize to Scale by the current dpi settings
+    :type size: QSize
+    :return: The newly scaled QSize
+    :rtype: QSize
+    """
+    return QtCore.QSize(dpiScale(size.width()), dpiScale(size.height()))
 
