@@ -1,6 +1,8 @@
 from functools import partial
 
 from qt import QtWidgets, QtGui, QtCore
+
+from zoo.libs.pyqt import uiconstants
 from zoo.libs.utils import zlogging
 
 
@@ -66,13 +68,11 @@ def colorStr(c):
     """Generate a hex string code from a QColor"""
     return ('%02x' * 4) % (c.red(), c.green(), c.blue(), c.alpha())
 
-
 def hBoxLayout(parent=None):
     layout = QtWidgets.QHBoxLayout(parent)
     layout.setContentsMargins(2, 2, 2, 2)
     layout.setSpacing(1)
     return layout
-
 
 def hframeLayout(parent=None):
     subFrame = QtWidgets.QFrame(parent=parent)
@@ -151,9 +151,9 @@ def desktopPixmapFromRect(rect):
 
 
 def updateStyle(widget):
-    """
-    Updates a widget after an style object name change.
+    """Updates a widget after an style object name change.
     eg. widget.setObjectName()
+
     :param widget:
     :return:
     """
@@ -164,10 +164,13 @@ def windowFlagsString(windowFlags):
     """Returns a nice string that describes whats inside a windowFlags object
 
     .. code-block:: python
-        >>> print(windowFlagsString(self.windowFlags()))
+
+        print(windowFlagsString(self.windowFlags()))
 
     Prints out:
+
     .. code-block:: python
+
         QtCore.Qt.Dialog
             | QtCore.Qt.WindowTitleHint
             | QtCore.Qt.WindowSystemMenuHint
@@ -177,53 +180,42 @@ def windowFlagsString(windowFlags):
     :param windowFlags:
     :return:
     """
-    flag_type = (windowFlags & QtCore.Qt.WindowType_Mask)
+    flagTypes = [QtCore.Qt.Window,
+                 QtCore.Qt.Dialog,
+                 QtCore.Qt.Sheet,
+                 QtCore.Qt.Drawer,
+                 QtCore.Qt.Popup,
+                 QtCore.Qt.Tool,
+                 QtCore.Qt.ToolTip,
+                 QtCore.Qt.SplashScreen]
 
-    if flag_type == QtCore.Qt.Window:
-        text = "QtCore.Qt.Window"
-    elif flag_type == QtCore.Qt.Dialog:
-        text = "QtCore.Qt.Dialog"
-    elif flag_type == QtCore.Qt.Sheet:
-        text = "QtCore.Qt.Sheet"
-    elif flag_type == QtCore.Qt.Drawer:
-        text = "QtCore.Qt.Drawer"
-    elif flag_type == QtCore.Qt.Popup:
-        text = "QtCore.Qt.Popup"
-    elif flag_type == QtCore.Qt.Tool:
-        text = "QtCore.Qt.Tool"
-    elif flag_type == QtCore.Qt.ToolTip:
-        text = "QtCore.Qt.ToolTip"
-    elif flag_type == QtCore.Qt.SplashScreen:
-        text = "QtCore.Qt.SplashScreen"
-    else:
-        text = ""
+    # Window Flag types
+    windowFlagTypes = [QtCore.Qt.MSWindowsFixedSizeDialogHint,
+                       QtCore.Qt.X11BypassWindowManagerHint,
+                       QtCore.Qt.FramelessWindowHint,
+                       QtCore.Qt.WindowTitleHint,
+                       QtCore.Qt.WindowSystemMenuHint,
+                       QtCore.Qt.WindowMinimizeButtonHint,
+                       QtCore.Qt.WindowMaximizeButtonHint,
+                       QtCore.Qt.WindowCloseButtonHint,
+                       QtCore.Qt.WindowContextHelpButtonHint,
+                       QtCore.Qt.WindowShadeButtonHint,
+                       QtCore.Qt.WindowStaysOnTopHint,
+                       QtCore.Qt.WindowStaysOnBottomHint,
+                       QtCore.Qt.CustomizeWindowHint]
+    text = ""
 
-    if windowFlags & QtCore.Qt.MSWindowsFixedSizeDialogHint:
-        text += "\n| QtCore.Qt.MSWindowsFixedSizeDialogHint"
-    if windowFlags & QtCore.Qt.X11BypassWindowManagerHint:
-        text += "\n| QtCore.Qt.X11BypassWindowManagerHint"
-    if windowFlags & QtCore.Qt.FramelessWindowHint:
-        text += "\n| QtCore.Qt.FramelessWindowHint"
-    if windowFlags & QtCore.Qt.WindowTitleHint:
-        text += "\n| QtCore.Qt.WindowTitleHint"
-    if windowFlags & QtCore.Qt.WindowSystemMenuHint:
-        text += "\n| QtCore.Qt.WindowSystemMenuHint"
-    if windowFlags & QtCore.Qt.WindowMinimizeButtonHint:
-        text += "\n| QtCore.Qt.WindowMinimizeButtonHint"
-    if windowFlags & QtCore.Qt.WindowMaximizeButtonHint:
-        text += "\n| QtCore.Qt.WindowMaximizeButtonHint"
-    if windowFlags & QtCore.Qt.WindowCloseButtonHint:
-        text += "\n| QtCore.Qt.WindowCloseButtonHint"
-    if windowFlags & QtCore.Qt.WindowContextHelpButtonHint:
-        text += "\n| QtCore.Qt.WindowContextHelpButtonHint"
-    if windowFlags & QtCore.Qt.WindowShadeButtonHint:
-        text += "\n| QtCore.Qt.WindowShadeButtonHint"
-    if windowFlags & QtCore.Qt.WindowStaysOnTopHint:
-        text += "\n| QtCore.Qt.WindowStaysOnTopHint"
-    if windowFlags & QtCore.Qt.WindowStaysOnBottomHint:
-        text += "\n| QtCore.Qt.WindowStaysOnBottomHint"
-    if windowFlags & QtCore.Qt.CustomizeWindowHint:
-        text += "\n| QtCore.Qt.CustomizeWindowHint"
+    # Add to text if flag type found
+    flagType = (windowFlags & QtCore.Qt.WindowType_Mask)
+    for t in flagTypes:
+        if t == flagType:
+            text += str(t)
+            break
+
+    # Add to text if the flag is found
+    for wt in windowFlagTypes:
+        if windowFlags & wt:
+            text += "\n| {}".format(str(wt))
 
     return text
 
@@ -234,8 +226,7 @@ def dpiScale(value):
     :param value:
     :return:
     """
-    DEFAULT_DPI = 96
-    mult = QtWidgets.QApplication.desktop().logicalDpiY() / DEFAULT_DPI
+    mult = QtWidgets.QApplication.desktop().logicalDpiY() / uiconstants.DEFAULT_DPI
     return value * mult
 
 
@@ -248,6 +239,7 @@ def sizeByDpi(size):
     :rtype: QSize
     """
     return QtCore.QSize(dpiScale(size.width()), dpiScale(size.height()))
+
 
 def clearLayout(layout):
     """Clear the elements of a layout
