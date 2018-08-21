@@ -87,6 +87,8 @@ class FlowToolBar(QtWidgets.QWidget):
         else:
             self.overflowMenuBtn.menuActive[QtCore.Qt.LeftButton] = False
 
+        self.overflowMenuBtn.setVisible(active)
+
     def setOverflowButtonColor(self, col):
         """Sets the color for the overflow button
 
@@ -103,20 +105,15 @@ class FlowToolBar(QtWidgets.QWidget):
         """
         col = self.overflowBtnColor
         icon = self.overflowIcon
-
-        iconIdle = iconlib.iconColorized(icon, size=self.iconSize, color=col)
-        iconHover = iconlib.iconColorized(icon, size=self.iconSize, color=colour.offsetColor(col, 40))
-
         if btn is None:
-            btn = iconmenu.IconMenuButton(icon=iconIdle, iconHover=iconHover, parent=self)
+            btn = iconmenu.IconMenuButton(parent=self)
             btn.leftClicked.connect(self.showOverflowMenu)
-        else:
-            btn.setIconIdle(iconIdle)
-            btn.setIconHover(iconHover)
+
+        btn.setIconByName(icon, color=col, size=self.iconSize, colorOffset=40)
 
         btn.setDoubleClickEnabled(False)
         btn.setProperty("name", "overflow")
-        btn.setIconSize(self.getIconSize())
+        #btn.setIconSize(self.getIconSize())
         return btn
 
     def showOverflowMenu(self):
@@ -141,7 +138,7 @@ class FlowToolBar(QtWidgets.QWidget):
         # Create an item with a caption
         btn = iconmenu.IconMenuButton(parent=self)
 
-        btn.setIconByName(iconName, iconColor, size=self.iconSize, colorOffset=40)
+        btn.setIconByName(iconName, color=iconColor, size=self.iconSize, colorOffset=40)
 
         btn.setDoubleClickEnabled(doubleClickEnabled)
         btn.setDoubleClickInterval(150)
@@ -174,18 +171,10 @@ class FlowToolBar(QtWidgets.QWidget):
         if showIndicator:
             overlayName = self.menuIndicatorIcon
 
-        btn = iconmenu.IconMenuButton(icon=iconlib.iconColorized(iconName,
-                                                                 size=self.iconSize,
-                                                                 color=iconColor,
-                                                                 overlayName=overlayName),
-                                      iconHover=iconlib.iconColorized(iconName,
-                                                                      size=self.iconSize,
-                                                                      color=colour.offsetColor(iconColor, 80),
-                                                                      overlayName=overlayName),
-                                      parent=self)
+        btn = iconmenu.IconMenuButton(parent=self)
+        btn.setIconByName(iconName, color=iconColor, size=self.iconSize, iconOverlay=overlayName, colorOffset=40)
         btn.setProperty("name", name)
-        btn.setIconSize(QtCore.QSize(self.iconSize + self.iconPadding,
-                                     self.iconSize + self.iconPadding))
+        btn.setIconSize(self.getIconSize())
         btn.leftClicked.connect(self.toolsClicked)
 
         for a in actions:
@@ -212,6 +201,11 @@ class FlowToolBar(QtWidgets.QWidget):
 
     def resizeEvent(self, event):
         self.updateWidgetsOverflow(self.width())
+        self.updateWidgetsOverFlowMenu(self.width())
+
+    def updateWidgetsOverFlowMenu(self, width=None):
+        if not self.overflowMenuBtn or self.overflowMenu is False:
+            return
 
     def updateWidgetsOverflow(self, width=None):
         """Hide or show widgets based on the size of the flow toolbar.
@@ -223,75 +217,54 @@ class FlowToolBar(QtWidgets.QWidget):
         :param width:
         :return:
         """
-        if not self.overflowMenuBtn:
+        if not self.overflowMenuBtn or self.overflowMenu is False:
             return
 
         width = width or self.width()
 
-        # Stop the flickering by disabling updates
+        # Stop the flickering by disabling updates and processing first
         self.setUpdatesEnabled(False)
 
         spacing = self.flowLayout.spacingX
-        nextX = sum([item.sizeHint().width() + spacing for item in self.flowLayout.items()])
         menu = self.overflowMenuBtn.getMenu(mouseMenu=QtCore.Qt.LeftButton)
 
+        # Add all items in the flow layout and place them into the menu
         for item in self.flowLayout.itemList:
             wgt = item.widget()
             toolsetType = wgt.property('toolsetType')
+
             if toolsetType is not None:
+                icon = iconlib.iconColorized(wgt.property('iconName'), color=wgt.property('color'))
                 self.overflowMenuBtn.addAction(wgt.property('toolsetType'),
-                                               icon=iconlib.iconColorized(wgt.property('iconName'),
-                                                                          color=wgt.property('color')),
+                                               icon=icon,
                                                connect=lambda x=wgt: x.leftClicked.emit())
 
+        # Hide all the menu items so we can unhide what we need later
         for a in menu.actions():
             a.setVisible(False)
 
-        # Move buttons to dialog layout
-        for item in reversed(self.flowLayout.itemList[:-1]):  # overflow button is last we dont want to remove that one
+        hidden = []
+
+        nextX = self.overflowMenuBtn.sizeHint().width()
+        for item in self.flowLayout.itemList[:-1]:
+            wgt = item.widget()
+            nextX += wgt.sizeHint().width() + spacing
             if nextX > width:
-                nextX -= item.sizeHint().width() + spacing
-                wgt = item.widget()
-                self.overflowLayout.addWidget(wgt)
+                wgt.hide()
+                hidden.append(wgt)
+            else:
+                wgt.show()
 
+        # Show or hide menu items
+        for wgt in hidden:
+            for a in menu.actions():
+                if a.text() == wgt.property('toolsetType'):
+                    a.setVisible(True)
+                    break
 
-        # Add them back from the flowtoolbar dialogue if need be
-        for i in reversed(range(0, self.overflowLayout.count())):
-            item = self.overflowLayout.itemAt(i)
-
-            if item is not None:
-                itemWidth = item.widget().sizeHint().width()+spacing
-                if nextX + itemWidth <= width:
-                    self.flowLayout.addWidget(item.widget())
-                    self.flowLayout.addWidget(self.overflowMenuBtn)  # Place overflow menu back to the end
-
-                    nextX += itemWidth
-
-        # Show Overflow menu button, If the dialog has 1 or more widgets
-        if self.overflowLayout.count() > 0:
-            self.overflowMenuBtn.show()
-        else:
-            self.overflowMenuBtn.hide()
-
-        # If theres only one then add it back and hide the overflow button
-        if self.overflowMenuBtn.isVisible() and self.overflowLayout.count() == 1:
-            self.flowLayout.addWidget(self.overflowLayout.itemAt(0).widget())
-            self.flowLayout.addWidget(self.overflowMenuBtn)
-            self.overflowMenuBtn.hide()
-
-        # Re-enable updates
+        self.overflowMenuBtn.setVisible(len(hidden) > 0)
         self.setUpdatesEnabled(True)
 
-        # Unhide
-
-        for i in range(0, self.overflowLayout.count()):
-            item = self.overflowLayout.itemAt(i)
-
-            if item is not None:
-                for a in menu.actions():
-                    if a.text() == item.widget().property('toolsetType'):
-                        a.setVisible(True)
-                        break
 
     def items(self):
         """

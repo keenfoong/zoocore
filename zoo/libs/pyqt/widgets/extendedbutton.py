@@ -21,6 +21,7 @@ class ButtonIcons(QtWidgets.QAbstractButton):
     """
     highlightOffset = 40
     iconName = None
+    iconOverlay = None
     iconColor = (128, 128, 128)
 
     buttonIcon = None
@@ -30,7 +31,7 @@ class ButtonIcons(QtWidgets.QAbstractButton):
     def setHighlight(self, highlight):
         self.highlightOffset = highlight
 
-    def setIconByName(self, iconName, color=None, size=None, colorOffset=None):
+    def setIconByName(self, iconName, iconOverlay=None, color=None, size=None, colorOffset=None):
         """Set up both icons in a simple function
 
         :param iconName:
@@ -44,6 +45,9 @@ class ButtonIcons(QtWidgets.QAbstractButton):
 
         if colorOffset is not None:
             self.highlightOffset = colorOffset
+
+        if iconOverlay is not None:
+            self.iconOverlay = iconOverlay
 
         color = color or self.iconColor
 
@@ -60,8 +64,14 @@ class ButtonIcons(QtWidgets.QAbstractButton):
 
     def updateIcons(self):
         hoverCol = colour.offsetColor(self.iconColor, self.highlightOffset)
-        self.buttonIcon = iconlib.iconColorized(self.iconName, size=self.iconSize().width(), color=self.iconColor)
-        self.buttonIconHover = iconlib.iconColorized(self.iconName, size=self.iconSize().width(), color=hoverCol)
+        self.buttonIcon = iconlib.iconColorized(self.iconName,
+                                                size=self.iconSize().width(),
+                                                color=self.iconColor,
+                                                overlayName=self.iconOverlay)
+        self.buttonIconHover = iconlib.iconColorized(self.iconName,
+                                                     size=self.iconSize().width(),
+                                                     color=hoverCol,
+                                                     overlayName=self.iconOverlay)
         self.setIcon(self.buttonIcon)
 
     def setIconIdle(self, icon):
