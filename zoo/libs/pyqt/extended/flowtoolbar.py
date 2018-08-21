@@ -139,13 +139,9 @@ class FlowToolBar(QtWidgets.QWidget):
         :return:
         """
         # Create an item with a caption
-        btn = iconmenu.IconMenuButton(icon=iconlib.iconColorized(iconName,
-                                                                 size=self.iconSize,
-                                                                 color=iconColor),
-                                      iconHover=iconlib.iconColorized(iconName,
-                                                                      size=self.iconSize,
-                                                                      color=colour.offsetColor(iconColor, 40)),
-                                      parent=self)
+        btn = iconmenu.IconMenuButton(parent=self)
+
+        btn.setIconByName(iconName, iconColor, size=self.iconSize, colorOffset=40)
 
         btn.setDoubleClickEnabled(doubleClickEnabled)
         btn.setDoubleClickInterval(150)
@@ -296,6 +292,13 @@ class FlowToolBar(QtWidgets.QWidget):
                     if a.text() == item.widget().property('toolsetType'):
                         a.setVisible(True)
                         break
+
+    def items(self):
+        """
+        Flow layout items
+        :return:
+        """
+        self.flowLayout.items()
 
     def buttonClicked(self, wgt, name):
         """Overridden by the subclass

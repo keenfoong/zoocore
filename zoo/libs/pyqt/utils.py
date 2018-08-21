@@ -255,3 +255,19 @@ def clearLayout(layout):
             widget.deleteLater()
 
         item = layout.takeAt(0)
+
+
+def layoutItems(layout):
+    ret = []
+    for i in range(0,layout.count()):
+        ret.append(layout.itemAt(i))
+
+    return ret
+
+
+def layoutWidgets(layout):
+    ret = []
+    for i in range(0,layout.count()):
+        ret.append(layout.itemAt(i).widget())
+
+    return ret

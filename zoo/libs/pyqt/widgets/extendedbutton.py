@@ -55,7 +55,7 @@ class ButtonIcons(QtWidgets.QAbstractButton):
     def setIconColor(self, color, update=True):
         self.iconColor = color
 
-        if update and self.buttonIcon is not None:
+        if update and self.buttonIcon is not None and self.iconName is not None:
             self.updateIcons()
 
     def updateIcons(self):
@@ -374,7 +374,7 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
 
         return self.clickMenu[mouseMenu]
 
-    def addAction(self, name, mouseMenu=QtCore.Qt.LeftButton, connect=None, checkable=False, action=None, icon=None):
+    def addAction(self, name, mouseMenu=QtCore.Qt.LeftButton, connect=None, checkable=False, checked=True, action=None, icon=None):
         """Add a new menu item through an action
 
         :param mouseMenu: Expects QtCore.Qt.LeftButton, QtCore.Qt.MidButton, or QtCore.Qt.RightButton
@@ -391,6 +391,7 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
 
         newAction = taggedAction.TaggedAction(name, parent=menu)
         newAction.setCheckable(checkable)
+        newAction.setChecked(checked)
         newAction.tags = set(self.stringToTags(name))
         menu.addAction(newAction)
 
