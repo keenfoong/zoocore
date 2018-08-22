@@ -414,9 +414,9 @@ class StackItem(QtWidgets.QWidget):
         highlightOffset = 40
         col = (128,128,128)
 
-        self.deleteBtn.setIconByName(self._deleteIconName, col, iconSize, highlightOffset)
-        self.shiftUpBtn.setIconByName(self._upIconName, col, iconSize, highlightOffset)
-        self.shiftDownBtn.setIconByName(self._downIconName, col, iconSize, highlightOffset)
+        self.deleteBtn.setIconByName(self._deleteIconName, color=col, size=iconSize, colorOffset=highlightOffset)
+        self.shiftUpBtn.setIconByName(self._upIconName, color=col, size=iconSize, colorOffset=highlightOffset)
+        self.shiftDownBtn.setIconByName(self._downIconName, color=col, size=iconSize, colorOffset=highlightOffset)
 
     def buildTitleFrame(self):
         """Builds the title part of the layout with a QFrame widget

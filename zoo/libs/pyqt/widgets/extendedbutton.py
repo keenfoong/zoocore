@@ -31,11 +31,12 @@ class ButtonIcons(QtWidgets.QAbstractButton):
     def setHighlight(self, highlight):
         self.highlightOffset = highlight
 
-    def setIconByName(self, iconName, iconOverlay=None, color=None, size=None, colorOffset=None):
+    def setIconByName(self, iconName, color=None, size=None, colorOffset=None, iconOverlay=None):
         """Set up both icons in a simple function
 
         :param iconName:
         :param color:
+        :type color: tuple
         :param size:
         :param colorOffset:
         :return:
