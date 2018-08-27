@@ -240,3 +240,46 @@ def sizeByDpi(size):
     """
     return QtCore.QSize(dpiScale(size.width()), dpiScale(size.height()))
 
+
+def clearLayout(layout):
+    """Clear the elements of a layout
+
+    :param layout:
+    :return:
+    """
+
+    item = layout.takeAt(0)
+    while item:
+        widget = item.widget()
+        if widget is not None:
+            widget.deleteLater()
+
+        item = layout.takeAt(0)
+
+
+def layoutItems(layout):
+    """ Retrieves the items from the layout and returns it as a list
+
+    :param layout: The layout to retrieve the items from
+    :return: List of items from layout
+    :rtype: list
+    """
+    ret = []
+    for i in range(0, layout.count()):
+        ret.append(layout.itemAt(i))
+
+    return ret
+
+
+def layoutWidgets(layout):
+    """ Retrieves the widgets from the layout and returns it as a list
+
+    :param layout: The layout to retrieve the widgets from
+    :return: List of widgets from layout
+    :rtype: list
+    """
+    ret = []
+    for i in range(0,layout.count()):
+        ret.append(layout.itemAt(i).widget())
+
+    return ret
