@@ -1,13 +1,117 @@
-from qt import QtWidgets, QtCore
+from qt import QtWidgets, QtCore, QtGui
 
 from zoo.libs import iconlib
 from zoo.libs.pyqt.extended import searchablemenu
 from zoo.libs.pyqt.extended.searchablemenu import action as taggedAction
-from zoo.libs.utils import zlogging
+from zoo.libs.utils import zlogging, colour
 
 logger = zlogging.getLogger(__name__)
 
-class ExtendedButton(QtWidgets.QPushButton):
+
+class ButtonIcons(QtWidgets.QAbstractButton):
+    """Set up the icons that change on mouse over, press and release. Inherit from this class to have icons
+
+    .. code-block:: python
+
+        class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
+        class ExtendedButton(QtWidgets.QToolButton, ButtonIcons):
+
+    Must be placed after the button.
+
+    """
+    highlightOffset = 40
+    iconName = None
+    iconOverlay = None
+    iconColor = (128, 128, 128)
+
+    buttonIcon = None
+    buttonIconPressed = None
+    buttonIconHover = None
+
+    def setHighlight(self, highlight):
+        self.highlightOffset = highlight
+
+    def setIconByName(self, iconName, color=None, size=None, colorOffset=None, iconOverlay=None):
+        """Set up both icons in a simple function
+
+        :param iconName:
+        :param color:
+        :type color: tuple
+        :param size:
+        :param colorOffset:
+        :return:
+        """
+        if size is not None:
+            self.setIconSize(QtCore.QSize(size, size))
+
+        if colorOffset is not None:
+            self.highlightOffset = colorOffset
+
+        if iconOverlay is not None:
+            self.iconOverlay = iconOverlay
+
+        color = color or self.iconColor
+
+        self.iconName = iconName
+        self.setIconColor(color, update=False)
+
+        self.updateIcons()
+
+    def setIconColor(self, color, update=True):
+        self.iconColor = color
+
+        if update and self.buttonIcon is not None and self.iconName is not None:
+            self.updateIcons()
+
+    def updateIcons(self):
+        hoverCol = colour.offsetColor(self.iconColor, self.highlightOffset)
+        self.buttonIcon = iconlib.iconColorized(self.iconName,
+                                                size=self.iconSize().width(),
+                                                color=self.iconColor,
+                                                overlayName=self.iconOverlay)
+        self.buttonIconHover = iconlib.iconColorized(self.iconName,
+                                                     size=self.iconSize().width(),
+                                                     color=hoverCol,
+                                                     overlayName=self.iconOverlay)
+        self.setIcon(self.buttonIcon)
+
+    def setIconIdle(self, icon):
+        """Set the button Icon when idle or default.
+
+        :param icon:
+        :return:
+        """
+        self.buttonIcon = icon
+        self.setIcon(icon)
+
+    def setIconHover(self, iconHover):
+        """Set the button icon for when mouse hovers over
+
+        :param iconHover:
+        :return:
+        """
+        self.buttonIconHover = iconHover
+
+    def enterEvent(self, event):
+        """
+        Button Hover on mouse enter
+
+        :param event:
+        :return:
+        """
+        if self.buttonIconHover is not None:
+            self.setIcon(self.buttonIconHover)
+
+    def leaveEvent(self, event):
+        """Button Hover on mouse leave
+
+        :param event:
+        :return:
+        """
+        self.setIcon(self.buttonIcon)
+
+
+class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
     """
     Push Button that allows you to have the left click, middle click, and right click.
 
@@ -15,8 +119,11 @@ class ExtendedButton(QtWidgets.QPushButton):
 
     .. code-block:: python
 
-        You can use it in a similar fashion to QPushbutton
-        ExtendedButton(icon=iconlib.iconColorized("magic", size=32, color=(255,255,255)))
+        # You can use it in a similar fashion to QPushbutton
+        ExtendedButton(icon=iconlib.iconColorized("magic", size=32, color=(128,128,128)),
+                       iconHover=iconlib.iconColorized("magic", size=32, color=(255,255,255)))
+
+        # Set the hover through the constructor like above or simply set the iconName and offset
 
     """
 
@@ -59,7 +166,6 @@ class ExtendedButton(QtWidgets.QPushButton):
 
         self.menuAlign = QtCore.Qt.AlignLeft
 
-        self.clicked.connect(lambda: self.leftClicked.emit())
         self.leftClicked.connect(lambda: self.contextMenu(QtCore.Qt.LeftButton))
         self.middleClicked.connect(lambda: self.contextMenu(QtCore.Qt.MidButton))
         self.rightClicked.connect(lambda: self.contextMenu(QtCore.Qt.RightButton))
@@ -67,25 +173,48 @@ class ExtendedButton(QtWidgets.QPushButton):
         self.doubleClickInterval = QtWidgets.QApplication.instance().doubleClickInterval()  # 500
         self.doubleClickEnabled = doubleClickEnabled
         self.lastClick = None
+        self.iconName = None
+        self.highlightOffset = 40
+        self.iconColor = None
 
     def setDoubleClickInterval(self, interval=150):
         """
         Sets the interval of the double click, defaults to 150
+
         :param interval:
         :return:
         """
         self.doubleClickInterval = interval
 
     def setDoubleClickEnabled(self, enabled):
-        """Enables double click signals for this widget
+        """
+        Enables double click signals for this widget
 
         :param enabled:
         :return:
         """
         self.doubleClickEnabled = enabled
 
+    def setWindowTitle(self, windowTitle, mouseMenu=QtCore.Qt.LeftButton):
+        """Set the window title of the menu, if it gets teared off
+
+        :param windowTitle:
+        :param mouseMenu:
+        :return:
+        """
+        menu = self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu))
+        menu.setWindowTitle(windowTitle)
+
     def setTearOffEnabled(self, mouseMenu=QtCore.Qt.LeftButton, tearoff=True):
-        self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu)).setTearOffEnabled(tearoff)
+        """Set the tear off enabled
+
+        :param mouseMenu:
+        :param tearoff:
+        :param windowTitle:
+        :return:
+        """
+        menu = self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu))
+        menu.setTearOffEnabled(tearoff)
 
     def setMenu(self, menu, mouseButton=QtCore.Qt.LeftButton):
         """Set the menu based
@@ -114,6 +243,16 @@ class ExtendedButton(QtWidgets.QPushButton):
 
     def setMenuAlign(self, align=QtCore.Qt.AlignLeft):
         self.menuAlign = align
+
+    def clearMenu(self, mouseMenu):
+        """Clears specified menu
+
+        :param mouseMenu: QtCore.Qt.LeftButton, QtCore.Qt.MidButton, QtCore.Qt.RightButton
+        :return:
+        """
+
+        if self.clickMenu[mouseMenu] is not None:
+            self.clickMenu[mouseMenu].clear()
 
     def mousePressEvent(self, event):
         """Mouse set down button visuals
@@ -184,31 +323,15 @@ class ExtendedButton(QtWidgets.QPushButton):
     def mouseDoubleClickEvent(self, event):
         """
         Detects Double click event.
+
         :param event:
         :return:
         """
         self.lastClick = self.DOUBLE_CLICK
 
-    def enterEvent(self, event):
-        """
-        Button Hover on mouse enter
-        :param event:
-        :return:
-        """
-        if self.buttonIconHover is not None:
-            self.setIcon(self.buttonIconHover)
-
-    def leaveEvent(self, event):
-        """
-        Button Hover on mouse leave
-        :param event:
-        :return:
-        """
-        self.setIcon(self.buttonIcon)
-
     def contextMenu(self, mouseButton):
-        """
-        Run context menu depending on mouse button
+        """Run context menu depending on mouse button
+
         :param mouseButton:
         :return:
         """
@@ -234,6 +357,7 @@ class ExtendedButton(QtWidgets.QPushButton):
         :return:
         """
         pos = 0
+
         if align == QtCore.Qt.AlignLeft:
             point = self.rect().bottomLeft() - QtCore.QPoint(0, -self.menuPadding)
             pos = self.mapToGlobal(point)
@@ -244,10 +368,11 @@ class ExtendedButton(QtWidgets.QPushButton):
         return pos
 
     def getMenu(self, mouseMenu=QtCore.Qt.LeftButton, searchable=False, autoCreate=True):
-        """
-        Get menu depending on the mouse button pressed
+        """Get menu depending on the mouse button pressed
+
         :param mouseMenu:
-        :return:
+        :return: The requested menu
+        :rtype: QtWidgets.QMenu
         """
 
         if self.clickMenu[mouseMenu] is None:
@@ -259,9 +384,9 @@ class ExtendedButton(QtWidgets.QPushButton):
 
         return self.clickMenu[mouseMenu]
 
-    def addAction(self, name, mouseMenu=QtCore.Qt.LeftButton, connect=None, checkable=False, action=None):
-        """
-        Add a new menu item through an action
+    def addAction(self, name, mouseMenu=QtCore.Qt.LeftButton, connect=None, checkable=False, checked=True, action=None, icon=None):
+        """Add a new menu item through an action
+
         :param mouseMenu: Expects QtCore.Qt.LeftButton, QtCore.Qt.MidButton, or QtCore.Qt.RightButton
         :param name: The text for the new menu item
         :param connect: The function to connect when the menu item is pressed
@@ -276,8 +401,12 @@ class ExtendedButton(QtWidgets.QPushButton):
 
         newAction = taggedAction.TaggedAction(name, parent=menu)
         newAction.setCheckable(checkable)
+        newAction.setChecked(checked)
         newAction.tags = set(self.stringToTags(name))
         menu.addAction(newAction)
+
+        if icon is not None:
+            newAction.setIcon(icon)
 
         if connect is not None:
             if checkable:
@@ -297,8 +426,8 @@ class ExtendedButton(QtWidgets.QPushButton):
         menu.addSeparator()
 
     def stringToTags(self, string):
-        """
-        Break down string to tags so it is easily searchable
+        """Break down string to tags so it is easily searchable
+
         :param string:
         :return:
         """
