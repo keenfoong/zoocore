@@ -24,8 +24,6 @@ class FlowToolBar(QtWidgets.QWidget):
     """
     overflowIcon = "sortDown"
 
-    MENUTYPE_DEFAULT = 0
-    MENUTYPE_ICONSONLY = 1
 
     def __init__(self, parent=None, menuIndicatorIcon="arrowmenu"):
         super(FlowToolBar, self).__init__(parent)
@@ -44,18 +42,13 @@ class FlowToolBar(QtWidgets.QWidget):
         self.overflowMenuBtn = None  # type: iconmenu.IconMenuButton
         self.overflowMenuDlg = FlowToolbarMenu(parent=self)
         self.overflowLayout = self.overflowMenuDlg.layout()
-        self.overflowMenuType = self.MENUTYPE_DEFAULT
 
         self.initUi()
-        self.setOverflowMenuType(self.MENUTYPE_DEFAULT)
 
     def initUi(self):
         """Initialise flow toolbar ui
         """
         self.overflowMenuBtn = self.setupOverflowMenu()
-
-    def setOverflowMenuType(self, menuType=MENUTYPE_DEFAULT):
-        self.overflowMenuType = menuType
 
     def setIconSize(self, size):
         """Set the size of the icons of the tools and toolmenus
@@ -82,11 +75,6 @@ class FlowToolBar(QtWidgets.QWidget):
         self.overflowMenu = active
         self.flowLayout.allowOverflow(active)
 
-        if self.overflowMenuType == self.MENUTYPE_DEFAULT:
-            self.overflowMenuBtn.menuActive[QtCore.Qt.LeftButton] = active
-        else:
-            self.overflowMenuBtn.menuActive[QtCore.Qt.LeftButton] = False
-
         self.overflowMenuBtn.setVisible(active)
 
     def setOverflowButtonColor(self, col):
@@ -107,7 +95,6 @@ class FlowToolBar(QtWidgets.QWidget):
         icon = self.overflowIcon
         if btn is None:
             btn = iconmenu.IconMenuButton(parent=self)
-            btn.leftClicked.connect(self.showOverflowMenu)
 
         btn.setIconByName(icon, color=col, size=self.iconSize, colorOffset=40)
 
@@ -116,15 +103,6 @@ class FlowToolBar(QtWidgets.QWidget):
         #btn.setIconSize(self.getIconSize())
         return btn
 
-    def showOverflowMenu(self):
-        """Display the menu. Set the position based on the button.
-
-        :return:
-        """
-        if self.overflowMenuType == self.MENUTYPE_ICONSONLY:
-            self.overflowMenuDlg.show()
-            pos = self.overflowMenuBtn.menuPos(QtCore.Qt.AlignRight, self.overflowMenuBtn)
-            self.overflowMenuDlg.move(pos)
 
     def addTool(self, iconName, name, iconColor=(255, 255, 255), doubleClickEnabled=False):
         """Creates a new tool button based on the icon name, and the name.
