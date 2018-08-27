@@ -264,11 +264,7 @@ def layoutItems(layout):
     :return: List of items from layout
     :rtype: list
     """
-    ret = []
-    for i in range(0, layout.count()):
-        ret.append(layout.itemAt(i))
-
-    return ret
+    return [layout.itemAt(i) for i in xrange(layout.count())]
 
 
 def layoutWidgets(layout):
@@ -278,8 +274,4 @@ def layoutWidgets(layout):
     :return: List of widgets from layout
     :rtype: list
     """
-    ret = []
-    for i in range(0,layout.count()):
-        ret.append(layout.itemAt(i).widget())
-
-    return ret
+    return [layout.itemAt(i).widget() for i in xrange(layout.count())]
