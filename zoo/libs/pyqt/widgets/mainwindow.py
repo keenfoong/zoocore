@@ -6,7 +6,7 @@ from zoo.libs.pyqt.widgets import dockwidget
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, title="", width=600, height=800, icon="",
-                 parent=None, showOnInitialize=True):
+                 parent=None, showOnInitialize=True, transparent=False):
         super(MainWindow, self).__init__(parent=parent)
         self.setContentsMargins(2, 2, 2, 2)
         self.setDockNestingEnabled(True)
@@ -21,6 +21,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.hasMainMenu = False
         self.centralWidget = QtWidgets.QWidget(parent=self)
         self.setCentralWidget(self.centralWidget)
+
+        if transparent:
+            self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
 
         self.setDockOptions(QtWidgets.QMainWindow.AllowNestedDocks |
                             QtWidgets.QMainWindow.AnimatedDocks |
