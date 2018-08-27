@@ -93,8 +93,7 @@ class ButtonIcons(QtWidgets.QAbstractButton):
         self.buttonIconHover = iconHover
 
     def enterEvent(self, event):
-        """
-        Button Hover on mouse enter
+        """Button Hover on mouse enter
 
         :param event:
         :return:
@@ -166,7 +165,6 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
 
         self.menuAlign = QtCore.Qt.AlignLeft
 
-        #self.clicked.connect(lambda: self.leftClicked.emit())
         self.leftClicked.connect(lambda: self.contextMenu(QtCore.Qt.LeftButton))
         self.middleClicked.connect(lambda: self.contextMenu(QtCore.Qt.MidButton))
         self.rightClicked.connect(lambda: self.contextMenu(QtCore.Qt.RightButton))
@@ -349,8 +347,8 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
             menu.exec_(pos)
 
     def menuPos(self, align=QtCore.Qt.AlignLeft, widget=None):
-        """
-        Get menu position based on the current widget position and perimeter
+        """Get menu position based on the current widget position and perimeter
+
         :param align: Align the menu left or right
         :type align: QtCore.Qt.AlignLeft or QtCore.Qt.AlignRight
         :param widget: The widget to calculate the width based off. Normally it is the menu
@@ -418,8 +416,8 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
         return newAction
 
     def addSeparator(self, mouseMenu=QtCore.Qt.LeftButton):
-        """
-        Add a separator in the menu
+        """ Add a separator in the menu
+
         :param mouseMenu:
         :return:
         """
