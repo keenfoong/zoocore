@@ -16,6 +16,7 @@ class FlowToolBar(QtWidgets.QWidget):
         flowToolbar = FlowToolBar()
         flowToolbar.addTool("stream2", name="Tool Button Name", iconColor=(255,255,255))
         flowToolbar.addToolMenu("stream2", name="Tool Button Name", actions=[('Menu Item 1', func1),('Menu Item 2', func2)])
+
         def func1():
             pass
         def func2():
@@ -23,7 +24,6 @@ class FlowToolBar(QtWidgets.QWidget):
 
     """
     overflowIcon = "sortDown"
-
 
     def __init__(self, parent=None, menuIndicatorIcon="arrowmenu"):
         super(FlowToolBar, self).__init__(parent)
@@ -35,7 +35,7 @@ class FlowToolBar(QtWidgets.QWidget):
         self.setLayout(self.mainLayout)
         self.iconSize = 20
         self.iconPadding = 2
-        self.overflowBtnColor = (128,128,128)
+        self.overflowBtnColor = (128, 128, 128)
         self.menuIndicatorIcon = menuIndicatorIcon
 
         self.overflowMenu = False
@@ -100,9 +100,7 @@ class FlowToolBar(QtWidgets.QWidget):
 
         btn.setDoubleClickEnabled(False)
         btn.setProperty("name", "overflow")
-        #btn.setIconSize(self.getIconSize())
         return btn
-
 
     def addTool(self, iconName, name, iconColor=(255, 255, 255), doubleClickEnabled=False):
         """Creates a new tool button based on the icon name, and the name.
@@ -164,6 +162,7 @@ class FlowToolBar(QtWidgets.QWidget):
 
     def clear(self):
         """Clear all widgets
+
         """
         self.overflowMenuBtn.clearMenu(QtCore.Qt.LeftButton)
         self.flowLayout.removeWidget(self.overflowMenuBtn)
@@ -173,17 +172,13 @@ class FlowToolBar(QtWidgets.QWidget):
     def toolsClicked(self):
         """All buttons will run through here. It will then run a separate function telling which
         button was pressed, along with some other details
+
         """
         data = self.sender().property("name")
         self.buttonClicked(self.sender(), data)
 
     def resizeEvent(self, event):
         self.updateWidgetsOverflow(self.width())
-        self.updateWidgetsOverFlowMenu(self.width())
-
-    def updateWidgetsOverFlowMenu(self, width=None):
-        if not self.overflowMenuBtn or self.overflowMenu is False:
-            return
 
     def updateWidgetsOverflow(self, width=None):
         """Hide or show widgets based on the size of the flow toolbar.
@@ -242,7 +237,6 @@ class FlowToolBar(QtWidgets.QWidget):
 
         self.overflowMenuBtn.setVisible(len(hidden) > 0)
         self.setUpdatesEnabled(True)
-
 
     def items(self):
         """
