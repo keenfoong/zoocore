@@ -229,6 +229,17 @@ def dpiScale(value):
     mult = QtWidgets.QApplication.desktop().logicalDpiY() / uiconstants.DEFAULT_DPI
     return value * mult
 
+def marginsDpiScale(left, top, right, bottom):
+    """ Convenience function to return contents margins
+
+    :param left:
+    :param top:
+    :param right:
+    :param bottom:
+    :return:
+    """
+    return (dpiScale(left), dpiScale(top), dpiScale(right), dpiScale(bottom))
+
 
 def sizeByDpi(size):
     """Scales the QSize by the current dpi scaling from maya.
