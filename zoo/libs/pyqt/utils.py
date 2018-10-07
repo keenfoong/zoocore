@@ -15,7 +15,6 @@ def loggingMenu():
     for level in zlogging.levelsDict():
         levelAction = logMenu.addAction(level)
         levelAction.triggered.connect(partial(logManager.changeLevel, "root", level))
-    logs.pop("root")
     logMenu.addSeparator()
 
     for name, log in iter(logs.items()):

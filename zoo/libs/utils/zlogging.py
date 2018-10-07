@@ -6,22 +6,42 @@ CENTRAL_LOGGER_NAME = "zoocore"
 
 
 class CentralLogManager(object):
-    """This class is a singleton object that globally handles logging, any log added will managed by the class
+    """This class is a singleton object that globally handles logging, any log added will managed by the class.
     """
     __metaclass__ = classtypes.Singleton
 
     def __init__(self):
-        self.logs = {"root": logging.root}
+        self.logs = {}
+        self.rotateFormatter = "%(asctime)s: [%(process)d - %(name)s - %(levelname)s]: %(message)s"
+        self.shellFormatter = "[%(name)s - %(levelname)s]: %(message)s"
+        self.guiFormatter = "[%(name)s]: %(message)s"
 
     def addLog(self, logger):
+        """Adds logger to this manager instance
+
+        :param logger: the python logger instance.
+        :type logger: :class:`logging.Logger`
+        """
         if logger.name not in self.logs:
             self.logs[logger.name] = logger
 
     def removeLog(self, loggerName):
+        """Remove's the logger instance by name
+
+        :param loggerName: The logger instance name.
+        :type: loggerName: str
+        """
         if loggerName in self.logs:
             del self.logs[loggerName]
 
     def changeLevel(self, loggerName, level):
+        """Changes the logger instance level.
+
+        :param loggerName: The logger instance name.
+        :type loggerName: str
+        :param level: eg. logging.DEBUG.
+        :type level: int
+        """
         if loggerName in self.logs:
             log = self.logs[loggerName]
             if log.level != level:
@@ -29,6 +49,40 @@ class CentralLogManager(object):
 
     def setFormatter(self, handler, formatString):
         handler.setFormatter(formatString)
+
+    def addRotateHandler(self, loggerName, filePath):
+        logger = self.logs.get(loggerName)
+        if not logger:
+            return
+
+        handler = logging.handlers.RotatingFileHandler(filePath, maxBytes=1.5e6, backupCount=5)
+        handler.setFormatter(logging.Formatter(self.rotateFormatter))
+        logger.addHandler(handler)
+        return logger
+
+    def addShellHandler(self, loggerName):
+        logger = self.logs.get(loggerName)
+        if not loggerName:
+            return
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter(self.shellFormatter))
+        logger.addHandler(handler)
+        return logger
+
+    def addNullHandler(self, loggerName):
+        logger = self.logs.get(loggerName)
+        if not loggerName:
+            return
+        # Create an I/O stream handler
+        io_handler = logging.NullHandler()
+        # Create a logging formatter
+        formatter = logging.Formatter(self.shellFormatter)
+        # Assign the formatter to the io_handler
+        io_handler.setFormatter(formatter)
+        # Add the io_handler to the logger
+        logger.addHandler(io_handler)
+        io_handler.setLevel(logging.INFO)
+        return logger
 
 
 def logLevels():
@@ -71,14 +125,9 @@ def reloadLoggerHierarchy():
 
 
 zooLogger = getLogger(CENTRAL_LOGGER_NAME)
+# to avoid log messages propagating upwards in the
+# log hierarchy.
 zooLogger.propagate = False
-zooLogger.setLevel(logging.INFO)
-handler = logging.NullHandler()
-# Create a logging formatter
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    '%m/%d/%Y %H:%M:%S',
-)
-handler.setFormatter(formatter)
-
-zooLogger.addHandler(logging.NullHandler())
+handlers = zooLogger.handlers
+if not any(isinstance(handle, logging.NullHandler) for handle in handlers):
+    CentralLogManager().addNullHandler(CENTRAL_LOGGER_NAME)

@@ -32,8 +32,12 @@ class ThreadedIcon(QtCore.QRunnable):
         if not self._path or self._finished:
             return
         self.signals.updated.emit(self.placeHolderImage)
-
-        image = QtGui.QImage(self._path)
+        try:
+            image = QtGui.QImage(self._path)
+        except Exception as er:
+            self.signals.error.emit((er,))
+            self.finished(True)
+            return
         self.signals.updated.emit(image)
         self.finished(True)
 
@@ -96,8 +100,10 @@ class TreeItem(QtGui.QStandardItem):
         self.iconSize = QtCore.QSize(256, 256)
         self.loaderThread = ThreadedIcon(item.iconPath)
         self.setEditable(False)
+
     def item(self):
         return self._item
+
     def applyFromImage(self, image):
         pixmap = QtGui.QPixmap()
         pixmap = pixmap.fromImage(image)
