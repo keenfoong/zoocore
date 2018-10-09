@@ -158,6 +158,27 @@ def updateStyle(widget):
     """
     widget.setStyle(widget.style())
 
+def setStylesheetObjectName(widget, name, update=True):
+    """ Sets the widget to have the object name as set in the stylesheet
+
+    eg in stylesheet:
+    #redselection {
+        background-color: red;
+    }
+
+    eg in code:
+    btn = QtWidgets.QPushButton("Hello World")
+    utils.setStylesheetObjectName(btn, "redselection")
+
+
+    :param widget: Widget to apply object name to
+    :param name: The object name in stylesheet without the '#'
+    :return:
+    """
+    widget.setObjectName(name)
+    if update:
+        updateStyle(widget)
+
 
 def windowFlagsString(windowFlags):
     """Returns a nice string that describes whats inside a windowFlags object
@@ -227,6 +248,17 @@ def dpiScale(value):
     """
     mult = QtWidgets.QApplication.desktop().logicalDpiY() / uiconstants.DEFAULT_DPI
     return value * mult
+
+def marginsDpiScale(left, top, right, bottom):
+    """ Convenience function to return contents margins
+
+    :param left:
+    :param top:
+    :param right:
+    :param bottom:
+    :return:
+    """
+    return (dpiScale(left), dpiScale(top), dpiScale(right), dpiScale(bottom))
 
 
 def sizeByDpi(size):

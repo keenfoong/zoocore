@@ -31,6 +31,7 @@ class FlowToolBar(QtWidgets.QWidget):
         self.mainLayout = utils.hBoxLayout(self)
 
         self.flowLayout = flowlayout.FlowLayout(margin=0, spacingX=utils.dpiScale(1), spacingY=utils.dpiScale(1))
+
         self.mainLayout.addLayout(self.flowLayout)
         self.setLayout(self.mainLayout)
         self.iconSize = 20
@@ -122,8 +123,10 @@ class FlowToolBar(QtWidgets.QWidget):
         btn.setIconSize(self.getIconSize())
         btn.leftClicked.connect(self.toolsClicked)
 
+
         self.flowLayout.addWidget(btn)
         self.flowLayout.addWidget(self.overflowMenuBtn)
+        self.flowLayout.setAlignment(btn, QtCore.Qt.AlignVCenter)
         return btn
 
     def getIconSize(self):

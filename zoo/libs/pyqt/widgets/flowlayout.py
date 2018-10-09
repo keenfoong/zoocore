@@ -34,6 +34,8 @@ class FlowLayout(QtWidgets.QLayout):
         self.itemList = []
         self.overflow = None
 
+
+
     def __del__(self):
         """Delete all the items in this layout"""
         self.clear()
