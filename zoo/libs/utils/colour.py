@@ -213,7 +213,8 @@ def hexToRGBA(hex):
     "RGB" eg CCC
 
     :param hex: String hex eg "2F2F2F"
-    :return: Returns in format (R, G, B, A)
+    :return: Returns in format tuple(R, G, B, A)
+    :rtype: tuple
     """
     r, g, b, a = (0, 0, 0, 255)
 
@@ -235,6 +236,12 @@ def hexToRGBA(hex):
 
 
 def hexToRGB(hex):
+    """  Converts hexidecimal number to RGBA tuple
+
+    :param hex: String hex eg "2F2F2F"
+    :return: Returns in format tuple(R, G, B)
+    :rtype: tuple
+    """
     return hexToRGBA(hex)[0:3]
 
 
