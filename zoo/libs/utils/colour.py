@@ -203,6 +203,47 @@ def hueShift(col, shift):
     rgbRotator.set_hue_rotation(shift)
     return rgbRotator.apply(*col)
 
+def hexToRGBA(hex):
+    """ Converts hexidecimal number to RGBA tuple
+
+    Allows folowing formats:
+
+    "RRGGBB" eg 2F2F2F
+    "AARRGGBB" eg 882F2F2F
+    "RGB" eg CCC
+
+    :param hex: String hex eg "2F2F2F"
+    :return: Returns in format tuple(R, G, B, A)
+    :rtype: tuple
+    """
+    r, g, b, a = (0, 0, 0, 255)
+
+    if len(hex) == 8:
+        a = int(hex[0:2], 16)
+        hex = hex[2:]
+
+    if len(hex) == 6:
+        r = int(hex[0:2], 16)
+        g = int(hex[2:4], 16)
+        b = int(hex[4:6], 16)
+
+    if len(hex) == 3:
+        r = int(hex[0:1]*2, 16)
+        g = int(hex[1:2]*2, 16)
+        b = int(hex[2:3]*2, 16)
+
+    return (r, g, b, a)
+
+
+def hexToRGB(hex):
+    """  Converts hexidecimal number to RGBA tuple
+
+    :param hex: String hex eg "2F2F2F"
+    :return: Returns in format tuple(R, G, B)
+    :rtype: tuple
+    """
+    return hexToRGBA(hex)[0:3]
+
 
 def clamp(v):
     if v < 0:
