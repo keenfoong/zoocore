@@ -306,3 +306,4 @@ def layoutWidgets(layout):
     :rtype: list
     """
     return [layout.itemAt(i).widget() for i in xrange(layout.count())]
+
