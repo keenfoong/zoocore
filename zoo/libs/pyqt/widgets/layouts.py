@@ -535,13 +535,16 @@ class CollapsableFrameLayout(QtWidgets.QWidget):
 
 
 class HotkeyDetectEdit(QtWidgets.QLineEdit):
-    """
-    A line Edit which detects key combinations are being pressed(for hotkeys for instance)
-    """
-
     hotkeyEdited = QtCore.Signal()
 
     def __init__(self, text="", parent=None, prefix="", suffix=""):
+        """ A line Edit which detects key combinations are being pressed(for hotkeys for instance)
+
+        :param text:
+        :param parent:
+        :param prefix:
+        :param suffix:
+        """
         super(HotkeyDetectEdit, self).__init__(parent)
 
         self.prefix = prefix
@@ -563,8 +566,6 @@ class HotkeyDetectEdit(QtWidgets.QLineEdit):
 
     def keyPressEvent(self, e):
         keyStr = QtGui.QKeySequence(self.convertSpecChars(e.key())).toString()
-        #keyStr = QtGui.QKeySequence(e.key())).toString(
-
 
         # Return out if its only a modifier
         if str(e.text()) == "":
@@ -598,8 +599,8 @@ class HotkeyDetectEdit(QtWidgets.QLineEdit):
         self.hotkeyEdited.emit()
 
     def convertSpecChars(self, charInt):
-        """
-        Converts special characters back to the original keyboard number
+        """ Converts special characters back to the original keyboard number
+
         :param charInt:
         :return:
         """
@@ -610,8 +611,8 @@ class HotkeyDetectEdit(QtWidgets.QLineEdit):
 
 class QHLine(QtWidgets.QFrame):
     def __init__(self):
-        """
-        A nice horizontal line to space ui
+        """ A nice horizontal line to space ui
+
         """
         super(QHLine, self).__init__()
         self.setFrameShape(QtWidgets.QFrame.HLine)
@@ -620,8 +621,7 @@ class QHLine(QtWidgets.QFrame):
 
 class QVLine(QtWidgets.QFrame):
     def __init__(self):
-        """
-        A nice vertical line to space ui
+        """ A nice vertical line to space ui
         """
         super(QVLine, self).__init__()
         self.setFrameShape(QtWidgets.QFrame.VLine)
