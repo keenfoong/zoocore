@@ -538,7 +538,14 @@ class HotkeyDetectEdit(QtWidgets.QLineEdit):
     hotkeyEdited = QtCore.Signal()
 
     def __init__(self, text="", parent=None, prefix="", suffix=""):
-        """ A line Edit which detects key combinations are being pressed(for hotkeys for instance)
+        """ A line Edit which detects key combinations are being pressed(for hotkeys for instance).
+
+        Usage: It works similarly to a QLineEdit. Type in a hotkey combination to show the hotkey.
+
+        Example::
+
+            # eg Type in Ctrl+Alt+P and it would set the text of the QLineEdit to "Ctrl+Alt+P"
+            wgt = HotkeyDetectEdit()
 
         :param text:
         :param parent:
@@ -557,6 +564,12 @@ class HotkeyDetectEdit(QtWidgets.QLineEdit):
                             63: 47, 60: 44, 126: 96, 62: 46, 58: 59, 123: 91, 124: 92, 125: 93, 94: 54, 95: 45}
 
     def setText(self, text, resetCursor=True):
+        """ Set text of HotKeyEdit
+
+        :param text:
+        :param resetCursor:
+        :return:
+        """
         text = self.prefix + text + self.suffix
 
         super(HotkeyDetectEdit, self).setText(text)
@@ -565,6 +578,13 @@ class HotkeyDetectEdit(QtWidgets.QLineEdit):
             self.setCursorPosition(0)
 
     def keyPressEvent(self, e):
+        """ Update the text edit to whatever the hotkey is inputted
+
+        For example type in Ctrl+Alt+P and it would set the text of the QLineEdit to "Ctrl+Alt+P"
+
+        :param e:
+        :return:
+        """
         keyStr = QtGui.QKeySequence(self.convertSpecChars(e.key())).toString()
 
         # Return out if its only a modifier
@@ -611,9 +631,7 @@ class HotkeyDetectEdit(QtWidgets.QLineEdit):
 
 class QHLine(QtWidgets.QFrame):
     def __init__(self):
-        """ A nice horizontal line to space ui
-
-        """
+        """ A nice horizontal line to space ui """
         super(QHLine, self).__init__()
         self.setFrameShape(QtWidgets.QFrame.HLine)
         self.setFrameShadow(QtWidgets.QFrame.Sunken)
@@ -621,8 +639,7 @@ class QHLine(QtWidgets.QFrame):
 
 class QVLine(QtWidgets.QFrame):
     def __init__(self):
-        """ A nice vertical line to space ui
-        """
+        """ A nice vertical line to space ui """
         super(QVLine, self).__init__()
         self.setFrameShape(QtWidgets.QFrame.VLine)
         self.setFrameShadow(QtWidgets.QFrame.Sunken)
