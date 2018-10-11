@@ -158,6 +158,7 @@ def updateStyle(widget):
     """
     widget.setStyle(widget.style())
 
+
 def setStylesheetObjectName(widget, name, update=True):
     """ Sets the widget to have the object name as set in the stylesheet
 
@@ -248,6 +249,7 @@ def dpiScale(value):
     """
     mult = QtWidgets.QApplication.desktop().logicalDpiY() / uiconstants.DEFAULT_DPI
     return value * mult
+
 
 def marginsDpiScale(left, top, right, bottom):
     """ Convenience function to return contents margins
