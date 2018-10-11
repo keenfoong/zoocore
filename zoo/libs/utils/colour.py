@@ -203,6 +203,7 @@ def hueShift(col, shift):
     rgbRotator.set_hue_rotation(shift)
     return rgbRotator.apply(*col)
 
+
 def hexToRGBA(hex):
     """ Converts hexidecimal number to RGBA tuple
 
