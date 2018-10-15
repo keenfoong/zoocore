@@ -158,6 +158,27 @@ def updateStyle(widget):
     """
     widget.setStyle(widget.style())
 
+def setStylesheetObjectName(widget, name, update=True):
+    """ Sets the widget to have the object name as set in the stylesheet
+
+    eg in stylesheet:
+    #redselection {
+        background-color: red;
+    }
+
+    eg in code:
+    btn = QtWidgets.QPushButton("Hello World")
+    utils.setStylesheetObjectName(btn, "redselection")
+
+
+    :param widget: Widget to apply object name to
+    :param name: The object name in stylesheet without the '#'
+    :return:
+    """
+    widget.setObjectName(name)
+    if update:
+        updateStyle(widget)
+
 
 def setStylesheetObjectName(widget, name, update=True):
     """ Sets the widget to have the object name as set in the stylesheet
