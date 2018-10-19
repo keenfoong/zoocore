@@ -64,6 +64,10 @@ class ButtonIcons(QtWidgets.QAbstractButton):
             self.updateIcons()
 
     def updateIcons(self):
+        if self.iconColor is None or self.iconName is None:
+            # Icon color/name is none? should mean the button is not ready yet
+            return
+
         hoverCol = colour.offsetColor(self.iconColor, self.highlightOffset)
         self.buttonIcon = iconlib.iconColorized(self.iconName,
                                                 size=self.iconSize().width(),
@@ -74,6 +78,15 @@ class ButtonIcons(QtWidgets.QAbstractButton):
                                                      color=hoverCol,
                                                      overlayName=self.iconOverlay)
         self.setIcon(self.buttonIcon)
+
+    def setIconSize(self, size):
+        """ Set icon size
+
+        :param size:
+        :return:
+        """
+        super(ButtonIcons, self).setIconSize(size)
+        self.updateIcons()
 
     def setIconIdle(self, icon):
         """Set the button Icon when idle or default.
