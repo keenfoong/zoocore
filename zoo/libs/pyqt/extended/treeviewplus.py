@@ -1,5 +1,6 @@
 from qt import QtWidgets, QtCore
 from zoo.libs import iconlib
+from zoo.libs.pyqt import utils
 from zoo.libs.pyqt.extended import viewfilterwidget
 from zoo.libs.pyqt.models import sortmodel
 
@@ -25,6 +26,19 @@ class TreeViewPlus(QtWidgets.QFrame):
 
     def setSearchable(self, value):
         self.searchWidget.setVisible(value)
+
+    def setAlternatingColorEnabled(self, alternating):
+        """ Disable alternating color for the rows
+
+        :type alternating: bool
+        :return:
+        """
+        if alternating:
+            utils.setStylesheetObjectName(self.treeView, "")
+        else:
+            utils.setStylesheetObjectName(self.treeView, "disableAlternatingColor")
+
+
 
     def _setupFilter(self):
         self.reloadBtn = QtWidgets.QToolButton(parent=self)
