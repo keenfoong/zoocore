@@ -1,6 +1,9 @@
 import os
 from qt import QtGui
 
+from zoo.libs.pyqt import utils
+
+
 class StyleSheet(object):
     """
 
@@ -35,7 +38,13 @@ class StyleSheet(object):
         with open(path, "r") as f:
             styleSheet = cls(f.read())
         if kwargs:
+            # dpiScale values with a '^'
+            for k, v in kwargs.items():
+                if isinstance(v, basestring) and v[0] == '^':
+                    kwargs[k] = utils.dpiScale(int(v[1:]))
+
             styleSheet.format(kwargs)
+
         return styleSheet
 
     def __init__(self, styleSheet=None):
