@@ -38,8 +38,6 @@ class TreeViewPlus(QtWidgets.QFrame):
         else:
             utils.setStylesheetObjectName(self.treeView, "disableAlternatingColor")
 
-
-
     def _setupFilter(self):
         self.reloadBtn = QtWidgets.QToolButton(parent=self)
         self.reloadBtn.setIcon(iconlib.icon("reload"))

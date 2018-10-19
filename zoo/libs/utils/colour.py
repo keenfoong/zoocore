@@ -273,6 +273,26 @@ def rgbFloatToInt(color):
     return tuple([int(255*float(c)) for c in color])
 
 
+def rgbIntToFloat(color):
+    """ Turns int color (255,255,255,255) to (1.0, 1.0, 1.0, 1.0)
+
+    :param color: int color tuple eg (128, 128, 255, 255)
+    :return: Float color eg (0.5, 0.5, 1.0, 1.0)
+    """
+
+    return tuple([c/255.0 for c in color])
+
+
+def rgbFloatToInt(color):
+    """ Turns float color to int color  eg (1.0, 1.0, 1.0, 1.0) to (255,255,255,255)
+
+    :param color: float color tuple eg (0.5, 0.5, 1.0, 1.0)
+    :return: int color eg (128, 128, 255, 255)
+    """
+
+    return tuple([int(255*float(c)) for c in color])
+
+
 class RGBRotate(object):
     """Hue Rotation, using the matrix rotation method. From here
 
