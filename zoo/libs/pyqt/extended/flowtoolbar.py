@@ -124,6 +124,7 @@ class FlowToolBar(QtWidgets.QWidget):
 
         self.flowLayout.addWidget(btn)
         self.flowLayout.addWidget(self.overflowMenuBtn)
+        self.flowLayout.setAlignment(btn, QtCore.Qt.AlignVCenter)
         return btn
 
     def getIconSize(self):
