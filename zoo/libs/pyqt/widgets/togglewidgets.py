@@ -1,6 +1,7 @@
 from qt import QtWidgets, QtGui, QtCore
 
 from zoo.libs import iconlib
+from zoo.libs.pyqt import utils
 from zoo.libs.pyqt.widgets import extendedbutton
 from zoo.libs.utils import colour
 
@@ -73,7 +74,7 @@ class ImageRadioButton(QtWidgets.QRadioButton, CheckableIcons):
         super(ImageRadioButton, self).__init__(parent=parent, text=text)
 
         self.highlightOffset = highlight
-        self.setIconSize(QtCore.QSize(12, 12))
+        self.setIconSize(utils.sizeByDpi(QtCore.QSize(12, 12)))
         self.setIconColor(color)
 
         # Initialise the icons
@@ -92,7 +93,7 @@ class ImageCheckBox(QtWidgets.QCheckBox, CheckableIcons):
         super(ImageCheckBox, self).__init__(parent=parent, text=text)
 
         self.highlightOffset = highlight
-        self.setIconSize(QtCore.QSize(12, 12))
+        self.setIconSize(utils.sizeByDpi(QtCore.QSize(12, 12)))
         self.setIconColor(color)
 
         # Initialise the icons
