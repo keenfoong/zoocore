@@ -158,6 +158,7 @@ def updateStyle(widget):
     """
     widget.setStyle(widget.style())
 
+
 def setStylesheetObjectName(widget, name, update=True):
     """ Sets the widget to have the object name as set in the stylesheet
 
