@@ -38,11 +38,6 @@ class StyleSheet(object):
         with open(path, "r") as f:
             styleSheet = cls(f.read())
         if kwargs:
-            # dpiScale values with a '^'
-            for k, v in kwargs.items():
-                if isinstance(v, basestring) and v[0] == '^':
-                    kwargs[k] = utils.dpiScale(int(v[1:]))
-
             styleSheet.format(kwargs)
 
         return styleSheet
@@ -64,9 +59,14 @@ class StyleSheet(object):
         """
         if not self.data:
             return False
+
         data = str(self.data)
         for key, value in settings.items():
-            data = data.replace(key, str(value))
+            replaceVal = value
+            if isinstance(value, basestring) and value[0] == '^':
+                replaceVal = utils.dpiScale(int(value[1:]))
+
+            data = data.replace(key, str(replaceVal))
         self.data = data
         return True
 
