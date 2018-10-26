@@ -7,13 +7,14 @@ from zoo.libs.utils import zlogging
 
 logger = zlogging.getLogger(__name__)
 
+
 class TreeWidgetFrame(QtWidgets.QWidget):
     def __init__(self, parent=None, title=""):
         super(TreeWidgetFrame, self).__init__(parent=parent)
         self.mainLayout = qtutils.vBoxLayout()
         self.title = QtWidgets.QLabel(title, parent=parent)
         self.searchEdit = QtWidgets.QLineEdit(parent=parent)
-        self.treeWidget = None
+        self.treeWidget = None  # type: TreeWidget
         self.toolbarLayout = qtutils.hBoxLayout()
 
     def initUi(self, treeWidget):
