@@ -204,7 +204,7 @@ def hueShift(col, shift):
     return rgbRotator.apply(*col)
 
 
-def hexToRGBA(hex):
+def hexToRGBA(hexstr):
     """ Converts hexidecimal number to RGBA tuple
 
     Allows folowing formats:
@@ -217,33 +217,25 @@ def hexToRGBA(hex):
     :return: Returns in format tuple(R, G, B, A)
     :rtype: tuple
     """
-    r, g, b, a = (0, 0, 0, 255)
 
-    if len(hex) == 8:
-        a = int(hex[0:2], 16)
-        hex = hex[2:]
-
-    if len(hex) == 6:
-        r = int(hex[0:2], 16)
-        g = int(hex[2:4], 16)
-        b = int(hex[4:6], 16)
-
-    if len(hex) == 3:
-        r = int(hex[0:1]*2, 16)
-        g = int(hex[1:2]*2, 16)
-        b = int(hex[2:3]*2, 16)
-
-    return (r, g, b, a)
+    if len(hexstr) == 8:
+        return int(hexstr[2:4], 16), int(hexstr[4:6], 16), int(hexstr[6:8], 16), int(hexstr[0:2], 16)
+    elif len(hexstr) == 6:
+        return int(hexstr[0:2], 16), int(hexstr[2:4], 16), int(hexstr[4:6], 16), 255
+    elif len(hexstr) == 3:
+        return int(hexstr[0:1]*2, 16), int(hexstr[1:2]*2, 16), int(hexstr[2:3]*2, 16), 255
+    else:
+        raise Exception("Invalid hex length: {}".format(hex))
 
 
-def hexToRGB(hex):
+def hexToRGB(hexstr):
     """  Converts hexidecimal number to RGBA tuple
 
     :param hex: String hex eg "2F2F2F"
     :return: Returns in format tuple(R, G, B)
     :rtype: tuple
     """
-    return hexToRGBA(hex)[0:3]
+    return hexToRGBA(hexstr)[0:3]
 
 
 def clamp(v):
