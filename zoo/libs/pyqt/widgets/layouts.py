@@ -558,6 +558,7 @@ class HotkeyDetectEdit(QtWidgets.QLineEdit):
         self.suffix = suffix
 
         self.setText(text)
+        self.backspaceClears = True
 
         # str.maketrans('~!@#$%^&*()_+{}|:"<>?', '`1234567890-=[]\\;\',./')
         self.specialkeys = {64: 50, 33: 49, 34: 39, 35: 51, 36: 52, 37: 53, 38: 55, 40: 57, 41: 48, 42: 56, 43: 61,
@@ -614,6 +615,9 @@ class HotkeyDetectEdit(QtWidgets.QLineEdit):
             hotkey = 'Ctrl+' + keyStr
         else:
             hotkey = keyStr
+
+        if (hotkey == "Backspace" and self.backspaceClears) or hotkey == "Esc":
+            hotkey = ""
 
         self.setText(hotkey)
         self.hotkeyEdited.emit()
