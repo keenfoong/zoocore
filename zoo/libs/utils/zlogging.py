@@ -1,8 +1,44 @@
+import datetime
 import logging
 import os
+
+import jsonlogger
 from zoo.libs.utils import classtypes
 
 CENTRAL_LOGGER_NAME = "zoocore"
+
+
+class ZooJsonFormatter(jsonlogger.JsonFormatter):
+    """Overrriding the addFields since the timestamp is using utcnow instead of the local timezone.
+    We also add support for static fields passed into the __init__
+    """
+
+    def __init__(self,
+                 fmt="%(message)",
+                 datefmt="%Y-%m-%dT%H:%M:%SZ%z",
+                 style='%',
+                 extra={}, *args, **kwargs):
+        """
+        :note: see :class:`jsonlogger.JsonFormatter` for information on arguments
+
+        :param extra: static fields to pass to all records
+        :type extra: dict
+        """
+        self._extra = extra
+        jsonlogger.JsonFormatter.__init__(self, fmt=fmt, datefmt=datefmt, *args, **kwargs)
+
+    def add_fields(self, log_record, record, message_dict):
+        for field in self._required_fields:
+            log_record[field] = record.__dict__.get(field)
+        log_record.update(message_dict)
+        jsonlogger.merge_record_extra(record, log_record, reserved=self._skip_fields)
+
+        if self.timestamp:
+            key = self.timestamp if type(self.timestamp) == str else 'timestamp'
+            log_record[key] = datetime.datetime.now().isoformat()
+        # add all the static extra fields into the record
+        for key, value in self._extra.items():
+            log_record[key] = value
 
 
 class CentralLogManager(object):
@@ -12,6 +48,8 @@ class CentralLogManager(object):
 
     def __init__(self):
         self.logs = {}
+        self.jsonFormatter = "%(asctime) %(name) %(processName) %(pathname)  %(funcName) %(levelname) %(lineno) %(" \
+                             "module) %(threadName) %(message)"
         self.rotateFormatter = "%(asctime)s: [%(process)d - %(name)s - %(levelname)s]: %(message)s"
         self.shellFormatter = "[%(name)s - %(levelname)s]: %(message)s"
         self.guiFormatter = "[%(name)s]: %(message)s"
@@ -47,9 +85,6 @@ class CentralLogManager(object):
             if log.level != level:
                 log.setLevel(level)
 
-    def setFormatter(self, handler, formatString):
-        handler.setFormatter(formatString)
-
     def addRotateHandler(self, loggerName, filePath):
         logger = self.logs.get(loggerName)
         if not logger:
@@ -73,7 +108,7 @@ class CentralLogManager(object):
         logger = self.logs.get(loggerName)
         if not loggerName:
             return
-        # Create an I/O stream handler
+        # Create an null handler
         io_handler = logging.NullHandler()
         # Create a logging formatter
         formatter = logging.Formatter(self.shellFormatter)
@@ -101,13 +136,12 @@ def getLogger(name):
 
 
 def globalLogLevelOverride(logger):
-    globalLoggingLevel = os.environ.get("ZOO_LOG_LEVEL")
-    if globalLoggingLevel:
-        envLvl = levelsDict()[globalLoggingLevel]
-        currentLevel = logger.getEffectiveLevel()
+    globalLoggingLevel = os.environ.get("ZOO_LOG_LEVEL", "INFO")
+    envLvl = levelsDict()[globalLoggingLevel]
+    currentLevel = logger.getEffectiveLevel()
 
-        if not currentLevel or currentLevel != envLvl:
-            logger.setLevel(envLvl)
+    if not currentLevel or currentLevel != envLvl:
+        logger.setLevel(envLvl)
 
 
 def reloadLoggerHierarchy():
@@ -129,5 +163,5 @@ zooLogger = getLogger(CENTRAL_LOGGER_NAME)
 # log hierarchy.
 zooLogger.propagate = False
 handlers = zooLogger.handlers
-if not any(isinstance(handle, logging.NullHandler) for handle in handlers):
+if not handlers:
     CentralLogManager().addNullHandler(CENTRAL_LOGGER_NAME)

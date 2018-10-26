@@ -10,7 +10,7 @@ import sys
 
 from zoo.libs.utils import zlogging
 
-logger = zlogging.getLogger(__name__)
+logger = zlogging.getLogger(zlogging.CENTRAL_LOGGER_NAME)
 
 FILENAMEEXP = re.compile(u'[^\w\.-1]', re.UNICODE)
 

@@ -21,11 +21,11 @@ def importModule(modulePath, name=None):
     :return: The imported module object
     :rtype: ModuleObject
     """
-    if isDottedPath(modulePath) or not os.path.exists(modulePath):
+    if isDottedPath(modulePath) and not os.path.exists(modulePath):
         try:
             return importlib.import_module(modulePath)
         except ImportError:
-            logger.debug("Failed to load module->{}".format(modulePath), exc_info=True)
+            logger.error("Failed to load module->{}".format(modulePath), exc_info=True)
 
     try:
         if os.path.exists(modulePath):

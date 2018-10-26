@@ -98,7 +98,6 @@ def _recursiveSearchByTags(menu, tags):
                 action.setVisible(True)
             else:
                 action.setVisible(False)
-            print action, tags, action.tags, "multi", action.hasAnyTag(tags)
 
     menuVis = any(action.isVisible() for action in menu.actions())
     menu.menuAction().setVisible(menuVis)
