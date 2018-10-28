@@ -127,10 +127,9 @@ class ZooCommand(CommandInterface):
 
     def _resolveArguments(self, arguments):
         kwargs = self.arguments
-        results = self.resolveArguments(ArgumentParser(**arguments))
-        for arg, value in iter(results.items()):
-            kwargs[arg] = value
-
+        kwargs.update(arguments)
+        results = self.resolveArguments(ArgumentParser(**kwargs))
+        kwargs.update(results)
         return True
 
     def _prepareCommand(self):
