@@ -1,4 +1,5 @@
 import ctypes
+import imghdr
 import inspect
 
 import os
@@ -1084,3 +1085,20 @@ def getVersionNumberAsStr(path):
         version_number = version_pattern_match.group(3)
 
     return version_number
+
+
+QTSUPPORTEDIMAGES = ('bmp', 'gif', 'jpg', 'jpeg', 'mng', 'png', 'pbm', 'pgm', 'ppm', 'tiff', 'xbm', 'xpm', 'svg', 'tga')
+
+
+def isImage(path):
+    try:
+        return imghdr.what(path) is not None or path.split(os.extsep)[-1] in QTSUPPORTEDIMAGES
+    except IOError:
+        return False
+
+
+def imageSupportByQt(path):
+    imageType = imghdr.what(path)
+    if imageType is not None:
+        return imageType.lower() in QTSUPPORTEDIMAGES
+    return False

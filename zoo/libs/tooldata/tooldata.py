@@ -14,9 +14,8 @@ import os
 import logging
 import copy
 from collections import OrderedDict
-
 from zoo.libs.utils import filesystem
-from zoo.libs.utils import file, path
+from zoo.libs.utils import path
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +123,7 @@ class ToolSet(object):
         fullPath = root / relativePath
         if not os.path.exists(fullPath):
             raise InvalidSettingsPath(fullPath)
-        data = file.loadJson(fullPath)
+        data = filesystem.loadJson(fullPath)
         return SettingObject(root, relativePath, **data)
 
 
@@ -184,5 +183,5 @@ class SettingObject(dict):
         exts = fullPath.getExtension(True)
         if not exts:
             fullPath = fullPath.setExtension("json", True)
-        file.saveJson(output, str(fullPath))
+        filesystem.saveJson(output, str(fullPath))
         return self.path()
