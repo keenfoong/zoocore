@@ -1,6 +1,7 @@
 from qt import QtWidgets, QtCore, QtGui
 
 from zoo.libs import iconlib
+from zoo.libs.pyqt import utils
 from zoo.libs.pyqt.extended import searchablemenu
 from zoo.libs.pyqt.extended.searchablemenu import action as taggedAction
 from zoo.libs.utils import zlogging, colour
@@ -85,7 +86,7 @@ class ButtonIcons(QtWidgets.QAbstractButton):
         :param size:
         :return:
         """
-        super(ButtonIcons, self).setIconSize(size)
+        super(ButtonIcons, self).setIconSize(utils.sizeByDpi(size))
         self.updateIcons()
 
     def setIconIdle(self, icon):
