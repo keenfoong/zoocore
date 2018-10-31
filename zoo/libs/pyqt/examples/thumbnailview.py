@@ -3,10 +3,12 @@ from functools import partial
 
 from qt import QtWidgets, QtCore
 from zoo.libs.pyqt.extended.imageview import model, items, thumbwidget
-from zoo.libs.utils import file, env
+from zoo.libs.utils import env
+from zoo.libs.utils import path
+
 
 class ExampleCustomWidget(thumbwidget.ThumbnailViewWidget):
-    def __init__(self, *args,**kwargs):
+    def __init__(self, *args, **kwargs):
         super(ExampleCustomWidget, self).__init__(*args, **kwargs)
 
     def closeEvent(self, event):
@@ -73,9 +75,9 @@ class ExampleThumbnailViewerModel(model.ItemModel):
         """
         results = []
         for i in os.listdir(self.directory):
-            path = os.path.join(self.directory, i)
-            if file.isImage(path):
-                results.append(path)
+            fullPath = os.path.join(self.directory, i)
+            if path.isImage(fullPath):
+                results.append(fullPath)
         self.currentFilesList = results
 
     def createItem(self, item):
@@ -140,6 +142,7 @@ class ExampleThumbnailViewerModel(model.ItemModel):
         """
         pass
 
+
 def _bind(parent=None):
     wid = ExampleCustomWidget(parent=parent)
     rootDirectory = r"D:\reference\Firefall"
@@ -150,6 +153,7 @@ def _bind(parent=None):
     wid.show()
     return wid
 
+
 def main():
     if not env.isInMaya():
         app = QtWidgets.QApplication(sys.argv)
@@ -157,7 +161,7 @@ def main():
         sys.exit(app.exec_())
     else:
         from zoo.libs.maya.qt import mayaui
-        return _bind(parent=None)#mayaui.getMayaWindow())
+        return _bind(parent=None)  # mayaui.getMayaWindow())
 
 
 if __name__ == "__main__":
