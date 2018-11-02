@@ -654,9 +654,9 @@ class ClippedLabel(QtWidgets.QLabel):
             layout.addWidget(wgt)
 
         :param text:
-        :param text:
         :param width:
         :param parent:
+        :param ellipsis: True to show ellipsis, false for otherwise
         """
         super(ClippedLabel, self).__init__(text, parent)
         self.setMinimumWidth(width if width > 0 else 1)
