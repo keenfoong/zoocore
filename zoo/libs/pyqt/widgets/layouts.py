@@ -633,6 +633,50 @@ class HotkeyDetectEdit(QtWidgets.QLineEdit):
         return charInt
 
 
+class ClippedLabel(QtWidgets.QLabel):
+    _width = _text = _elided = None
+    def __init__(self, text='', width=0, parent=None, ellipsis=True):
+        """ Label that will clip itself if the widget width is smaller than the text
+
+        QLabel doesn't do this, so we have to do this here.
+
+        Appropriated from:
+        https://stackoverflow.com/questions/35080148/how-to-hide-or-cut-a-qwidget-text-when-i-change-main-window-size
+
+        :param text:
+        :param width:
+        :param parent:
+        """
+        super(ClippedLabel, self).__init__(text, parent)
+        self.setMinimumWidth(width if width > 0 else 1)
+        self.ellipsis = ellipsis
+
+    def paintEvent(self, event):
+        painter = QtGui.QPainter(self)
+        self.drawFrame(painter)
+        margin = self.margin()
+        rect = self.contentsRect()
+        rect.adjust(margin, margin, -margin, -margin)
+        text = self.text()
+        width = rect.width()
+        if text != self._text or width != self._width:
+            self._text = text
+            self._width = width
+            self._elided = self.fontMetrics().elidedText(
+                text, QtCore.Qt.ElideRight, width)
+        option = QtWidgets.QStyleOption()
+        option.initFrom(self)
+
+        if self.ellipsis:
+            self.style().drawItemText(
+                painter, rect, self.alignment(), option.palette,
+                self.isEnabled(), self._elided, self.foregroundRole())
+        else:
+            self.style().drawItemText(
+                painter, rect, self.alignment(), option.palette,
+                self.isEnabled(), self.text(), self.foregroundRole())
+
+
 class QHLine(QtWidgets.QFrame):
     def __init__(self):
         """ A nice horizontal line to space ui """
