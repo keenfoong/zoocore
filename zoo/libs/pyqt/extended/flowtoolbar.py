@@ -53,7 +53,8 @@ class FlowToolBar(QtWidgets.QWidget):
     def setIconSize(self, size):
         """Set the size of the icons of the tools and toolmenus
 
-        :param size:
+
+        :param size: DPI scale is automatically calculated here so size does not need it here.
         """
         self.iconSize = size
 
@@ -69,7 +70,7 @@ class FlowToolBar(QtWidgets.QWidget):
 
         :param padding:
         """
-        self.iconPadding = padding
+        self.iconPadding = utils.dpiScale(padding)
 
     def overflowMenuActive(self, active):
         self.overflowMenu = active
@@ -180,6 +181,15 @@ class FlowToolBar(QtWidgets.QWidget):
 
     def resizeEvent(self, event):
         self.updateWidgetsOverflow(self.width())
+
+    def sizeHint(self):
+        spacing = self.flowLayout.spacingX
+        nextX = 0  #self.overflowMenuBtn.sizeHint().width()
+        for item in self.flowLayout.itemList:
+            wgt = item.widget()
+            nextX += wgt.sizeHint().width() + spacing
+
+        return QtCore.QSize(nextX, super(FlowToolBar, self).sizeHint().width())
 
     def updateWidgetsOverflow(self, width=None):
         """Hide or show widgets based on the size of the flow toolbar.
