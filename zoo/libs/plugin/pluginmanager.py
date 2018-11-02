@@ -83,7 +83,7 @@ class PluginManager(object):
         if classObj not in self.plugins.values() and issubclass(classObj, self.interface):
             name = getattr(classObj, self.variableName) if hasattr(classObj, self.variableName) else classObj.__name__
             logger.debug("registering plugin -> {}".format(name))
-            self.plugins[name] = classObj
+            self.plugins[str(name)] = classObj
 
     def loadPlugin(self, pluginName, **kwargs):
         """Loads a given plugin by name. eg plugin(manager=self)

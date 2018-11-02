@@ -225,7 +225,7 @@ def hexToRGBA(hexstr):
     elif len(hexstr) == 3:
         return int(hexstr[0:1]*2, 16), int(hexstr[1:2]*2, 16), int(hexstr[2:3]*2, 16), 255
     else:
-        raise Exception("Invalid hex length: {}".format(hex))
+        raise Exception("Invalid hex length: {}".format(hexstr))
 
 
 def hexToRGB(hexstr):

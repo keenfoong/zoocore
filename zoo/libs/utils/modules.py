@@ -119,7 +119,10 @@ def asDottedPath(path):
     f = os.path.splitext(f)[0]
     packagePath = [f]  # __package__ will be a reversed list of package name parts
     syspath = sys.path
+    driveLetter = os.path.splitdrive(path)[0] + "\\"
     while d not in syspath:  # go up until we run out of __init__.py files
         d, name = os.path.split(d)  # pull of a lowest level directory name
+        if d == driveLetter or name == "":
+            return ""
         packagePath.append(name)  # add it to the package parts list
     return ".".join(reversed(packagePath))

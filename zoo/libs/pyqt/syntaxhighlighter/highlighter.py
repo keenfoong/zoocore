@@ -1,6 +1,7 @@
 from PySide2.QtCore import QRegExp
 from PySide2.QtGui import QColor, QTextCharFormat, QFont, QSyntaxHighlighter
-from zoo.libs.utils import file
+
+from zoo.libs.utils import filesystem
 
 def formatColor(color, style=None):
     """Return a QTextCharFormat with the given attributes.
@@ -32,7 +33,7 @@ def highlighterFromJson(filePath, document):
     """
     if not filePath:
         return
-    syntaxData = file.loadJson(filePath)
+    syntaxData = filesystem.loadJson(filePath)
     return PythonHighlighter(document, syntaxData)
 
 

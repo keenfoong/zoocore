@@ -38,11 +38,6 @@ class StyleSheet(object):
         with open(path, "r") as f:
             styleSheet = cls(f.read())
         if kwargs:
-            # dpiScale values with a '^'
-            for k, v in kwargs.items():
-                if isinstance(v, basestring) and v[0] == '^':
-                    kwargs[k] = utils.dpiScale(int(v[1:]))
-
             styleSheet.format(kwargs)
 
         return styleSheet

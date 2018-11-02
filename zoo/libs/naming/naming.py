@@ -1,6 +1,7 @@
 import re
 import os
-from zoo.libs.utils import file
+
+from zoo.libs.utils import filesystem
 from zoo.libs.utils import general
 
 
@@ -201,7 +202,7 @@ class NameManager(object):
         return newStr
 
     def save(self, configPath):
-        file.saveJson(self.config, configPath)
+        filesystem.saveJson(self.config, configPath)
         return configPath
 
     def refresh(self):
@@ -214,7 +215,7 @@ class NameManager(object):
         for config in configPaths:
             if not os.path.exists(config) or not config.endswith(".json"):
                 continue
-            userData = file.loadJson(config)
+            userData = filesystem.loadJson(config)
             general.merge(data, userData)
             rules = userData.get("rules")
             tokens = userData.get("tokens")
