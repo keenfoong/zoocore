@@ -182,7 +182,8 @@ class Editor(QtWidgets.QFrame):
         self.edit.setLineWrapMode(mode)
 
     def execute(self):
-        original_stdout= sys.stdout
+        original_stdout = sys.stdout
+
         class stdoutProxy():
             def __init__(self, write_func):
                 self.write_func = write_func
@@ -240,6 +241,7 @@ class Editor(QtWidgets.QFrame):
 
 class TabbedEditor(QtWidgets.QTabWidget):
     outputText = QtCore.Signal(str)
+
     def __init__(self, parent):
         super(TabbedEditor, self).__init__(parent=parent)
         self.setTabsClosable(True)
@@ -257,7 +259,7 @@ class TabbedEditor(QtWidgets.QTabWidget):
         self.addTab(edit, name)
         edit.outputText.connect(self.outputText.emit)
         edit.textEdit.moveCursor(QtGui.QTextCursor.Start)
-        self.setCurrentIndex(self.count()-1)
+        self.setCurrentIndex(self.count() - 1)
 
     def closeCurrentTab(self, index):
         self.removeTab(index)

@@ -233,3 +233,6 @@ class TreeItem(QtGui.QStandardItem):
         y = padding + (float(height - rect.height()) * 0.5)
         rect.translate(x, y)
         return rect
+
+
+

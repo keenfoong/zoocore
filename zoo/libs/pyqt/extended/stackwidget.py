@@ -347,9 +347,7 @@ class StackItem(QtWidgets.QWidget):
         self.titleFrame = frame.QFrame(parent=self)
         self.expandToggleButton = QtWidgets.QToolButton(parent=self)
 
-        # Title Frame
-        self.widgetHider = frame.QFrame(parent=self)
-        self._contentsLayout = qtutils.vBoxLayout(self.widgetHider)
+
 
         if not shiftArrowsEnabled:
             self.shiftDownBtn.hide()
@@ -399,7 +397,9 @@ class StackItem(QtWidgets.QWidget):
         self.stackTitleWgt.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents, trans)
 
     def initUi(self):
-
+        # Title Frame
+        self.widgetHider = frame.QFrame(parent=self)
+        self._contentsLayout = qtutils.vBoxLayout(self.widgetHider)
         self.buildTitleFrame()
 
         self.buildHiderWidget()
