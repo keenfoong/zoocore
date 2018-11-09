@@ -635,17 +635,28 @@ class HotkeyDetectEdit(QtWidgets.QLineEdit):
 
 class ClippedLabel(QtWidgets.QLabel):
     _width = _text = _elided = None
+
     def __init__(self, text='', width=0, parent=None, ellipsis=True):
         """ Label that will clip itself if the widget width is smaller than the text
 
         QLabel doesn't do this, so we have to do this here.
 
-        Appropriated from:
-        https://stackoverflow.com/questions/35080148/how-to-hide-or-cut-a-qwidget-text-when-i-change-main-window-size
+        .. code-block::python
+
+            # Ellipsis false will omit the ellipsis (...)
+            wgt = ClippedLabel(text="Hello World", ellipsis=False)
+
+            # With triple dot added if the size of the widget is too small
+            wgt = ClippedLabel(text="Hello World", ellipsis=True)
+
+            # Use it like any other QLabel
+            layout = QtWidgets.QHBoxWidget()
+            layout.addWidget(wgt)
 
         :param text:
         :param width:
         :param parent:
+        :param ellipsis: True to show ellipsis, false for otherwise
         """
         super(ClippedLabel, self).__init__(text, parent)
         self.setMinimumWidth(width if width > 0 else 1)
