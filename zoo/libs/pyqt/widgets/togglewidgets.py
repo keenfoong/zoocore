@@ -36,7 +36,6 @@ class CheckableIcons(extendedbutton.ButtonIcons):
         className = self.__class__.__name__
 
         style = """
-        {0} {{padding:left -6px;}}
         {0}::indicator {{background-color:transparent; width:0}}
         """.format(className)
         self.setStyleSheet(style)
