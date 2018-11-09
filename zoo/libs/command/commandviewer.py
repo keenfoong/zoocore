@@ -1,5 +1,7 @@
+import inspect
+
 from qt import QtWidgets
-from zoo.libs.iconlib import icon
+from zoo.libs import iconlib
 from zoo.libs.command import executor
 
 
@@ -22,11 +24,24 @@ class CommandViewer(QtWidgets.QWidget):
         self.setup()
 
     def setup(self):
+        toolTip = """Name: {name}
+path: {path}
+Icon: {icon}
+tooltip: {tooltip}
+label: {label}
+color: {color}
+background: {backgroundColor}"""
         for command in self.executor.commands.values():
             uiData = command.uiData
             item = QtWidgets.QListWidgetItem()
             item.setText(uiData.get("label", ""))
-            item.setIcon(icon("icon"))
+            icon = iconlib.icon(uiData.get("icon", ""))
+            data = {"name": command.id, "path": inspect.getfile(command)}
+            data.update(uiData)
+            info = toolTip.format(**data)
+            item.setToolTip(info)
+            if icon is not None:
+                item.setIcon(icon)
             self.listWidget.addItem(item)
 
 
