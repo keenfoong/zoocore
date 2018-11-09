@@ -35,10 +35,12 @@ class ButtonIcons(QtWidgets.QAbstractButton):
     def setIconByName(self, iconName, color=None, size=None, colorOffset=None, iconOverlay=None):
         """Set up both icons in a simple function
 
+
+
         :param iconName:
         :param color:
         :type color: tuple
-        :param size:
+        :param size: Size is dpiScaled automatically here
         :param colorOffset:
         :return:
         """

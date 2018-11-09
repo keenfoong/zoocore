@@ -1,8 +1,12 @@
 import os
 from qt import QtGui
 
+from zoo.libs import iconlib
 from zoo.libs.pyqt import utils
+import logging
+logger = logging.getLogger(__name__)
 
+INT = 0; DPI_SCALE = 1; ICON = 2; COLOR = 3
 
 class StyleSheet(object):
     """
@@ -23,6 +27,7 @@ class StyleSheet(object):
         }
 
     """
+
 
     @classmethod
     def fromPath(cls, path, **kwargs):
@@ -63,12 +68,41 @@ class StyleSheet(object):
         data = str(self.data)
         for key, value in settings.items():
             replaceVal = value
-            if isinstance(value, basestring) and value[0] == '^':
+            if valueType(value) == DPI_SCALE:
                 replaceVal = utils.dpiScale(int(value[1:]))
+
+            if valueType(value) == ICON:
+                path = iconlib.iconPathForName(value[5:])
+
+                if path == "":
+                    logger.warning("Warning: \"{}\" icon not found for key: \"{}\" in stylesheet.pref"
+                                   .format(value[5:], key))
+
+                replaceVal = os.path.normcase(path).replace("\\","/")
 
             data = data.replace(key, str(replaceVal))
         self.data = data
         return True
+
+
+def valueType(value):
+    """
+    Returns type of value for the stylesheet.pref key value
+
+    :param value:
+    :return:
+    """
+    if isinstance(value, int):
+        return INT
+
+    if isinstance(value, basestring) and (len(value) == 6 or len(value) == 8):
+        return COLOR
+
+    if isinstance(value, basestring) and value[0] == '^':
+        return DPI_SCALE
+
+    if isinstance(value, basestring) and len(value) > 5 and value[:5] == 'icon:':
+        return ICON
 
 
 def stylesheetFromDirectory(directory, name):
