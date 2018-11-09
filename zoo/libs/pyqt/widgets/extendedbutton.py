@@ -38,7 +38,7 @@ class ButtonIcons(QtWidgets.QAbstractButton):
         :param iconName:
         :param color:
         :type color: tuple
-        :param size:
+        :param size: Size is dpiScaled automatically here
         :param colorOffset:
         :return:
         """
