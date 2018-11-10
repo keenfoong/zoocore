@@ -1,8 +1,11 @@
 from qt import QtCore, QtWidgets, QtGui
 
-from zoo.apps.hiveartistui.views import componentgroup
 from zoo.libs.pyqt import utils as qtutils
 from zoo.libs.pyqt.extended import expandedtooltip
+from zoo.libs import iconlib
+from zoo.libs.pyqt import uiconstants
+from zoo.libs.pyqt.extended.stackwidget import LineClickEdit
+from zoo.libs.pyqt.widgets import frame
 from zoo.libs.utils import zlogging
 
 logger = zlogging.getLogger(__name__)
@@ -60,7 +63,7 @@ class TreeWidgetFrame(QtWidgets.QWidget):
 
     def addGroup(self, name="", expanded=True):
         if self.treeWidget is not None:
-            groupWgt = componentgroup.ComponentGroupWidget(name)
+            groupWgt = TreeWidgetGroup(name)
             return self.treeWidget.newGroup(name, expanded=expanded, groupWgt=groupWgt)
 
         logger.error("TreeWidgetFrame.addGroup(): TreeWidget shouldn't be None!")
@@ -70,6 +73,129 @@ class TreeWidgetFrame(QtWidgets.QWidget):
         """
         if self.treeWidget is not None:
             self.treeWidget.updateTreeWidget()
+
+
+class TreeWidgetGroup(QtWidgets.QWidget):
+    """
+    The Widget used for groups in TreeWidget
+    """
+    _deleteIcon = iconlib.icon("xMark")
+    _itemIcon = iconlib.icon("openFolder01")
+    _collapsedIcon = iconlib.icon("sortClosed")
+    _expandIcon = iconlib.icon("sortDown")
+
+    def __init__(self, title="", parent=None, treeItem=None):
+        super(TreeWidgetGroup, self).__init__(parent=parent)
+
+        self.color = uiconstants.DARKBGCOLOR
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.mainLayout = QtWidgets.QHBoxLayout()
+        self.expandToggleButton = QtWidgets.QToolButton(parent=self)
+        self.folderIcon = QtWidgets.QToolButton(parent=self)
+        self.titleFrame = frame.QFrame(parent=self)
+        self.collapsed = False
+
+        self.groupTextEdit = LineClickEdit(title, single=False)
+        self.titleExtrasLayout = QtWidgets.QHBoxLayout()
+        self.deleteBtn = QtWidgets.QToolButton(parent=self)
+        self.treeItem = treeItem
+
+        self.initUi()
+        self.connections()
+
+    def initUi(self):
+        self.setLayout(self.mainLayout)
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
+
+        self.folderIcon.setIcon(self._itemIcon)
+        self.deleteBtn.setIcon(self._deleteIcon)
+
+        self.buildTitleFrame()
+
+    def setTreeItem(self, treeItem):
+        self.treeItem = treeItem
+
+    def connections(self):
+        self.expandToggleButton.clicked.connect(self.expandToggle)
+
+    def text(self):
+        """
+        Returns the text of the text edit
+        :return:
+        """
+        return self.groupTextEdit.text()
+
+    def buildTitleFrame(self):
+        """Builds the title part of the layout with a QFrame widget
+        """
+
+        self.layout().addWidget(self.titleFrame)
+
+        self.titleFrame.setContentsMargins(1, 1, 4, 0)
+        self.titleFrame.mousePressEvent = self.mousePressEvent
+
+        # the horizontal layout
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.titleFrame)
+        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
+
+        # the icon and title and spacer
+        self.expandToggleButton.setParent(self.titleFrame)
+        if self.collapsed:
+            self.expandToggleButton.setIcon(self._collapsedIcon)
+        else:
+            self.expandToggleButton.setIcon(self._expandIcon)
+
+        self.folderIcon.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
+
+        spacerItem = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+
+        # add to horizontal layout
+        self.horizontalLayout.addWidget(self.expandToggleButton)
+        self.horizontalLayout.addWidget(self.folderIcon)
+        self.horizontalLayout.addItem(spacerItem)
+        self.titleFrame.setFixedHeight(self.titleFrame.sizeHint().height())
+
+        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height()+3)
+
+        self.horizontalLayout.addWidget(self.groupTextEdit)
+        self.horizontalLayout.addLayout(self.titleExtrasLayout)
+        self.horizontalLayout.addWidget(self.deleteBtn)
+
+        self.horizontalLayout.setStretchFactor(self.groupTextEdit, 4)
+
+    def expandToggle(self):
+        if self.collapsed:
+            self.expand()
+            self.collapsed = False
+        else:
+            self.collapse()
+            self.collapsed = True
+
+    def onCollapsed(self):
+        """
+        Collapse and hide the item contents
+        :return:
+        """
+        self.expandToggleButton.setIcon(self._collapsedIcon)
+        self.treeItem.setExpanded(False)
+
+    def onExpand(self):
+        self.expandToggleButton.setIcon(self._expandIcon)
+        self.treeItem.setExpanded(True)
+
+    def expand(self):
+        """ Extra Code for convenience """
+        self.onExpand()
+
+    def collapse(self):
+        """ Extra Code for convenience """
+        self.onCollapsed()
+
+    def mousePressEvent(self, event):
+        event.ignore()
+
+    def passThroughMouseEvent(self, event):
+        event.ignore()
 
 
 class TreeWidget(QtWidgets.QTreeWidget):
