@@ -6,7 +6,7 @@ class ItemContainer(QtWidgets.QGraphicsWidget):
         super(ItemContainer, self).__init__(parent=parent)
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
         layout = QtWidgets.QGraphicsLinearLayout()
-        layout.setSpacing(0)
+        layout.setSpacing(2)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setOrientation(orientation)
         self.setLayout(layout)
@@ -321,23 +321,17 @@ class GraphicsText(QtWidgets.QGraphicsWidget):
         self._item = QtWidgets.QGraphicsTextItem(text, parent=self)
         self._item.setDefaultTextColor(self._color)
         self._item.setFont(self._font)
+        self.setPreferredSize(self.size)
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed))
-        self.setPreferredSize(QtCore.QSizeF(self._item.textWidth(), self._font.pointSizeF()))
-
         self._item.setFlags(QtWidgets.QGraphicsItem.ItemIsSelectable | QtWidgets.QGraphicsItem.ItemIsFocusable |
                             QtWidgets.QGraphicsItem.ItemIsMovable)
         self._item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
-
         option = self._item.document().defaultTextOption()
         option.setWrapMode(QtGui.QTextOption.NoWrap)
         self._item.document().setDefaultTextOption(option)
-        self.adjustSize()
-        self.setPreferredSize(self.size)
         self.allowHoverHighlight = False
-
         self.setAcceptHoverEvents(True)
-        self.setTextFlags(QtWidgets.QGraphicsItem.ItemIsSelectable | QtWidgets.QGraphicsItem.ItemIsFocusable |
-                          QtWidgets.QGraphicsItem.ItemIsMovable)
+        self.adjustSize()
 
     def setTextFlags(self, flags):
         self._item.setFlags(flags)
