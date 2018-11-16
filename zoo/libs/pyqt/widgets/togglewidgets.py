@@ -68,7 +68,7 @@ class ImageRadioButton(QtWidgets.QRadioButton, CheckableIcons):
                  checkedIcon="circleFilled",
                  uncheckedIcon="circle",
                  pressedIcon="circleFilled",
-                 color=(128,128,128),
+                 color=(128, 128, 128),
                  highlight=40, parent=None):
         super(ImageRadioButton, self).__init__(parent=parent, text=text)
 

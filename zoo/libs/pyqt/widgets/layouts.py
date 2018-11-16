@@ -11,7 +11,7 @@ class StringEdit(QtWidgets.QWidget):
     textChanged = QtCore.Signal(str)
     buttonClicked = QtCore.Signal()
 
-    def __init__(self, label, placeholder, buttonText=None, parent=None):
+    def __init__(self, label, placeholder="", buttonText=None, parent=None):
         """Creates a label, textbox (QLineEdit) and an optional button
         if the button is None then no button will be created
 

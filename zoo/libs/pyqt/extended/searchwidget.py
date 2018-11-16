@@ -3,7 +3,7 @@ from zoo.libs import iconlib
 
 
 class SearchLineEdit(QtWidgets.QLineEdit):
-    """Search Widget with two icons one on either side, inherents from QLineEdit
+    """Search Widget with two icons one on either side, inherits from QLineEdit
     """
     textCleared = QtCore.Signal()
 
@@ -19,8 +19,8 @@ class SearchLineEdit(QtWidgets.QLineEdit):
         self.textChanged.connect(self.updateCloseButton)
 
         self.searchButton = QtWidgets.QToolButton(self)
-        self.searchButton.setIcon(QtGui.QIcon(searchPixmap))
         self.searchButton.setStyleSheet("QToolButton { border: none; padding: 0px; }")
+        self.searchButton.setIcon(QtGui.QIcon(searchPixmap))
 
         frameWidth = self.style().pixelMetric(QtWidgets.QStyle.PM_DefaultFrameWidth)
         self.setStyleSheet("QLineEdit { padding-left: %dpx; padding-right: %dpx; } "%(
