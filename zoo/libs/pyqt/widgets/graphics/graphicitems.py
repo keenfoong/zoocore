@@ -6,7 +6,7 @@ class ItemContainer(QtWidgets.QGraphicsWidget):
         super(ItemContainer, self).__init__(parent=parent)
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
         layout = QtWidgets.QGraphicsLinearLayout()
-        layout.setSpacing(0)
+        layout.setSpacing(2)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setOrientation(orientation)
         self.setLayout(layout)
@@ -24,6 +24,14 @@ class ItemContainer(QtWidgets.QGraphicsWidget):
         if alignment:
             self.layout().setAlignment(item, alignment)
 
+    def indexOf(self, item):
+        layout = self.layout()
+        for i in range(layout.count()):
+            indexedItem = layout.itemAt(i)
+            if indexedItem == item:
+                return i
+        return -1
+
     def insertItem(self, index, item, alignment=None):
         self.layout().insertItem(index, item)
         if alignment:
@@ -31,8 +39,14 @@ class ItemContainer(QtWidgets.QGraphicsWidget):
 
     def clear(self):
         layout = self.layout()
-        for i in range(layout.count()):
-            layout.removeAt(i)
+        for i in reversed(range(layout.count())):
+            item = layout.itemAt(i)
+            layout.removeItem(item)
+            self.scene().removeItem(item)
+
+    def removeItem(self, item):
+        self.layout().removeItem(item)
+        self.scene().removeItem(item)
 
     def removeItemAtIndex(self, index):
         """Adds a QWidget to the container layout
@@ -41,7 +55,9 @@ class ItemContainer(QtWidgets.QGraphicsWidget):
         self.prepareGeometryChange()
         layout = self.layout()
         if index in range(self.layout().count()):
+            item = layout.itemAt(index)
             layout.removeAt(index)
+            self.scene.removeItem(item)
 
 
 class TextContainer(QtWidgets.QGraphicsWidget):
@@ -312,32 +328,33 @@ class GraphicsText(QtWidgets.QGraphicsWidget):
     _font = QtGui.QFont("Roboto-Bold.ttf", 8)
     _font.setLetterSpacing(QtGui.QFont.PercentageSpacing, 110)
     _fontMetrics = QtGui.QFontMetrics(_font)
-
+    textChanged = QtCore.Signal(str)
     _color = QtGui.QColor(200, 200, 200)
 
     def __init__(self, text, parent=None):
         super(GraphicsText, self).__init__(parent=parent)
-
+        self._previousText = text
         self._item = QtWidgets.QGraphicsTextItem(text, parent=self)
         self._item.setDefaultTextColor(self._color)
         self._item.setFont(self._font)
+        self._item.document().contentsChanged.connect(self.onTextChanged)
+        self.setPreferredSize(self.size)
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed))
-        self.setPreferredSize(QtCore.QSizeF(self._item.textWidth(), self._font.pointSizeF()))
-
         self._item.setFlags(QtWidgets.QGraphicsItem.ItemIsSelectable | QtWidgets.QGraphicsItem.ItemIsFocusable |
                             QtWidgets.QGraphicsItem.ItemIsMovable)
         self._item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
-
         option = self._item.document().defaultTextOption()
         option.setWrapMode(QtGui.QTextOption.NoWrap)
         self._item.document().setDefaultTextOption(option)
-        self.adjustSize()
-        self.setPreferredSize(self.size)
         self.allowHoverHighlight = False
-
         self.setAcceptHoverEvents(True)
-        self.setTextFlags(QtWidgets.QGraphicsItem.ItemIsSelectable | QtWidgets.QGraphicsItem.ItemIsFocusable |
-                          QtWidgets.QGraphicsItem.ItemIsMovable)
+        self.adjustSize()
+
+    def onTextChanged(self):
+        newText = self._item.document().toPlainText()
+        if newText != self._previousText:
+            self._previousText = newText
+            self.textChanged.emit(newText)
 
     def setTextFlags(self, flags):
         self._item.setFlags(flags)

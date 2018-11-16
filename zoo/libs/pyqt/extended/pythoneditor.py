@@ -50,7 +50,7 @@ class TextEditor(QtWidgets.QPlainTextEdit):
     def highlight(self):
         hi_selection = QtWidgets.QTextEdit.ExtraSelection()
 
-        hi_selection.format.setBackground(self.palette().alternateBase())
+        # hi_selection.format.setBackground(self.palette().dark()) # temp
         hi_selection.format.setProperty(QtGui.QTextFormat.FullWidthSelection, True)
         hi_selection.cursor = self.textCursor()
         hi_selection.cursor.clearSelection()
