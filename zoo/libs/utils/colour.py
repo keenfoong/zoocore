@@ -241,10 +241,10 @@ def hexToRGB(hexstr):
 def RGBToHex(rgb):
     """ Converts rgb tuple to hex string
 
-    (62, 104, 173) ==> 3E68AD
-    (168, 20, 86, 255) ==> FF3E68AD
+    (62, 104, 173) ==> '3E68AD'
+    (168, 20, 86, 255) ==> 'FF3E68AD'
 
-    :param rgb:
+    :param rgb: rgb tuple
     :return: Hex string eg '44FF33'
     """
     ret = ''.join([hex(h)[2:].upper().zfill(2) for h in rgb])
