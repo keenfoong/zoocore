@@ -9,6 +9,8 @@ Comments added by Jos Balcaen(http://josbalcaen.com/)
 from qt import QtWidgets, QtCore
 import shiboken2
 
+from zoo.libs.pyqt import utils
+
 
 class FlowLayout(QtWidgets.QLayout):
     """Custom layout that mimics the behaviour of a flow layout"""
@@ -59,6 +61,11 @@ class FlowLayout(QtWidgets.QLayout):
         :type item: QWidgetItem
         """
         self.itemList.append(item)
+
+    def addSpacing(self, spacing):
+        spaceWgt = QtWidgets.QWidget()
+        spaceWgt.setFixedSize(QtCore.QSize(spacing, spacing))
+        self.addWidget(spaceWgt)
 
     def count(self):
         """Get the number of items in the this layout
@@ -155,7 +162,7 @@ class FlowLayout(QtWidgets.QLayout):
         :param spacing:
         :return:
         """
-        self.spacingX = spacing
+        self.spacingX = utils.dpiScale(spacing)
 
     def setSpacingY(self, spacing):
         """Y Spacing for each item
@@ -163,7 +170,7 @@ class FlowLayout(QtWidgets.QLayout):
         :param spacing:
         :return:
         """
-        self.spacingY = spacing
+        self.spacingY = utils.dpiScale(spacing)
 
     def doLayout(self, rect, testOnly):
         """Layout all the items
