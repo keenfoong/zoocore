@@ -66,7 +66,6 @@ class FloatingButton(dialog.Dialog):
     def move(self, x, y):
         """ Move the FloatingButton based on alignment.
 
-
         :param x:
         :param y:
         :return:
