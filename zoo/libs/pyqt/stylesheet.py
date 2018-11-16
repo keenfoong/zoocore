@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 INT = 0; DPI_SCALE = 1; ICON = 2; COLOR = 3
 
+
 class StyleSheet(object):
     """
 
@@ -78,7 +79,7 @@ class StyleSheet(object):
                     logger.warning("Warning: \"{}\" icon not found for key: \"{}\" in stylesheet.pref"
                                    .format(value[5:], key))
 
-                replaceVal = os.path.normcase(path).replace("\\","/")
+                replaceVal = os.path.normcase(path).replace("\\", "/")
 
             data = data.replace(key, str(replaceVal))
         self.data = data
@@ -138,6 +139,7 @@ def stylesheetsFromDirectory(directory):
                 sheets.append((StyleSheet.fromPath(path), path))
     return sheets
 
+
 def loadFonts(fontPaths):
     """Load's the given '.ttf' font files into the QtGui.QFontDatabase
 
@@ -147,4 +149,3 @@ def loadFonts(fontPaths):
     :rtype: list(str)
     """
     return [QtGui.QFontDatabase.addApplicationFont(font) for font in fontPaths]
-

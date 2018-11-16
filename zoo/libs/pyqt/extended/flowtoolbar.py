@@ -30,7 +30,7 @@ class FlowToolBar(QtWidgets.QWidget):
         self.artistUi = parent
         self.mainLayout = utils.hBoxLayout(self)
 
-        self.flowLayout = flowlayout.FlowLayout(margin=0, spacingX=utils.dpiScale(1), spacingY=utils.dpiScale(1))
+        self.flowLayout = flowlayout.FlowLayout(margin=0, spacingX=1, spacingY=1)
         self.mainLayout.addLayout(self.flowLayout)
         self.setLayout(self.mainLayout)
         self.iconSize = 20
