@@ -249,7 +249,7 @@ def RGBToHex(rgb):
     """
     ret = ''.join([hex(h)[2:].upper().zfill(2) for h in rgb])
     if len(ret) == 8:
-        return ret[-2:] + ret[:-2]  # Move the last two character to the beginning
+        return ret[-2:] + ret[:-2]  # Move the last two characters to the beginning
 
     return ret
 
