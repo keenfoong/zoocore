@@ -136,3 +136,10 @@ def isIteratable(obj):
             return True
     except TypeError:
         return False
+
+
+def chunks(iteratable, size, overlap=0):
+    """Yield successive sized chunks from `iteratable`.
+    """
+    for i in range(0, len(iteratable)-overlap, size-overlap):
+        yield iteratable[i:i + size]
