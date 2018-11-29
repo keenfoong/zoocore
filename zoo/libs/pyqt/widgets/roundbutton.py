@@ -34,6 +34,8 @@ class RoundButton(QtWidgets.QPushButton):
     def __init__(self, parent=None, text=None, icon=None, method=METHOD_STYLESHEET):
         super(RoundButton, self).__init__(parent=parent,text=text, icon=icon)
         self.method = method
+        self.customStyle = ""
+        self.updateButton()
 
     def setMethod(self, method=METHOD_MASK):
         """Set the method of rendering, Method.Mask or Method.StyleSheet
@@ -51,6 +53,7 @@ class RoundButton(QtWidgets.QPushButton):
         :return:
         """
         self.method = method
+        self.updateButton()
 
     def resizeEvent(self, event):
         """Resize and update based on the method
@@ -58,11 +61,33 @@ class RoundButton(QtWidgets.QPushButton):
         :return:
         """
 
+        self.updateButton()
+        super(RoundButton, self).resizeEvent(event)
+
+    def updateButton(self):
         if self.method == METHOD_MASK:
             self.setMask(QtGui.QRegion(self.rect(), QtGui.QRegion.Ellipse))
         elif self.method == METHOD_STYLESHEET:
-            radius = min(self.rect().width()*0.5, self.rect().width()*0.5)
-            self.setStyleSheet("border-radius: {}px;".format(radius))
+            super(RoundButton, self).setStyleSheet(self.roundStyle() + self.customStyle)
 
-        super(RoundButton, self).resizeEvent(event)
+    def roundStyle(self):
+        """ Style for round button
 
+        :return:
+        """
+        radius = min(self.rect().width() * 0.5, self.rect().width() * 0.5)
+        return "border-radius: {}px;".format(radius)
+
+    def setStyleSheet(self, text):
+        """ Set stylesheet for button
+
+        :param text:
+        :return:
+        """
+
+        # Do something different for the stylesheet type button
+        if self.method == METHOD_STYLESHEET:
+            self.customStyle = text
+            self.updateButton()
+        else:
+            super(RoundButton, self).setStyleSheet(text)
