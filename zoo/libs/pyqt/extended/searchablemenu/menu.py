@@ -13,18 +13,21 @@
     men.exec_(QtGui.QCursor.pos())
 
 """
-from qt import QtWidgets
+from qt import QtWidgets, QtGui, QtCore
 
+from zoo.libs.pyqt.extended import menu
 from zoo.libs.pyqt.extended.searchablemenu import action as taggedAction
 from zoo.libs.pyqt import utils
 
 __all__ = ("SearchableMenu",)
 
 
-class SearchableMenu(QtWidgets.QMenu):
-    """Extended the standard QMenu to make it searchable, first action is always a lineedit used to
+class SearchableMenu(menu.Menu):
+    """ Extended the standard QMenu to make it searchable, first action is always a lineedit used to
     recursively search all sub actions by tags
     """
+
+    mouseButtonClicked = QtCore.Signal(object)
 
     def __init__(self, **kwargs):
         """
