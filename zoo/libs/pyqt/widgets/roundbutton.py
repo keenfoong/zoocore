@@ -91,7 +91,3 @@ class RoundButton(QtWidgets.QPushButton):
             self.updateButton()
         else:
             super(RoundButton, self).setStyleSheet(text)
-
-
-
-
