@@ -1,8 +1,9 @@
-from qt import QtWidgets, QtCore, QtGui
+from qt import QtWidgets, QtCore
 
 from zoo.libs import iconlib
 from zoo.libs.pyqt import utils
 from zoo.libs.pyqt.extended import searchablemenu
+from zoo.libs.pyqt.extended.menu import Menu
 from zoo.libs.pyqt.extended.searchablemenu import action as taggedAction
 from zoo.libs.utils import zlogging, colour
 
@@ -34,8 +35,6 @@ class ButtonIcons(QtWidgets.QAbstractButton):
 
     def setIconByName(self, iconName, color=None, size=None, colorOffset=None, iconOverlay=None):
         """Set up both icons in a simple function
-
-
 
         :param iconName:
         :param color:
@@ -395,7 +394,7 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
                 self.clickMenu[mouseMenu] = searchablemenu.SearchableMenu(objectName="extendedButton",
                                                                           title="Extended Button")
             else:
-                self.clickMenu[mouseMenu] = QtWidgets.QMenu()
+                self.clickMenu[mouseMenu] = Menu()
 
         return self.clickMenu[mouseMenu]
 
@@ -407,6 +406,8 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
         :param connect: The function to connect when the menu item is pressed
         :param checkable: If the menu item is checkable
         :return:
+        :rtype: taggedAction.TaggedAction
+
         """
         menu = self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu))
 
