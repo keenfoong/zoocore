@@ -30,6 +30,7 @@ class FlowLayout(QtWidgets.QLayout):
 
         self.spacingX = 0
         self.spacingY = 0
+        self._orientation = QtCore.Qt.Horizontal
         self.setSpacing(spacingX)
         self.setSpacingX(spacingX)
         self.setSpacingY(spacingY)
@@ -39,6 +40,12 @@ class FlowLayout(QtWidgets.QLayout):
     def __del__(self):
         """Delete all the items in this layout"""
         self.clear()
+
+    def orientation(self):
+        return self._orientation
+
+    def setOrientation(self, orientation):
+        self._orientation = orientation
 
     def clear(self):
         """
@@ -109,15 +116,17 @@ class FlowLayout(QtWidgets.QLayout):
         return self.itemList
 
     def expandingDirections(self):
-        """This layout grows only in the horizontal dimension"""
-        if QtCore is not None:  # QtCore errors driving me insane
-            return QtCore.Qt.Orientations(QtCore.Qt.Horizontal)
+        """ This layout grows only in the horizontal dimension or vertical direction
+        depending on current orientation """
+
+        return QtCore.Qt.Orientations(self.orientation())
 
     def hasHeightForWidth(self):
         """If this layout's preferred height depends on its width
 
         :return (boolean) Always True"""
-        return True
+
+        return self.orientation() == QtCore.Qt.Horizontal
 
     def heightForWidth(self, width):
         """Get the preferred height a layout item with the given width
@@ -180,23 +189,44 @@ class FlowLayout(QtWidgets.QLayout):
 
         x = rect.x()
         y = rect.y()
-        lineHeight = 0
+        lineSize = 0
+        orientation = self.orientation()
         for item in self.itemList:
 
             spaceX = self.spacingX
             spaceY = self.spacingY
-            nextX = x + item.sizeHint().width() + spaceX
-            if nextX - spaceX > rect.right() and lineHeight > 0:
-                if not self.overflow:
-                    x = rect.x()
-                    y = y + lineHeight + (spaceY * 2)
-                    nextX = x + item.sizeHint().width() + spaceX
-                    lineHeight = 0
 
-            if not testOnly:
-                item.setGeometry(
+            if orientation == QtCore.Qt.Horizontal:
+                nextX = x + item.sizeHint().width() + spaceX
+                if nextX - spaceX > rect.right() and lineSize > 0:
+                    if not self.overflow:
+                        x = rect.x()
+                        y = y + lineSize + (spaceY * 2)
+                        nextX = x + item.sizeHint().width() + spaceX
+                        lineSize = 0
+
+                if not testOnly:
+                    item.setGeometry(
+                            QtCore.QRect(QtCore.QPoint(x, y), item.sizeHint()))
+                x = nextX
+                lineSize = max(lineSize, item.sizeHint().height())
+            else:
+                nextY = y + item.sizeHint().height() + spaceY
+                if nextY - spaceY > rect.bottom() and lineSize > 0:
+                    if not self.overflow:
+                        y = rect.y()
+                        x = x + lineSize + (spaceX * 2)
+                        nextY = y + item.sizeHint().height() + spaceY
+                        lineSize = 0
+
+                if not testOnly:
+                    item.setGeometry(
                         QtCore.QRect(QtCore.QPoint(x, y), item.sizeHint()))
-            x = nextX
-            lineHeight = max(lineHeight, item.sizeHint().height())
+                x = nextY
+                lineSize = max(lineSize, item.sizeHint().height())
 
-        return y + lineHeight - rect.y()
+
+        if orientation == QtCore.Qt.Horizontal:
+            return y + lineSize - rect.y()
+        else:
+            return x + lineSize - rect.x()

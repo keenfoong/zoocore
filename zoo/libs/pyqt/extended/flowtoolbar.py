@@ -25,7 +25,7 @@ class FlowToolBar(QtWidgets.QWidget):
     """
     overflowIcon = "sortDown"
 
-    def __init__(self, parent=None, menuIndicatorIcon="arrowmenu"):
+    def __init__(self, parent=None, menuIndicatorIcon="arrowmenu", iconSize=20, iconPadding=2):
         super(FlowToolBar, self).__init__(parent)
         self.artistUi = parent
         self.mainLayout = utils.hBoxLayout(self)
@@ -33,8 +33,8 @@ class FlowToolBar(QtWidgets.QWidget):
         self.flowLayout = flowlayout.FlowLayout(margin=0, spacingX=1, spacingY=1)
         self.mainLayout.addLayout(self.flowLayout)
         self.setLayout(self.mainLayout)
-        self.iconSize = 20
-        self.iconPadding = 2
+        self.iconSize = iconSize
+        self.iconPadding = iconPadding
         self.overflowBtnColor = (128, 128, 128)
         self.menuIndicatorIcon = menuIndicatorIcon
 
@@ -103,7 +103,7 @@ class FlowToolBar(QtWidgets.QWidget):
         btn.setProperty("name", "overflow")
         return btn
 
-    def addTool(self, iconName, name, iconColor=(255, 255, 255), doubleClickEnabled=False):
+    def addToolButton(self, iconName, name="", iconColor=(255, 255, 255), doubleClickEnabled=False):
         """Creates a new tool button based on the icon name, and the name.
 
         :param iconName: Name of the icon to retrieve
@@ -111,9 +111,11 @@ class FlowToolBar(QtWidgets.QWidget):
         :param iconColor: Color of the icon for the tool
         :param doubleClickEnabled: Enable doubleclick for button
         :return:
+        :rtype: iconmenu.IconMenuButton
         """
         # Create an item with a caption
         btn = iconmenu.IconMenuButton(parent=self)
+        name = "" or iconName
 
         btn.setIconByName(iconName, color=iconColor, size=self.iconSize, colorOffset=40)
 
@@ -266,6 +268,22 @@ class FlowToolBar(QtWidgets.QWidget):
 
     def setHeight(self, height):
         self.setFixedHeight(height)
+
+    def setSpacingX(self, x):
+        """ Set spacing of items in layout
+
+        :param x:
+        :return:
+        """
+        self.flowLayout.setSpacingX(x)
+
+    def setSpacingY(self, y):
+        """ Set spacing of items in layout
+
+        :param y:
+        :return:
+        """
+        self.flowLayout.setSpacingY(y)
 
 
 class FlowToolbarMenu(dialog.Dialog):
