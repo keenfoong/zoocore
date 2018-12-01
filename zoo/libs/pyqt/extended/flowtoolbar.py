@@ -6,7 +6,7 @@ from zoo.libs.pyqt.widgets import flowlayout, iconmenu, dialog
 from zoo.libs.utils import colour
 
 
-class FlowToolBar(QtWidgets.QWidget):
+class FlowToolBar(QtWidgets.QFrame):
     """
     A tool bar based off the FlowLayout. The buttons will flow from left to right and wrap to
     the next row if there is no space
