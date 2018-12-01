@@ -74,10 +74,10 @@ class FloatingButton(dialog.Dialog):
         h = self.rect().height()
 
         if self.alignment == QtCore.Qt.AlignTop:
-            super(FloatingButton, self).move(x+(w/2), y)
+            super(FloatingButton, self).move(x+(w*0.5), y)
         elif self.alignment == QtCore.Qt.AlignRight:
-            super(FloatingButton, self).move(x-w, y-(h/2))
+            super(FloatingButton, self).move(x-w, y-(h*0.5))
         elif self.alignment == QtCore.Qt.AlignBottom:
             super(FloatingButton, self).move(x, y-h)
         elif self.alignment == QtCore.Qt.AlignLeft:
-            super(FloatingButton, self).move(x, y-(h/2))
+            super(FloatingButton, self).move(x, y-(h*0.5))
