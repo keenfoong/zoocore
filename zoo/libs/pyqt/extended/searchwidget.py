@@ -7,8 +7,14 @@ class SearchLineEdit(QtWidgets.QLineEdit):
     """
     textCleared = QtCore.Signal()
 
-    def __init__(self, searchPixmap, clearPixmap, parent=None):
+    def __init__(self, searchPixmap=None, clearPixmap=None, parent=None):
         QtWidgets.QLineEdit.__init__(self, parent)
+
+        if searchPixmap is None:
+            searchPixmap = iconlib.iconColorized("magnifier", 16, (128, 128, 128))
+
+        if clearPixmap is None:
+            clearPixmap = iconlib.iconColorized("close", 16, (128, 128, 128))
 
         self.clearButton = QtWidgets.QToolButton(self)
         self.clearButton.setIcon(QtGui.QIcon(clearPixmap))
@@ -19,11 +25,11 @@ class SearchLineEdit(QtWidgets.QLineEdit):
         self.textChanged.connect(self.updateCloseButton)
 
         self.searchButton = QtWidgets.QToolButton(self)
-        self.searchButton.setStyleSheet("QToolButton { border: none; padding: 0px; }")
+        self.searchButton.setStyleSheet("QToolButton { border: none; padding: 1px; }")
         self.searchButton.setIcon(QtGui.QIcon(searchPixmap))
 
         frameWidth = self.style().pixelMetric(QtWidgets.QStyle.PM_DefaultFrameWidth)
-        self.setStyleSheet("QLineEdit { padding-left: %dpx; padding-right: %dpx; } "%(
+        self.setStyleSheet("QLineEdit { padding-left: %dpx; padding-right: %dpx; } " % (
             self.searchButton.sizeHint().width() + frameWidth + 1,
             self.clearButton.sizeHint().width() + frameWidth + 1))
         msz = self.minimumSizeHint()
