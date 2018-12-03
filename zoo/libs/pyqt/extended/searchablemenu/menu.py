@@ -27,8 +27,6 @@ class SearchableMenu(menu.Menu):
     recursively search all sub actions by tags
     """
 
-    mouseButtonClicked = QtCore.Signal(object)
-
     def __init__(self, **kwargs):
         """
         :param kwargs: Standard QMenu arguments
