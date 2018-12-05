@@ -39,17 +39,32 @@ class SearchableMenu(menu.Menu):
 
     def _init(self):
         # search custom widget action
-        searchAction = QtWidgets.QWidgetAction(self)
-        searchAction.setObjectName("SearchAction")
+        self.searchAction = QtWidgets.QWidgetAction(self)
+        self.searchAction.setObjectName("SearchAction")
 
         self.searchEdit = QtWidgets.QLineEdit()
         self.searchEdit.setPlaceholderText("Search...")
         self.searchEdit.textChanged.connect(self.updateSearch)
 
-        searchAction.setDefaultWidget(self.searchEdit)
+        self.searchAction.setDefaultWidget(self.searchEdit)
 
-        self.addAction(searchAction)
+        self.addAction(self.searchAction)
         self.addSeparator()
+
+    def setSearchVisible(self, visible):
+        """ Set visibility of the search edit
+
+        :param visible:
+        :return:
+        """
+        self.searchAction.setVisible(visible)
+
+    def searchVisible(self):
+        """ Returns visibility of search edit
+
+        :return:
+        """
+        return self.searchAction.isVisible()
 
     def updateSearch(self, searchString=None):
         """Function that will search all actions for a search string tag

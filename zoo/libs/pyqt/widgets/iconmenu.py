@@ -14,13 +14,13 @@ class IconMenuButton(ExtendedButton):
         logoButton = IconMenuButton(iconlib.icon("magic", size=32))
         logoButton.setIconSize(QtCore.QSize(24, 24))
 
-        Add to menu. The menu is automatically created if there is none and placed into
-        self.leftMenu, self.middleMenu or self.rightMenu
+        # Add to menu. The menu is automatically created if there is none and placed into
+        # self.leftMenu, self.middleMenu or self.rightMenu
         logoButton.addAction("Create 3D Characters")
         logoButton.addSeparator()
         logoButton.addAction("Toggle Toolbars", connect=self.toggleContents)
 
-        Middle Click and right click menu
+        # Middle Click and right click menu
         logoButton.addAction("Middle Click Menu", mouseMenu=QtCore.Qt.MidButton)
         logoButton.addAction("Right Click Menu", mouseMenu=QtCore.Qt.RightButton)
 
@@ -34,3 +34,6 @@ class IconMenuButton(ExtendedButton):
         for m in self.clickMenu.values():
             if m is not None:
                 m.setToolTipsVisible(True)
+
+        self.setMenuAlign(QtCore.Qt.AlignRight)
+

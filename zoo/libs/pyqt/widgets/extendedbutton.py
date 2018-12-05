@@ -1,11 +1,11 @@
-from qt import QtWidgets, QtCore
+from qt import QtWidgets, QtCore, QtGui
 
 from zoo.libs import iconlib
 from zoo.libs.pyqt import utils
-from zoo.libs.pyqt.extended import searchablemenu
-from zoo.libs.pyqt.extended.menu import Menu
+from zoo.libs.pyqt.extended import searchablemenu, expandedtooltip
 from zoo.libs.pyqt.extended.searchablemenu import action as taggedAction
 from zoo.libs.utils import zlogging, colour
+from zoo.preferences import preference
 
 logger = zlogging.getLogger(__name__)
 
@@ -231,7 +231,7 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
         menu.setTearOffEnabled(tearoff)
 
     def setMenu(self, menu, mouseButton=QtCore.Qt.LeftButton):
-        """Set the menu based
+        """ Sets the menu based on mouse button
 
         :param menu:
         :type menu: QtWidgets.QMenu
@@ -242,16 +242,18 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
 
     def setSearchable(self, mouseMenu=QtCore.Qt.LeftButton, searchable=True):
         self.menuSearchable[mouseMenu] = searchable
-        # todo set searchable for existing menus
+
+        if self.clickMenu[mouseMenu] is not None:
+            self.clickMenu[mouseMenu].setSearchVisibility(searchable)
 
     def isSearchable(self, mouseMenu=QtCore.Qt.LeftButton):
-        """Checks if the button menu is searchable or not.
+        """ Checks if the button menu is searchable or not.
 
         :param mouseMenu:
         :return:
         """
         if self.clickMenu[mouseMenu] is not None:
-            return isinstance(self.clickMenu[mouseMenu], searchablemenu.SearchableMenu)
+            return self.clickMenu[mouseMenu].searchVisible()
 
         return self.menuSearchable[mouseMenu]
 
@@ -351,13 +353,10 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
         """
         menu = self.clickMenu[mouseButton]
 
-        # Set focus
-        if isinstance(menu, searchablemenu.SearchableMenu):
-            searchEdit = menu.searchEdit
-            searchEdit.setFocus()
-
         # Show menu
         if menu is not None and self.menuActive[mouseButton]:
+            menu.searchEdit.setFocus()
+
             pos = self.menuPos(widget=menu, align=self.menuAlign)
             menu.exec_(pos)
 
@@ -389,12 +388,10 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
         :rtype: QtWidgets.QMenu
         """
 
-        if self.clickMenu[mouseMenu] is None:
-            if searchable and autoCreate:
-                self.clickMenu[mouseMenu] = searchablemenu.SearchableMenu(objectName="extendedButton",
-                                                                          title="Extended Button")
-            else:
-                self.clickMenu[mouseMenu] = Menu()
+        if self.clickMenu[mouseMenu] is None and autoCreate:
+            self.clickMenu[mouseMenu] = ExtendedButtonMenu(objectName="extendedButton", title="Extended Button")
+            if not searchable:
+                self.clickMenu[mouseMenu].setSearchVisible(False)
 
         return self.clickMenu[mouseMenu]
 
@@ -452,5 +449,39 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
         ret += [s.lower() for s in string.split(" ")]
 
         return ret
+
+
+class ExtendedButtonMenu(searchablemenu.SearchableMenu):
+    def __init__(self, *args, **kwargs):
+        self.ttKeyPressed = False
+        self.ttKey = QtCore.Qt.Key_Control
+        self.themePref = preference.interface("core_interface")
+        super(ExtendedButtonMenu, self).__init__(*args, **kwargs)
+
+    def keyPressEvent(self, event):
+        """ Key press event
+
+        :param event:
+        :return:
+        """
+
+        # Use expanded tooltips if it has any
+        if event.key() == self.ttKey:
+            pos = self.mapFromGlobal(QtGui.QCursor.pos())
+            action = self.actionAt(pos)
+            if expandedtooltip.hasExpandedTooltips(action):
+                self._popuptooltip = expandedtooltip.ExpandedTooltipPopup(action, iconSize=utils.dpiScale(40),
+                                                                          popupRelease=self.ttKey)
+                self._popuptooltip.setStyleSheet(self.themePref.stylesheet().data)
+
+            self.ttKeyPressed = True
+
+        super(ExtendedButtonMenu, self).keyPressEvent(event)
+
+    def keyReleaseEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Control:
+            self.ttKeyPressed = False
+
+
 
 
