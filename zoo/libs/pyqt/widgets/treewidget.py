@@ -1,11 +1,11 @@
 from qt import QtCore, QtWidgets, QtGui
 
-from zoo.libs.pyqt import utils as qtutils
-from zoo.libs.pyqt.extended import expandedtooltip
+from zoo.libs.pyqt import utils as qtutils, utils
+from zoo.libs.pyqt.extended import expandedtooltip, searchwidget
 from zoo.libs import iconlib
 from zoo.libs.pyqt import uiconstants
 from zoo.libs.pyqt.extended.stackwidget import LineClickEdit
-from zoo.libs.pyqt.widgets import frame
+from zoo.libs.pyqt.widgets import frame, layouts, slidingwidget
 from zoo.libs.utils import zlogging
 
 logger = zlogging.getLogger(__name__)
@@ -15,8 +15,10 @@ class TreeWidgetFrame(QtWidgets.QWidget):
     def __init__(self, parent=None, title=""):
         super(TreeWidgetFrame, self).__init__(parent=parent)
         self.mainLayout = qtutils.vBoxLayout()
-        self.title = QtWidgets.QLabel(title, parent=parent)
-        self.searchEdit = QtWidgets.QLineEdit(parent=parent)
+
+        self.titleLabel = layouts.ClippedLabel(parent=self, text=title.upper())
+        self.searchEdit = searchwidget.SearchLineEdit(parent=self)
+        self.slidingWidget = slidingwidget.SlidingWidget(self)
         self.treeWidget = None  # type: TreeWidget
         self.toolbarLayout = qtutils.hBoxLayout()
 
@@ -26,7 +28,8 @@ class TreeWidgetFrame(QtWidgets.QWidget):
         self.treeWidget = treeWidget
         self.setupToolbar()
 
-        self.mainLayout.addWidget(self.title)
+        utils.setStylesheetObjectName(self.titleLabel, "HeaderLabel")
+
         self.mainLayout.addLayout(self.toolbarLayout)
         self.mainLayout.addWidget(self.treeWidget)
 
@@ -39,8 +42,10 @@ class TreeWidgetFrame(QtWidgets.QWidget):
         :return: The toolbar Qlayout
         :rtype: :class:`QtWidgets.QHBoxlayout`
         """
-        self.toolbarLayout.addWidget(self.searchEdit)
-        self.searchEdit.setPlaceholderText("Search...")
+        self.searchEdit.setMinimumSize(utils.sizeByDpi(QtCore.QSize(21, 20)))
+        self.slidingWidget.setWidgets(self.searchEdit, self.titleLabel)
+
+        self.toolbarLayout.addWidget(self.slidingWidget)
 
         line = QtWidgets.QFrame(parent=self)
         line.setFrameShape(QtWidgets.QFrame.HLine)

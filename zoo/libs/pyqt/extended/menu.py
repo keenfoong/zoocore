@@ -14,3 +14,4 @@ class Menu(QtWidgets.QMenu):
         self.mouseButtonClicked.emit(event.button(), self.actionAt(event.pos()))
 
         return super(Menu, self).mouseReleaseEvent(event)
+
