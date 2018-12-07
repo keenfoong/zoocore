@@ -42,9 +42,11 @@ class SlidingWidget(QtWidgets.QWidget):
 
         self.closeTimer = QtCore.QTimer(self)
         self.closeTimer.timeout.connect(self.clearedFocus)
+        QtWidgets.QApplication.instance().aboutToQuit.connect(self.closing)
+        self.window().closed.connect(self.closing)
 
-    def focusChanged(self, old, new):
-        print "pith",  old, new
+    def closing(self):
+        self.removeEventFilter(self.primaryWidget)
 
     def clearedFocus(self):
         self.primaryWidget.clearFocus()
@@ -210,6 +212,3 @@ class SlidingWidget(QtWidgets.QWidget):
             self.anim.setEasingCurve(QtCore.QEasingCurve.InOutSine)
             self.anim.start()
 
-    def closeEvent(self, event):
-        self.removeEventFilter(self.primaryWidget)
-        super(SlidingWidget, self).closeEvent(event)
