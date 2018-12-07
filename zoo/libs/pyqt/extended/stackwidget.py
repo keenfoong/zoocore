@@ -3,6 +3,7 @@ from zoo.libs import iconlib
 from zoo.libs.pyqt import uiconstants
 from zoo.libs.pyqt.widgets import frame, extendedbutton
 from zoo.libs.pyqt import utils as qtutils
+from zoo.preferences import preference
 
 
 class StackWidget(QtWidgets.QWidget):
@@ -150,6 +151,11 @@ class StackWidget(QtWidgets.QWidget):
         """
         self.stackTableWgt.deleteTableItem(wgt)
 
+class StackHiderWidget(frame.QFrame):
+    """
+    Css Reasons
+    """
+    pass
 
 class StackTableWidget(QtWidgets.QTableWidget):
     """The Table with the actual stack and items. Maybe should merge with StackWidget
@@ -291,14 +297,8 @@ class StackTableWidget(QtWidgets.QTableWidget):
 
 
 class StackItem(QtWidgets.QFrame):
-    """The item in each StackTableWidget.
-    """
-    _downIcon = iconlib.icon("arrowSingleDown")
-    _upIcon = iconlib.icon("arrowSingleUp")
-    _deleteIcon = iconlib.icon("xMark")
-    _itemIcon = iconlib.icon("stream")
-    _collapsedIcon = iconlib.icon("sortClosed")
-    _expandIcon = iconlib.icon("sortDown")
+
+    _itemIcon = "stream"
 
     _deleteIconName = "xMark"
     _collapsedIconName = "sortClosed"
@@ -316,7 +316,21 @@ class StackItem(QtWidgets.QFrame):
 
     def __init__(self, title, parent, collapsed=False, collapsable=True, icon=None, startHidden=False,
                  shiftArrowsEnabled=True, deleteButtonEnabled=True, titleEditable=True):
+        """ The item in each StackTableWidget.
+
+        :param title:
+        :param parent:
+        :param collapsed:
+        :param collapsable:
+        :param icon:
+        :param startHidden:
+        :param shiftArrowsEnabled:
+        :param deleteButtonEnabled:
+        :param titleEditable:
+        """
+
         super(StackItem, self).__init__(parent=parent)
+
 
         if startHidden:
             self.hide()
@@ -327,7 +341,7 @@ class StackItem(QtWidgets.QFrame):
         self.hide()
 
         # Init
-        self.itemIcon = QtWidgets.QToolButton(parent=self)
+        self.itemIcon = extendedbutton.ExtendedButton(parent=self)
         self.shiftDownBtn = extendedbutton.ExtendedButton(parent=self)
         self.shiftUpBtn = extendedbutton.ExtendedButton(parent=self)
         self.deleteBtn = extendedbutton.ExtendedButton(parent=self)
@@ -345,7 +359,8 @@ class StackItem(QtWidgets.QFrame):
         self.collapsable = collapsable
         self.collapsed = collapsed
         self.titleFrame = frame.QFrame(parent=self)
-        self.expandToggleButton = QtWidgets.QToolButton(parent=self)
+        self.expandToggleButton = extendedbutton.ExtendedButton(parent=self)
+        self.themePref = preference.interface("core_interface")
 
         if not shiftArrowsEnabled:
             self.shiftDownBtn.hide()
@@ -376,7 +391,8 @@ class StackItem(QtWidgets.QFrame):
 
         :return:
         """
-        pass
+        self.widgetHider = StackHiderWidget(parent=self)
+        self._contentsLayout = qtutils.vBoxLayout(self.widgetHider)
 
     def setArrowsVisible(self, visible):
         """Set the shift arrows to be visible or not. These arrows allow the StackItem to be shifted upwards or downwards.
@@ -404,29 +420,35 @@ class StackItem(QtWidgets.QFrame):
         self.stackTitleWgt.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents, trans)
 
     def initUi(self):
-        # Title Frame
-        self.widgetHider = frame.QFrame(parent=self)
-        self._contentsLayout = qtutils.vBoxLayout(self.widgetHider)
-        self.buildTitleFrame()
+        col = self.themePref.STACKITEM_HEADER_FOREGROUND
 
+        self.itemIcon.setIconByName(self._itemIcon, color=col, size=12)
+        self.itemIcon.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
+
+        # Title Frame
+        self.buildTitleFrame()
         self.buildHiderWidget()
 
         self.layout.addWidget(self.titleFrame)
         self.layout.addWidget(self.widgetHider)
-
-        self.itemIcon.setIcon(self._itemIcon)
-        self.itemIcon.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
+        self.layout.setSpacing(0)
 
         iconSize = 12
         highlightOffset = 40
-        col = (128,128,128)
 
         self.deleteBtn.setIconByName(self._deleteIconName, color=col, size=iconSize, colorOffset=highlightOffset)
         self.shiftUpBtn.setIconByName(self._upIconName, color=col, size=iconSize, colorOffset=highlightOffset)
         self.shiftDownBtn.setIconByName(self._downIconName, color=col, size=iconSize, colorOffset=highlightOffset)
+        self.expandToggleButton.setIconByName(self._expandIconName, color=(192, 192, 192),  size=iconSize)
+
+    def setItemIconColor(self, col):
+        self.itemIcon.setIconColor(col)
+
+    def setItemIcon(self, name):
+        self.itemIcon.setIconByName(name)
 
     def buildTitleFrame(self):
-        """Builds the title part of the layout with a QFrame widget
+        """ Builds the title part of the layout with a QFrame widget
         """
 
         self.titleFrame.setContentsMargins(1, 1, 1, 1)
@@ -436,9 +458,9 @@ class StackItem(QtWidgets.QFrame):
         # the icon and title and spacer
         self.expandToggleButton.setParent(self.titleFrame)
         if self.collapsed:
-            self.expandToggleButton.setIcon(self._collapsedIcon)
+            self.expandToggleButton.setIconByName(self._collapsedIconName)
         else:
-            self.expandToggleButton.setIcon(self._expandIcon)
+            self.expandToggleButton.setIconByName(self._expandIconName)
 
         spacerItem = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
 
@@ -485,16 +507,16 @@ class StackItem(QtWidgets.QFrame):
         """Collapse and hide the item contents
         """
         self.widgetHider.setHidden(True)
-        self.expandToggleButton.setIcon(self._collapsedIcon)
+        self.expandToggleButton.setIconByName(self._collapsedIconName)
         if emit:
             self.closeRequested.emit()
         self.collapsed = 1
 
     def onExpand(self, emit=True):
-        """Expand the contents and show all the widget data
+        """ Expand the contents and show all the widget data
         """
         self.widgetHider.setHidden(False)
-        self.expandToggleButton.setIcon(self._expandIcon)
+        self.expandToggleButton.setIconByName(self._expandIconName)
 
         if emit:
             self.openRequested.emit()
@@ -512,6 +534,7 @@ class StackItem(QtWidgets.QFrame):
         """Shows and hides the widget `self.widgetHider` this contains the layout `self.hiderLayout`
         which will hold the custom contents that the user specifies
         """
+
         if not self.collapsable:
             return
         self.toggleExpandRequested.emit(not self.collapsed)
@@ -599,7 +622,8 @@ class StackItem(QtWidgets.QFrame):
     def connections(self):
         """ Connections for stack items"""
 
-        self.expandToggleButton.clicked.connect(self.toggleContents)
+
+        self.expandToggleButton.leftClicked.connect(self.toggleContents)
 
         self.shiftUpBtn.leftClicked.connect(self.shiftUp)
         self.shiftDownBtn.leftClicked.connect(self.shiftDown)
