@@ -92,7 +92,10 @@ class ExpandedTooltipPopup(dialog.Dialog):
     ETT_LINKCOLOUR = (255, 255, 255)
     ETT_THEMECOLOUR = (82, 133, 166)
 
-    def __init__(self, widget, width=450, height=50, iconSize=40, parent=None, showOnInitialize=False, stylesheet="", popupRelease=QtCore.Qt.Key_Control):
+    def __init__(self, widget,
+                 width=450, height=50,
+                 iconSize=40, parent=None, showOnInitialize=False, stylesheet="",
+                 popupRelease=QtCore.Qt.Key_Control, showAtCursor=True):
         super(ExpandedTooltipPopup, self).__init__(None, width, height, "", parent, showOnInitialize)
         self.layout = QtWidgets.QVBoxLayout(self)
         self.font = QtGui.QFont("sans")
@@ -119,6 +122,9 @@ class ExpandedTooltipPopup(dialog.Dialog):
         self.initUi()
 
         self.show()
+
+        if showAtCursor:
+            self.move(QtGui.QCursor.pos())
 
         self.setStyle(self.style())
 
@@ -368,8 +374,8 @@ class WidgetsFromTextParser(HTMLParser):
 
 
 def installTooltips(widget, tooltipDict):
-    """Installs the expanded tooltip onto a widget. Works in conjunction with
-    artistui.keyPressEvent() to display a popup (zoo.apps.hiveartistui.views.expandedtooltip.ExpandedTooltipPopup)
+    """ Installs the expanded tooltip onto a widget.
+    Works in conjunction with artistui.keyPressEvent() to display a popup (zoo.apps.hiveartistui.views.expandedtooltip.ExpandedTooltipPopup)
 
     :param widget:
     :type widget: QtWidgets.QWidget

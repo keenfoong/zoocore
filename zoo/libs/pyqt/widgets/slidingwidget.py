@@ -28,6 +28,7 @@ class SlidingWidget(QtWidgets.QWidget):
         self.mainLayout = utils.hBoxLayout(self)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.primaryWidget = None
+        self.timeout = 6000
 
         self.slideDirection = QtCore.Qt.RightToLeft
 
@@ -38,6 +39,15 @@ class SlidingWidget(QtWidgets.QWidget):
 
         self._slideStretch = 0
         self.initial = None
+
+        self.closeTimer = QtCore.QTimer(self)
+        self.closeTimer.timeout.connect(self.clearedFocus)
+
+    def focusChanged(self, old, new):
+        print "pith",  old, new
+
+    def clearedFocus(self):
+        self.primaryWidget.clearFocus()
 
     def setSlideDirection(self, direction=QtCore.Qt.RightToLeft):
         """
@@ -91,8 +101,23 @@ class SlidingWidget(QtWidgets.QWidget):
 
         self.updateInitial()
 
-        widget.focusOutEvent = self.searchFocusOut
-        widget.focusInEvent = self.searchFocusIn
+        #widget.focusOutEvent = self.widgetFocusOut
+        #widget.focusInEvent = self.widgetFocusIn
+        widget.installEventFilter(self)
+
+    def eventFilter(self, source, event):
+        if source is self.primaryWidget:
+            if event.type() == QtCore.QEvent.FocusIn:
+                self.widgetFocusIn(event)
+
+            if event.type() == QtCore.QEvent.FocusOut:
+                self.widgetFocusOut(event)
+
+            if event.type() == QtCore.QEvent.KeyPress:
+                # Reset timeout on key press
+                self.closeTimer.start(self.timeout)
+
+        return super(SlidingWidget, self).eventFilter(source, event)
 
     def _setSecondaryWidget(self, widget):
         """ Set secondary widget.
@@ -141,7 +166,7 @@ class SlidingWidget(QtWidgets.QWidget):
     # Property to be animated
     slideStretch = QtCore.Property(int, getSlideStretch, setSlideStretch)
 
-    def searchFocusIn(self, event):
+    def widgetFocusIn(self, event):
         """ Expand the primary widget event
 
         :param event:
@@ -149,10 +174,13 @@ class SlidingWidget(QtWidgets.QWidget):
         :return:
         """
 
-        if event.reason() == QtCore.Qt.FocusReason.MouseFocusReason:
+        if hasattr(event, "reason") and event.reason() == QtCore.Qt.FocusReason.MouseFocusReason or \
+            hasattr(event, "reason") is False:
             self.animate(expand=True)
+            self.closeTimer.start(self.timeout)  # close after a few seconds
 
-    def searchFocusOut(self, event=None):
+
+    def widgetFocusOut(self, event=None):
         """ Collapse the primary widget event
 
         :param event:
@@ -181,3 +209,7 @@ class SlidingWidget(QtWidgets.QWidget):
             self.anim.setEndValue(self.primaryIndex)
             self.anim.setEasingCurve(QtCore.QEasingCurve.InOutSine)
             self.anim.start()
+
+    def closeEvent(self, event):
+        self.removeEventFilter(self.primaryWidget)
+        super(SlidingWidget, self).closeEvent(event)

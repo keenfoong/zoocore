@@ -290,7 +290,7 @@ class StackTableWidget(QtWidgets.QTableWidget):
         self.clearStack()
 
 
-class StackItem(QtWidgets.QWidget):
+class StackItem(QtWidgets.QFrame):
     """The item in each StackTableWidget.
     """
     _downIcon = iconlib.icon("arrowSingleDown")
@@ -347,8 +347,6 @@ class StackItem(QtWidgets.QWidget):
         self.titleFrame = frame.QFrame(parent=self)
         self.expandToggleButton = QtWidgets.QToolButton(parent=self)
 
-
-
         if not shiftArrowsEnabled:
             self.shiftDownBtn.hide()
             self.shiftUpBtn.hide()
@@ -358,6 +356,8 @@ class StackItem(QtWidgets.QWidget):
 
         if not titleEditable:
             self.stackTitleWgt.setReadOnly(True)
+
+        self._init()
 
         self.initUi()
         self.connections()
@@ -370,6 +370,13 @@ class StackItem(QtWidgets.QWidget):
             self.collapse()
         else:
             self.expand()
+
+    def _init(self):
+        """ For initializing of variables
+
+        :return:
+        """
+        pass
 
     def setArrowsVisible(self, visible):
         """Set the shift arrows to be visible or not. These arrows allow the StackItem to be shifted upwards or downwards.
