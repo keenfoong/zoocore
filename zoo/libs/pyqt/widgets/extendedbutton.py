@@ -122,7 +122,8 @@ class ButtonIcons(QtWidgets.QAbstractButton):
         :param event:
         :return:
         """
-        self.setIcon(self.buttonIcon)
+        if self.buttonIcon is not None:
+            self.setIcon(self.buttonIcon)
 
 
 class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
@@ -190,6 +191,7 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
         self.iconName = None
         self.highlightOffset = 40
         self.iconColor = None
+        self.clicked = self.leftClicked  # monkey patching!
 
     def setDoubleClickInterval(self, interval=150):
         """
@@ -239,6 +241,30 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
         :return:
         """
         self.clickMenu[mouseButton] = menu
+
+    def setFixedSize(self, size):
+        """ Sets fixed size
+
+        :param size: Dpiscaling is automatically applied here
+        :return:
+        """
+        return super(ExtendedButton, self).setFixedSize(utils.dpiScale(size))
+
+    def setFixedHeight(self, height):
+        """ DpiScaling version of set fixed height
+
+        :param height:
+        :return:
+        """
+        return super(ExtendedButton, self).setFixedHeight(utils.dpiScale(height))
+
+    def setFixedWidth(self, width):
+        """ DpiScaling version of set fixed width
+
+        :param width:
+        :return:
+        """
+        return super(ExtendedButton, self).setFixedWidth(utils.dpiScale(width))
 
     def setSearchable(self, mouseMenu=QtCore.Qt.LeftButton, searchable=True):
         self.menuSearchable[mouseMenu] = searchable
@@ -449,6 +475,18 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
         ret += [s.lower() for s in string.split(" ")]
 
         return ret
+
+
+class ExtendedPushButton(ExtendedButton):
+
+    def __init__(self, *args, **kwargs):
+        """ Same as ExtendedButton except with the default style
+
+        :param args:
+        :param kwargs:
+        """
+        super(ExtendedPushButton, self).__init__(*args, **kwargs)
+        utils.setStylesheetObjectName(self, "DefaultButton")
 
 
 class ExtendedButtonMenu(searchablemenu.SearchableMenu):
