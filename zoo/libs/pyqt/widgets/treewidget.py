@@ -541,7 +541,7 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         if itemType == self.ITEMTYPE_WIDGET:
             # If its an ItemWidget class
-            if isinstance(wgt, ItemWidget):
+            if isinstance(wgt, ItemWidgetLabel):
                 return wgt.text()
 
             # Try .name, if all else fails use the text in the widget column
@@ -691,18 +691,18 @@ class TreeWidgetItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, parent, name, font, flags, after=None):
         super(TreeWidgetItem, self).__init__(parent, after)
         self.setText(TreeWidget.WIDGET_COL, name)
-        self.setFont(1, font)
+
         self.setFlags(flags)
 
 
-class ItemWidget(QtWidgets.QLabel):
+class ItemWidgetLabel(QtWidgets.QLabel):
     """
 
     """
     triggered = QtCore.Signal()
 
     def __init__(self, name):
-        super(ItemWidget, self).__init__(name)
+        super(ItemWidgetLabel, self).__init__(name)
 
         self.emitTarget = None
         self.initUi()
@@ -730,4 +730,4 @@ class ItemWidget(QtWidgets.QLabel):
         # self.emitTarget()
 
     def text(self):
-        return super(ItemWidget, self).text()
+        return super(ItemWidgetLabel, self).text()

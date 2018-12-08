@@ -1,5 +1,6 @@
 from qt import QtCore, QtGui, QtWidgets
 from zoo.libs import iconlib
+from zoo.libs.pyqt import utils
 
 
 class SearchLineEdit(QtWidgets.QLineEdit):
@@ -11,10 +12,10 @@ class SearchLineEdit(QtWidgets.QLineEdit):
         QtWidgets.QLineEdit.__init__(self, parent)
 
         if searchPixmap is None:
-            searchPixmap = iconlib.iconColorized("magnifier", 16, (128,128,128))  # these should be in layouts
+            searchPixmap = iconlib.iconColorized("magnifier", utils.dpiScale(16), (128,128,128))  # these should be in layouts
 
         if clearPixmap is None:
-            clearPixmap = iconlib.iconColorized("close", 16, (128,128,128))
+            clearPixmap = iconlib.iconColorized("close", utils.dpiScale(16), (128,128,128))
 
         self.clearButton = QtWidgets.QToolButton(self)
         self.clearButton.setIcon(QtGui.QIcon(clearPixmap))

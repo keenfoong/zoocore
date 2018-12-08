@@ -73,7 +73,7 @@ class ImageRadioButton(QtWidgets.QRadioButton, CheckableIcons):
         super(ImageRadioButton, self).__init__(parent=parent, text=text)
 
         self.highlightOffset = highlight
-        self.setIconSize(utils.sizeByDpi(QtCore.QSize(12, 12)))
+        self.setIconSize(QtCore.QSize(12, 12))
         self.setIconColor(color)
 
         # Initialise the icons
@@ -92,7 +92,7 @@ class ImageCheckBox(QtWidgets.QCheckBox, CheckableIcons):
         super(ImageCheckBox, self).__init__(parent=parent, text=text)
 
         self.highlightOffset = highlight
-        self.setIconSize(utils.sizeByDpi(QtCore.QSize(12, 12)))
+        self.setIconSize(QtCore.QSize(12, 12))
         self.setIconColor(color)
 
         # Initialise the icons
