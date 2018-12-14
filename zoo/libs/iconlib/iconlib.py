@@ -157,6 +157,82 @@ class Icon(object):
             cls.addOverlay(pixmap, overlayPixmap, overlayColor)
 
         pixmap = pixmap.scaled(QtCore.QSize(size, size), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
+        cls.tint(pixmap)
+
+        return QtGui.QIcon(pixmap)
+
+    @classmethod
+    def iconColorizedLayered(cls, iconNames, size=16, colors=None, iconScaling=None, tintColor=None):
+        """ Layers multiple icons with various colours into one qicon. Maybe can replace icon colorized
+
+        :param iconNames: the icon name from the library. Allow string or list for convenience
+        :type iconNames: list or basestring
+        :param size: the uniform icon size
+        :type size: int
+        :param colors: 3 tuple for the icon color
+        :type colors: list of tuple
+        :return: the colorized icon
+        :param overlayName: The name of the icon that will be overlayed on top of the original icon
+        :param overlayColor: The colour of the overlay
+        :rtype: QtGui.QIcon
+        """
+        defaultSize = 1
+
+        if isinstance(iconNames, basestring):
+            iconNames = [iconNames]
+        elif isinstance(iconNames, list):
+            iconNames = list(iconNames)  # copy
+
+        if isinstance(iconScaling, list):
+            iconScaling = list(iconScaling)  # copy
+
+        if not isinstance(colors, list):
+            colors = [colors]
+        else:
+            colors = list(colors)  # copy
+
+        if iconNames is []:
+            print "WARNING: iconNames cannot be none for iconColorizedLayered"
+            p = QtGui.QPixmap(16,16)
+            p.fill(QtGui.QColor(255, 255, 255))
+
+        # Fill out the colours to match the length of iconNames
+        if colors is None or (len(iconNames) > len(colors)):
+            colors = colors or []
+            colors += [None] * (len(iconNames) - len(colors))
+
+        # Fill out the sizes to match the length of iconNames
+        if iconScaling is None or len(iconNames) > len(iconScaling):
+            iconScaling = iconScaling or []
+            iconScaling += [defaultSize] * (len(iconNames) - len(iconScaling))
+
+        iconLargest = cls.icon(iconNames.pop(0), -1)
+
+        if not iconLargest:
+            return iconLargest
+
+        origSize = iconLargest.availableSizes()[0]
+        col = colors.pop(0)
+        scale = iconScaling.pop(0)
+        if col is not None:
+            pixmap = cls.colorPixmap(iconLargest.pixmap(origSize*scale), col)
+        else:
+            pixmap = iconLargest.pixmap(origSize*scale)
+
+
+        # Layer the additional icons
+        for i, name in enumerate(iconNames):
+            if name is None:
+                continue
+            overlayIcon = cls.icon(name, -1)
+            overlayPixmap = overlayIcon.pixmap(origSize * iconScaling[i])
+            cls.addOverlay(pixmap, overlayPixmap, colors[i])
+
+        # Tint
+        if tintColor is not None:
+            cls.tint(pixmap, tintColor)
+
+        pixmap = pixmap.scaled(QtCore.QSize(size, size), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
 
         return QtGui.QIcon(pixmap)
 
@@ -195,9 +271,10 @@ class Icon(object):
         return pixmap
 
     @classmethod
-    def addOverlay(cls, pixmap, overlayPixmap, color):
-        """
-        Overlays one pixmap over the other
+    def addOverlay(cls, pixmap, overlayPixmap, color, align=QtCore.Qt.AlignCenter):
+        """ Overlays one pixmap over the other
+
+        :param align: Aligns the icon based
         :param pixmap: The source pixmap
         :type pixmap: QtGui.QPixmap
         :param overlayPixmap: the pixmap to overlay on top of the source pixmap
@@ -206,11 +283,45 @@ class Icon(object):
         :type color: tuple(int,int,int)
         :return:
         """
-        # Set the color for the overlay
-        overlayPixmap = cls.colorPixmap(overlayPixmap, color)
+        # Set the color for the overlay if there is colour
+        if color is not None:
+            overlayPixmap = cls.colorPixmap(overlayPixmap, color)
 
         # Paint the overlay pixmap over the original
         painter = QtGui.QPainter(pixmap)
         painter.setCompositionMode(QtGui.QPainter.CompositionMode_SourceOver)
+
+        x = y = 0
+        if align is QtCore.Qt.AlignCenter:
+            x = pixmap.width() / 2 - overlayPixmap.width() / 2
+            y = pixmap.height() / 2 - overlayPixmap.height() / 2
+        elif align is None:
+            x = y = 0  # Write more here if we need different variations of icon alignment
+
+        painter.drawPixmap(x, y, overlayPixmap.width(), overlayPixmap.height(), overlayPixmap)
+        painter.end()
+
+    @classmethod
+    def tint(cls, pixmap, color=(255, 255, 255, 100), compositionMode=QtGui.QPainter.CompositionMode_Plus):
+        """ Composite one pixmap over another
+
+        :param pixmap:
+        :param color:
+        :param compositionMode:
+        :return:
+        """
+        # Set the color for the overlay
+
+        color = QtGui.QColor(*color)
+        overlayPixmap = QtGui.QPixmap(pixmap.width(), pixmap.height())
+        overlayPixmap.fill(color)
+        overlayPixmap.setMask(pixmap.mask())
+
+        # Paint the overlay pixmap over the original
+        painter = QtGui.QPainter(pixmap)
+        painter.setCompositionMode(compositionMode)
+
         painter.drawPixmap(0, 0, overlayPixmap.width(), overlayPixmap.height(), overlayPixmap)
         painter.end()
+
+
