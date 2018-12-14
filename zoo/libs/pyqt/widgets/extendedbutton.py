@@ -22,9 +22,9 @@ class ButtonIcons(QtWidgets.QAbstractButton):
 
     """
     highlightOffset = 40
-    iconName = None
-    iconOverlay = None
-    iconColor = (128, 128, 128)
+    iconNames = None
+    iconColors = (128, 128, 128)
+    iconScaling = []
 
     buttonIcon = None
     buttonIconPressed = None
@@ -33,12 +33,13 @@ class ButtonIcons(QtWidgets.QAbstractButton):
     def setHighlight(self, highlight):
         self.highlightOffset = highlight
 
-    def setIconByName(self, iconName, color=None, size=None, colorOffset=None, iconOverlay=None):
+    def setIconByName(self, iconNames, colors=None, size=None, colorOffset=None, iconScaling=None):
         """Set up both icons in a simple function
 
-        :param iconName:
-        :param color:
-        :type color: tuple
+        :param iconNames:
+        :type iconNames: basestring or list
+        :param colors:
+        :type colors: tuple or list or None
         :param size: Size is dpiScaled automatically here
         :param colorOffset:
         :return:
@@ -49,36 +50,38 @@ class ButtonIcons(QtWidgets.QAbstractButton):
         if colorOffset is not None:
             self.highlightOffset = colorOffset
 
-        if iconOverlay is not None:
-            self.iconOverlay = iconOverlay
+        if iconScaling is not None:
+            self.iconScaling = iconScaling
+        #color = color or self.iconColor
 
-        color = color or self.iconColor
-
-        self.iconName = iconName
-        self.setIconColor(color, update=False)
-
+        self.iconNames = iconNames
+        self.setIconColor(colors, update=False)
         self.updateIcons()
 
-    def setIconColor(self, color, update=True):
-        self.iconColor = color
 
-        if update and self.buttonIcon is not None and self.iconName is not None:
+    def setIconColor(self, colors, update=True):
+        self.iconColors = colors
+
+        if update and self.buttonIcon is not None and self.iconNames is not None:
             self.updateIcons()
 
     def updateIcons(self):
-        if self.iconColor is None or self.iconName is None:
-            # Icon color/name is none? should mean the button is not ready yet
+        if self.iconNames is None or self.iconNames == []:
+            # Icon name is none? should mean the button is not ready yet
             return
 
-        hoverCol = colour.offsetColor(self.iconColor, self.highlightOffset)
-        self.buttonIcon = iconlib.iconColorized(self.iconName,
-                                                size=self.iconSize().width(),
-                                                color=self.iconColor,
-                                                overlayName=self.iconOverlay)
-        self.buttonIconHover = iconlib.iconColorized(self.iconName,
-                                                     size=self.iconSize().width(),
-                                                     color=hoverCol,
-                                                     overlayName=self.iconOverlay)
+        hoverCol = (255, 255, 255, self.highlightOffset)
+
+        self.buttonIcon = iconlib.iconColorizedLayered(self.iconNames,
+                                                       size=self.iconSize().width(),
+                                                       iconScaling=self.iconScaling,
+                                                       colors=self.iconColors)
+        self.buttonIconHover = iconlib.iconColorizedLayered(self.iconNames,
+                                                            size=self.iconSize().width(),
+                                                            colors=self.iconColors,
+                                                            iconScaling=self.iconScaling,
+                                                            tintColor=hoverCol)
+
         self.setIcon(self.buttonIcon)
 
     def setIconSize(self, size):
@@ -87,6 +90,9 @@ class ButtonIcons(QtWidgets.QAbstractButton):
         :param size:
         :return:
         """
+        if self.iconNames is None:
+            return
+
         super(ButtonIcons, self).setIconSize(utils.sizeByDpi(size))
         self.updateIcons()
 
