@@ -315,7 +315,7 @@ class StackItem(QtWidgets.QFrame):
     updateRequested = QtCore.Signal()
 
     def __init__(self, title, parent, collapsed=False, collapsable=True, icon=None, startHidden=False,
-                 shiftArrowsEnabled=True, deleteButtonEnabled=True, titleEditable=True):
+                 shiftArrowsEnabled=True, deleteButtonEnabled=True, titleEditable=True, itemIconSize=12):
         """ The item in each StackTableWidget.
 
         :param title:
@@ -339,6 +339,7 @@ class StackItem(QtWidgets.QFrame):
         self._itemIcon = icon or self._itemIcon
         self.stackWidget = parent
         self.hide()
+        self.itemIconSize = itemIconSize
 
         # Init
         self.itemIcon = extendedbutton.ExtendedButton(parent=self)
@@ -422,7 +423,7 @@ class StackItem(QtWidgets.QFrame):
     def initUi(self):
         col = self.themePref.STACKITEM_HEADER_FOREGROUND
 
-        self.itemIcon.setIconByName(self._itemIcon, color=col, size=12)
+        self.itemIcon.setIconByName(self._itemIcon, colors=col, size=self.itemIconSize)
         self.itemIcon.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
 
         # Title Frame
@@ -436,10 +437,10 @@ class StackItem(QtWidgets.QFrame):
         iconSize = 12
         highlightOffset = 40
 
-        self.deleteBtn.setIconByName(self._deleteIconName, color=col, size=iconSize, colorOffset=highlightOffset)
-        self.shiftUpBtn.setIconByName(self._upIconName, color=col, size=iconSize, colorOffset=highlightOffset)
-        self.shiftDownBtn.setIconByName(self._downIconName, color=col, size=iconSize, colorOffset=highlightOffset)
-        self.expandToggleButton.setIconByName(self._expandIconName, color=(192, 192, 192),  size=iconSize)
+        self.deleteBtn.setIconByName(self._deleteIconName, colors=col, size=iconSize, colorOffset=highlightOffset)
+        self.shiftUpBtn.setIconByName(self._upIconName, colors=col, size=iconSize, colorOffset=highlightOffset)
+        self.shiftDownBtn.setIconByName(self._downIconName, colors=col, size=iconSize, colorOffset=highlightOffset)
+        self.expandToggleButton.setIconByName(self._expandIconName, colors=(192, 192, 192), size=iconSize)
 
     def setItemIconColor(self, col):
         self.itemIcon.setIconColor(col)

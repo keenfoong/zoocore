@@ -27,9 +27,9 @@ class CheckableIcons(extendedbutton.ButtonIcons):
     def toggleClicked(self):
 
         if self.isChecked():
-            self.setIconByName(iconName=self.iconChecked, colorOffset=40)
+            self.setIconByName(self.iconChecked, colorOffset=40)
         else:
-            self.setIconByName(iconName=self.iconUnchecked, colorOffset=40)
+            self.setIconByName(self.iconUnchecked, colorOffset=40)
 
     def initCheckables(self, uncheckedIconName, checkedIconName, pressedIconName):
 
@@ -51,9 +51,9 @@ class CheckableIcons(extendedbutton.ButtonIcons):
         self.toggleClicked()
 
     def buttonPressed(self):
-        pressedCol = colour.offsetColor(self.iconColor, -30)
-        self.originalColor = self.iconColor
-        self.setIconByName(iconName=self.iconPressed, color=pressedCol)
+        pressedCol = colour.offsetColor(self.iconColors, -30)
+        self.originalColor = self.iconColors
+        self.setIconByName(self.iconPressed, colors=pressedCol)
 
     def buttonReleased(self):
         self.setIconColor(self.originalColor, update=True)
