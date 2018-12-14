@@ -27,7 +27,6 @@ class FlowToolBar(QtWidgets.QFrame):
 
     def __init__(self, parent=None, menuIndicatorIcon="arrowmenu", iconSize=20, iconPadding=2):
         super(FlowToolBar, self).__init__(parent)
-        self.artistUi = parent
         self.mainLayout = utils.hBoxLayout(self)
 
         self.flowLayout = flowlayout.FlowLayout(margin=0, spacingX=1, spacingY=1)
@@ -97,7 +96,7 @@ class FlowToolBar(QtWidgets.QFrame):
         if btn is None:
             btn = iconmenu.IconMenuButton(parent=self)
 
-        btn.setIconByName(icon, color=col, size=self.iconSize, colorOffset=40)
+        btn.setIconByName(icon, colors=col, size=self.iconSize, colorOffset=40)
 
         btn.setDoubleClickEnabled(False)
         btn.setProperty("name", "overflow")
@@ -117,7 +116,7 @@ class FlowToolBar(QtWidgets.QFrame):
         btn = iconmenu.IconMenuButton(parent=self)
         name = "" or iconName
 
-        btn.setIconByName(iconName, color=iconColor, size=self.iconSize, colorOffset=40)
+        btn.setIconByName(iconName, colors=iconColor, size=self.iconSize, colorOffset=40)
 
         btn.setDoubleClickEnabled(doubleClickEnabled)
         btn.setDoubleClickInterval(150)
@@ -152,9 +151,8 @@ class FlowToolBar(QtWidgets.QFrame):
             overlayName = self.menuIndicatorIcon
 
         btn = iconmenu.IconMenuButton(parent=self)
-        btn.setIconByName(iconName, color=iconColor, size=self.iconSize, iconOverlay=overlayName, colorOffset=40)
+        btn.setIconByName([iconName, overlayName], colors=iconColor, size=self.iconSize, colorOffset=40)
         btn.setProperty("name", name)
-        btn.setIconSize(self.getIconSize())
         btn.leftClicked.connect(self.toolsClicked)
 
         for a in actions:
@@ -179,6 +177,7 @@ class FlowToolBar(QtWidgets.QFrame):
 
         """
         data = self.sender().property("name")
+
         self.buttonClicked(self.sender(), data)
 
     def resizeEvent(self, event):
