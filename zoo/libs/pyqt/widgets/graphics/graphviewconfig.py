@@ -12,7 +12,7 @@ class Config(QtCore.QObject):
         self.drawGrid = True
         self.drawMainGridAxis = True
         self.graphBackgroundColor = QtGui.QColor(50, 50, 50)
-        self.gridColor = QtGui.QColor(200, 200, 200)
+        self.gridColor = QtGui.QColor(0.0, 0.0, 0.0)
         self.overlayAxisPen = QtGui.QPen(QtGui.QColor(255, 50, 50, 255), self.gridLineWidth)
         self.thinGridLinePen = QtGui.QPen(QtGui.QColor(80, 80, 80, 255), 0.5)
         self.selectionRectOutlinerPen = QtGui.QPen(QtGui.QColor(70, 70, 150))
