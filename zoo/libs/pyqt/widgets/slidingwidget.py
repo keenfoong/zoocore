@@ -103,23 +103,12 @@ class SlidingWidget(QtWidgets.QWidget):
 
         self.updateInitial()
 
-        #widget.focusOutEvent = self.widgetFocusOut
-        #widget.focusInEvent = self.widgetFocusIn
-        widget.installEventFilter(self)
+        widget.focusOutEvent = self.widgetFocusOut
+        widget.focusInEvent = self.widgetFocusIn
+        #widget.keyPressEvent = self.widgetKeyPressEvent
 
-    def eventFilter(self, source, event):
-        if source is self.primaryWidget:
-            if event.type() == QtCore.QEvent.FocusIn:
-                self.widgetFocusIn(event)
-
-            if event.type() == QtCore.QEvent.FocusOut:
-                self.widgetFocusOut(event)
-
-            if event.type() == QtCore.QEvent.KeyPress:
-                # Reset timeout on key press
-                self.closeTimer.start(self.timeout)
-
-        return super(SlidingWidget, self).eventFilter(source, event)
+    def widgetKeyPressEvent(self, event):
+        self.closeTimer.start(self.timeout)
 
     def _setSecondaryWidget(self, widget):
         """ Set secondary widget.
@@ -180,7 +169,6 @@ class SlidingWidget(QtWidgets.QWidget):
             hasattr(event, "reason") is False:
             self.animate(expand=True)
             self.closeTimer.start(self.timeout)  # close after a few seconds
-
 
     def widgetFocusOut(self, event=None):
         """ Collapse the primary widget event
