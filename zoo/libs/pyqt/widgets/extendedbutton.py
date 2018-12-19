@@ -58,10 +58,8 @@ class ButtonIcons(QtWidgets.QAbstractButton):
         self.setIconColor(colors, update=False)
         self.updateIcons()
 
-
     def setIconColor(self, colors, update=True):
         self.iconColors = colors
-
         if update and self.buttonIcon is not None and self.iconNames is not None:
             self.updateIcons()
 
@@ -155,9 +153,12 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
     leftDoubleClicked = QtCore.Signal()
     middleDoubleClicked = QtCore.Signal()
     rightDoubleClicked = QtCore.Signal()
+    clicked = leftClicked
 
     SINGLE_CLICK = 1
     DOUBLE_CLICK = 2
+
+    highlightOffset = 40
 
     def __init__(self, icon=None, iconHover=None,
                  text=None, parent=None,
@@ -195,9 +196,7 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
         self.doubleClickEnabled = doubleClickEnabled
         self.lastClick = None
         self.iconName = None
-        self.highlightOffset = 40
         self.iconColor = None
-        self.clicked = self.leftClicked  # monkey patching!
 
     def setDoubleClickInterval(self, interval=150):
         """
@@ -303,15 +302,11 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
             self.clickMenu[mouseMenu].clear()
 
     def mousePressEvent(self, event):
-        """Mouse set down button visuals
+        """ Mouse set down button visuals
 
         :param event:
         :return:
         """
-
-        if not QtCore.Qt:
-            return
-
         if event.button() == QtCore.Qt.MidButton:
             self.setDown(True)
         elif event.button() == QtCore.Qt.RightButton:
@@ -347,7 +342,7 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
         :return:
         """
 
-        if self.lastClick == self.SINGLE_CLICK:
+        if self.lastClick == self.SINGLE_CLICK or self.doubleClickEnabled is False:
             if button == QtCore.Qt.LeftButton:
                 self.leftClicked.emit()
             elif button == QtCore.Qt.MidButton:
