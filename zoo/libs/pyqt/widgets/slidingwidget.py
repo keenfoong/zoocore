@@ -28,7 +28,8 @@ class SlidingWidget(QtWidgets.QWidget):
         self.mainLayout = utils.hBoxLayout(self)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.primaryWidget = None
-        self.timeout = 6000
+        self.timeoutActive = True
+        self.timeout = 3000
 
         self.slideDirection = QtCore.Qt.RightToLeft
 
@@ -36,20 +37,20 @@ class SlidingWidget(QtWidgets.QWidget):
         self.primaryIndex = 1
         self.secondaryIndex = 0
         self.duration = duration
+        self.origKeyPressEvent = None
 
         self._slideStretch = 0
         self.initial = None
 
         self.closeTimer = QtCore.QTimer(self)
         self.closeTimer.timeout.connect(self.clearedFocus)
-        QtWidgets.QApplication.instance().aboutToQuit.connect(self.closing)
-        self.window().closed.connect(self.closing)
-
-    def closing(self):
-        self.removeEventFilter(self.primaryWidget)
 
     def clearedFocus(self):
-        self.primaryWidget.clearFocus()
+        if self.timeoutActive:
+            self.primaryWidget.clearFocus()
+
+    def setTimeoutActive(self, active):
+        self.timeoutActive = active
 
     def setSlideDirection(self, direction=QtCore.Qt.RightToLeft):
         """
@@ -103,23 +104,17 @@ class SlidingWidget(QtWidgets.QWidget):
 
         self.updateInitial()
 
-        #widget.focusOutEvent = self.widgetFocusOut
-        #widget.focusInEvent = self.widgetFocusIn
-        widget.installEventFilter(self)
+        self.origKeyPressEvent = widget.keyPressEvent
+        self.origFocusOutEvent = widget.focusOutEvent
+        self.origFocusInEvent = widget.focusInEvent
 
-    def eventFilter(self, source, event):
-        if source is self.primaryWidget:
-            if event.type() == QtCore.QEvent.FocusIn:
-                self.widgetFocusIn(event)
+        widget.focusOutEvent = self.widgetFocusOut
+        widget.focusInEvent = self.widgetFocusIn
+        widget.keyPressEvent = self.widgetKeyPressEvent
 
-            if event.type() == QtCore.QEvent.FocusOut:
-                self.widgetFocusOut(event)
-
-            if event.type() == QtCore.QEvent.KeyPress:
-                # Reset timeout on key press
-                self.closeTimer.start(self.timeout)
-
-        return super(SlidingWidget, self).eventFilter(source, event)
+    def widgetKeyPressEvent(self, event):
+        self.closeTimer.start(self.timeout)
+        self.origKeyPressEvent(event)  # run original
 
     def _setSecondaryWidget(self, widget):
         """ Set secondary widget.
@@ -181,6 +176,7 @@ class SlidingWidget(QtWidgets.QWidget):
             self.animate(expand=True)
             self.closeTimer.start(self.timeout)  # close after a few seconds
 
+        self.origFocusInEvent(event)  # run original
 
     def widgetFocusOut(self, event=None):
         """ Collapse the primary widget event
@@ -189,6 +185,7 @@ class SlidingWidget(QtWidgets.QWidget):
         :return:
         """
         self.animate(expand=False)
+        self.origFocusOutEvent(event)
 
     def animate(self, expand=True):
         """ Animate the sliding of the widget
