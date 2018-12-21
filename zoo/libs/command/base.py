@@ -5,23 +5,30 @@ import time
 import traceback
 from collections import deque
 
-from zoo.libs.command import commandregistry
+from zoo.libs.command import command
 from zoo.libs.command import errors
+from zoo.libs.plugin import pluginmanager
 from zoo.libs.utils import env
 
 
 class ExecutorBase(object):
     def __init__(self):
-        self.commands = {}
         self.undoStack = deque()
         self.redoStack = deque()
-        self.registerEnv("ZOO_COMMAND_LIB")
+        self.registry = pluginmanager.PluginManager(command.ZooCommand, variableName="id")
+        self.registry.registryByEnv("ZOO_COMMAND_LIB")
+
+    @property
+    def commands(self):
+        return self.commandRegistry.plugins
 
     def execute(self, name, *args, **kwargs):
-        command = self.findCommand(name)
+        command = self.registry.getPlugin(name)
         if command is None:
             raise ValueError("No command by the name -> {} exists within the registry!".format(name))
-        command = command()
+        command = command(CommandStats(command))
+        if not command.isEnabled:
+            return
         command._prepareCommand()
         try:
             command._resolveArguments(kwargs)
@@ -34,7 +41,6 @@ class ExecutorBase(object):
         exc_value = None
         result = None
         try:
-            command.stats = CommandStats(command)
             result = self._callDoIt(command)
         except errors.UserCancel:
             self.undoStack.remove(command)
@@ -94,31 +100,8 @@ class ExecutorBase(object):
 
         return result
 
-    def registerCommand(self, clsobj):
-        command = commandregistry.registerCommand(clsobj)
-        if command is not None:
-            self.commands[command.id] = command
-            return True
-        return False
-
-    def registerEnv(self, env):
-        environmentPaths = os.environ.get(env)
-        if environmentPaths is None:
-            raise ValueError("No environment variable with the name -> {} exists".format(env))
-        environmentPaths = environmentPaths.split(os.pathsep)
-        commands = commandregistry.registerCommands(environmentPaths)
-
-        added = False
-        for command in commands:
-            if command.id not in self.commands:
-                self.commands[command.id] = command
-                added = True
-        return added
-
     def findCommand(self, id):
-        command = self.commands.get(id)
-        if command is not None:
-            return command
+        return self.registry.getPlugin(id)
 
     def flush(self):
         self.undoStack.clear()
