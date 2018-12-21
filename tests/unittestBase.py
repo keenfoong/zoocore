@@ -1,18 +1,43 @@
-import inspect
 import os
 import tempfile
 import unittest
-import imp
-from zoo.libs.utils import zlogging
+from zoo.libs.utils import zlogging, env
 
 logger = zlogging.getLogger(__name__)
+
+
+def decorating_meta(decorator):
+    class DecoratingMetaclass(type):
+        def __new__(cls, class_name, bases, namespace):
+            for key, value in list(namespace.items()):
+                if callable(value):
+                    namespace[key] = decorator(value)
+            return type.__new__(cls, class_name, bases, namespace)
+
+    return DecoratingMetaclass
+
+
+def skipUnlessHasattr(obj):
+    if not hasattr(obj, 'skip'):
+        def decorated(*a, **kw):
+            return obj(*a, **kw)
+
+        return decorated
+
+    def decorated(*a, **kw):
+        return unittest.skip("{!r} doesn't have {!r}".format(obj, 'skip'))
+
+    return decorated
+
 
 class BaseUnitest(unittest.TestCase):
     """This Class acts as the base for all unitests, supplies a helper method for creating tempfile which
     will be cleaned up once the class has been shutdown.
     If you override the tearDownClass method you must call super or at least clean up the _createFiles set
     """
+    __metaclass__ = decorating_meta(skipUnlessHasattr)
     _createdFiles = set()
+    application = "standalone"
 
     @classmethod
     def createTemp(cls, suffix):
@@ -34,19 +59,51 @@ class BaseUnitest(unittest.TestCase):
         cls._createdFiles.clear()
 
 
+def runTests(directories=None, test=None, test_suite=None, buffer=False, resultClass=None):
+    """Run all the tests in the given paths.
 
-def runTests(testSuite):
-    if testSuite is None:
-        return
-    runner = unittest.TextTestRunner(verbosity=2, buffer=False, failfast=False)
-    runner.run(testSuite)
+    @param directories: A generator or list of paths containing tests to run.
+    @param test: Optional name of a specific test to run.
+    @param test_suite: Optional TestSuite to run.  If omitted, a TestSuite will be generated.
+    """
+    if test_suite is None:
+        test_suite = getTests(directories, test)
+
+    runner = unittest.TextTestRunner(verbosity=2, resultclass=resultClass)
+    runner.failfast = False
+    runner.buffer = buffer
+    runner.run(test_suite)
 
 
-if __name__ == '__main__':
-    import logging
+def getTests(directories=None, test=None, test_suite=None):
+    """Get a unittest.TestSuite containing all the desired tests.
 
-    logger = logging.getLogger(__name__)
-    logger.addHandler(logging.NullHandler())
-    logger.setLevel(logging.DEBUG)
-    testss = getTests("standalone").get("standalone")
-    runTests(testss)
+    @param directories: Optional list of directories with which to search for tests.  If omitted, use all "tests"
+    directories of the modules found in the MAYA_MODULE_PATH.
+    @param test: Optional test path to find a specific test such as 'test_mytest.SomeTestCase.test_function'.
+    @param test_suite: Optional unittest.TestSuite to add the discovered tests to.  If omitted a new TestSuite will be
+    created.
+    @return: The populated TestSuite.
+    """
+    # Populate a TestSuite with all the tests
+    if test_suite is None:
+        test_suite = unittest.TestSuite()
+
+    if test:
+        # Find the specified test to run
+        directories_added_to_path = [os.path.dirname(p) for p in directories if env.addToSysPath(p)]
+        discovered_suite = unittest.TestLoader().loadTestsFromName(test)
+        if discovered_suite.countTestCases():
+            test_suite.addTests(discovered_suite)
+    else:
+        # Find all tests to run
+        directories_added_to_path = []
+        for p in directories:
+            discovered_suite = unittest.TestLoader().discover(p)
+            if discovered_suite.countTestCases():
+                test_suite.addTests(discovered_suite)
+    # Remove the added paths.
+    for path in directories_added_to_path:
+        sys.path.remove(path)
+
+    return test_suite
