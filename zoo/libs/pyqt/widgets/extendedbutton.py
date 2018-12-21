@@ -4,7 +4,7 @@ from zoo.libs import iconlib
 from zoo.libs.pyqt import utils
 from zoo.libs.pyqt.extended import searchablemenu, expandedtooltip
 from zoo.libs.pyqt.extended.searchablemenu import action as taggedAction
-from zoo.libs.utils import zlogging, colour
+from zoo.libs.utils import zlogging
 from zoo.preferences import preference
 
 logger = zlogging.getLogger(__name__)
@@ -52,7 +52,7 @@ class ButtonIcons(QtWidgets.QAbstractButton):
 
         if iconScaling is not None:
             self.iconScaling = iconScaling
-        #color = color or self.iconColor
+        colors = colors or self.iconColors
 
         self.iconNames = iconNames
         self.setIconColor(colors, update=False)

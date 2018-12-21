@@ -9,3 +9,4 @@ class QFrame(QtWidgets.QFrame):
 
     def mouseReleaseEvent(self, event):
         self.mouseReleased.emit(event)
+        return super(QFrame, self).mouseReleaseEvent(event)
