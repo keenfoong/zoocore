@@ -181,7 +181,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
         top = int(rect.top()) - (int(rect.top()) % self.config.gridSize)
         # Draw horizontal fine lines
         gridLines = []
-        painter.setPen(self.config.thinGridLinePen)
+        painter.setPen(self.config.gridColor)
         y = float(top)
         while y < float(rect.bottom()):
             gridLines.append(QtCore.QLineF(rect.left(), y, rect.right(), y))
@@ -190,7 +190,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
         # Draw vertical fine lines
         gridLines = []
-        painter.setPen(self.config.thinGridLinePen)
+        painter.setPen(self.config.gridColor)
         x = float(left)
         while x < float(rect.right()):
             gridLines.append(QtCore.QLineF(x, rect.top(), x, rect.bottom()))
