@@ -100,7 +100,7 @@ class GroupedTreeWidget(QtWidgets.QTreeWidget):
     def initDragDrop(self):
         """ Set up Drag drop Settings for this widget
         """
-        return
+
         self.setDragEnabled(True)
         self.setDropIndicatorShown(True)
         self.setDragDropMode(QtWidgets.QAbstractItemView.DragDrop)
@@ -135,17 +135,6 @@ class GroupedTreeWidget(QtWidgets.QTreeWidget):
         self.setCurrentItems(newItems)
         return True
 
-    def setCurrentItems(self, items):
-        """Selects the items in the TreeWidget
-
-        :param items:
-        """
-        prevMode = self.selectionMode()
-        self.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
-        for item in items:
-            self.setCurrentItem(item)
-        self.setSelectionMode(prevMode)
-
     def mimeTypes(self):
         """Mimetypes that are allowed in the drag drop
 
@@ -173,6 +162,17 @@ class GroupedTreeWidget(QtWidgets.QTreeWidget):
         mimedata = super(GroupedTreeWidget, self).mimeData(items)
 
         return mimedata
+
+    def setCurrentItems(self, items):
+        """Selects the items in the TreeWidget
+
+        :param items:
+        """
+        prevMode = self.selectionMode()
+        self.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+        for item in items:
+            self.setCurrentItem(item)
+        self.setSelectionMode(prevMode)
 
     def removeDropItems(self):
         """ Remove the source items from the treewidget that has been dragged
@@ -240,9 +240,6 @@ class GroupedTreeWidget(QtWidgets.QTreeWidget):
         :return: The new item created
         :rtype: TreeWidgetItem
         """
-        start = time.time()
-        #print ("addNewItem.addNewItem()", time.time() - start)
-        #start = time.time()
 
         if itemType == self.ITEMTYPE_WIDGET:
             flags = self.itemWidgetFlags
@@ -257,8 +254,6 @@ class GroupedTreeWidget(QtWidgets.QTreeWidget):
 
         newTreeItem = TreeWidgetItem(treeParent, name=name, flags=flags, after=item)
         newTreeItem.setData(self.DATA_COL, QtCore.Qt.EditRole, itemType)  # Data set to column 2, which is not visible
-        #print ("addNewItem.TreeWidgetItem()", time.time() - start)
-        #start = time.time()
 
         if icon is not None:
             newTreeItem.setIcon(self.WIDGET_COL, icon)
@@ -267,26 +262,17 @@ class GroupedTreeWidget(QtWidgets.QTreeWidget):
         self.addTopLevelItem(newTreeItem)
 
         if widget:
-            widget.setParent(self)
-            #print "update tree widget"
 
+            widget.setParent(self)
             if self.updatesEnabled():
                 self.updateTreeWidget()
 
-            start = time.time()
             self.setItemWidget(newTreeItem, self.WIDGET_COL, widget)  # items parent must be set otherwise it will crash
-            #print ("addNewItem.setItemWidget()", time.time() - start)
-            #start = time.time()
             # temp hack to support rowheight refresh, need to replace
             if hasattr(widget, "toggleExpandRequested"):
                 widget.toggleExpandRequested.connect(self.updateTreeWidget)
                 widget.toggleExpandRequested.connect(newTreeItem.setExpanded)
-        t4 = time.time() - start
-        start = time.time()
         self.setCurrentItem(newTreeItem)
-
-        #print ("addNewItem.addNewItem() Finish", t4, time.time() - start)
-        start = time.time()
 
         return newTreeItem
 
@@ -346,7 +332,7 @@ class GroupedTreeWidget(QtWidgets.QTreeWidget):
         return super(GroupedTreeWidget, self).itemWidget(treeItem, col)
 
     def updateTreeWidget(self):
-        """Updates the tree widget so the row heights of the TreeWidgetItems matches what the ComponentWidgets ask for
+        """ Updates the tree widget so the row heights of the TreeWidgetItems matches what the ComponentWidgets ask for
         in terms of the sizeHint() asks for
         """
         # Super hacky way to update the TreeWidget, add an empty object and then remove it
@@ -354,7 +340,7 @@ class GroupedTreeWidget(QtWidgets.QTreeWidget):
         self.takeTopLevelItem(0)
 
     def getItemType(self, treeItem):
-        """Get the item type ("COMPONENT" or "GROUP")
+        """ Get the item type ("COMPONENT" or "GROUP")
 
         :param treeItem: The TreeWidgetItem to get the type of
         :type treeItem: TreeWidgetItem
@@ -381,7 +367,7 @@ class GroupedTreeWidget(QtWidgets.QTreeWidget):
             return treeItem.text(self.WIDGET_COL)
 
     def filter(self, text):
-        """Hide anything that that doesnt have text. Used for searches.
+        """ Hide anything that that doesnt have text. Used for searches.
 
         :param text:
         """
@@ -396,7 +382,7 @@ class GroupedTreeWidget(QtWidgets.QTreeWidget):
             self.setItemHidden(treeItem, not found)
 
     def addGroup(self, name="", expanded=True, groupSelected=True, groupWgt=None):
-        """Adds a group to the ComponentTreeWidget. If no name is given, it will generate a unique one
+        """ Adds a group to the ComponentTreeWidget. If no name is given, it will generate a unique one
         in the form of "Group 1", "Group 2", "Group 3" etc
 
         :param groupSelected:
@@ -408,7 +394,7 @@ class GroupedTreeWidget(QtWidgets.QTreeWidget):
         """
 
         if self.locked:
-            print("Locked. Adding of groups disabled")
+            logger.warning("Locked. Adding of groups disabled")
             return
 
         # Place group after last selected item
@@ -428,7 +414,7 @@ class GroupedTreeWidget(QtWidgets.QTreeWidget):
                 if self.getItemType(s) == self.ITEMTYPE_GROUP:
                     continue
 
-                self.addToGroup(s, group, updateTree=False)
+                self.addToGroup(s, group)
 
         group.setExpanded(expanded)
         self.updateTreeWidget()
@@ -450,7 +436,7 @@ class GroupedTreeWidget(QtWidgets.QTreeWidget):
         :return:
         """
         if self.locked:
-            print("Locked. Adding of groups disabled")
+            logger.warning("Locked. Adding of groups disabled")
             return
 
         name = name or self.getUniqueGroupName()
@@ -489,7 +475,8 @@ class GroupedTreeWidget(QtWidgets.QTreeWidget):
         return self.defaultGroupName + " " + str(num + 1)
 
     def applyFlags(self):
-        """Apply flags as set by self.groupFlags and self.itemWidgetFlags.
+        """ Apply flags as set by self.groupFlags and self.itemWidgetFlags.
+
         ITEMTYPE_WIDGET gets applied a different set of drag drop flags to
         ITEMWIDGET_GROUP
         """
@@ -663,7 +650,6 @@ class ItemWidgetLabel(QtWidgets.QLabel):
     def connectEvent(self, func):
         self.emitTarget = func
         self.triggered.connect(func)
-        # self.clicked.connect(func)
 
     def copy(self):
         CurrentType = type(self)
@@ -678,6 +664,12 @@ class ItemWidgetLabel(QtWidgets.QLabel):
     def mouseDoubleClickEvent(self, event):
         self.triggered.emit()
         # self.emitTarget()
+
+    def mousePressEvent(self, event):
+        event.ignore()
+
+    def mouseReleaseEvent(self, event):
+        event.ignore()
 
     def text(self):
         return super(ItemWidgetLabel, self).text()
