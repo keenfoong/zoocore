@@ -6,7 +6,6 @@ from zoo.libs.pyqt.extended import expandedtooltip
 from zoo.libs.pyqt.extended.stackwidget import LineClickEdit
 from zoo.libs.pyqt.widgets import frame
 from zoo.libs.utils import zlogging
-import time
 
 logger = zlogging.getLogger(__name__)
 
