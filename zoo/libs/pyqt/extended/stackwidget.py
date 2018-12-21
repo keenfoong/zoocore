@@ -1,3 +1,4 @@
+import time
 from qt import QtWidgets, QtCore, QtGui
 from zoo.libs import iconlib
 from zoo.libs.pyqt import uiconstants
@@ -335,7 +336,6 @@ class StackItem(QtWidgets.QFrame):
         if startHidden:
             self.hide()
 
-        self.setAutoFillBackground(True)
         self._itemIcon = icon or self._itemIcon
         self.stackWidget = parent
         self.hide()
@@ -645,6 +645,7 @@ class LineClickEdit(QtWidgets.QLineEdit):
         self.editingStyle = self.styleSheet()
         self.defaultStyle = "QLineEdit { border: 0}"
         self.setStyleSheet(self.defaultStyle)
+        self.setContextMenuPolicy(QtCore.Qt.NoContextMenu)
 
         if single:
             self.mousePressEvent = self.editEvent
@@ -677,3 +678,7 @@ class LineClickEdit(QtWidgets.QLineEdit):
 
     def mouseClickPassThrough(self, event):
         event.ignore()
+
+    def mouseReleaseEvent(self, event):
+        event.ignore()
+
