@@ -1,3 +1,5 @@
+from functools import partial
+
 from qt import QtWidgets, QtCore, QtGui
 
 from zoo.libs import iconlib
@@ -5,7 +7,6 @@ from zoo.libs.pyqt import utils
 from zoo.libs.pyqt.extended import searchablemenu, expandedtooltip
 from zoo.libs.pyqt.extended.searchablemenu import action as taggedAction
 from zoo.libs.utils import zlogging
-from zoo.preferences import preference
 
 logger = zlogging.getLogger(__name__)
 
@@ -188,9 +189,9 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
 
         self.menuAlign = QtCore.Qt.AlignLeft
 
-        self.leftClicked.connect(lambda: self.contextMenu(QtCore.Qt.LeftButton))
-        self.middleClicked.connect(lambda: self.contextMenu(QtCore.Qt.MidButton))
-        self.rightClicked.connect(lambda: self.contextMenu(QtCore.Qt.RightButton))
+        self.leftClicked.connect(partial(self.contextMenu, QtCore.Qt.LeftButton))
+        self.middleClicked.connect(partial(self.contextMenu, QtCore.Qt.MidButton))
+        self.rightClicked.connect(partial(self.contextMenu, QtCore.Qt.RightButton))
 
         self.doubleClickInterval = QtWidgets.QApplication.instance().doubleClickInterval()  # 500
         self.doubleClickEnabled = doubleClickEnabled
@@ -422,7 +423,9 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
 
         return self.clickMenu[mouseMenu]
 
-    def addAction(self, name, mouseMenu=QtCore.Qt.LeftButton, connect=None, checkable=False, checked=True, action=None, icon=None):
+    def addAction(self, name, mouseMenu=QtCore.Qt.LeftButton,
+                  connect=None, checkable=False,
+                  checked=True, action=None, icon=None):
         """Add a new menu item through an action
 
         :param mouseMenu: Expects QtCore.Qt.LeftButton, QtCore.Qt.MidButton, or QtCore.Qt.RightButton
@@ -433,7 +436,8 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
         :rtype: taggedAction.TaggedAction
 
         """
-        menu = self.getMenu(mouseMenu, searchable=self.isSearchable(mouseMenu))
+        # temporarily disabled isSearchable due to c++ error
+        menu = self.getMenu(mouseMenu, searchable=False)#self.isSearchable(mouseMenu))
 
         if action is not None:
             menu.addAction(action)
@@ -450,7 +454,7 @@ class ExtendedButton(QtWidgets.QPushButton, ButtonIcons):
 
         if connect is not None:
             if checkable:
-                newAction.triggered.connect(lambda: connect(newAction))
+                newAction.triggered.connect(partial(connect, newAction))
             else:
                 newAction.triggered.connect(connect)
 
@@ -492,10 +496,9 @@ class ExtendedPushButton(ExtendedButton):
 
 class ExtendedButtonMenu(searchablemenu.SearchableMenu):
     def __init__(self, *args, **kwargs):
+        super(ExtendedButtonMenu, self).__init__(*args, **kwargs)
         self.ttKeyPressed = False
         self.ttKey = QtCore.Qt.Key_Control
-        self.themePref = preference.interface("core_interface")
-        super(ExtendedButtonMenu, self).__init__(*args, **kwargs)
 
     def keyPressEvent(self, event):
         """ Key press event
@@ -511,8 +514,6 @@ class ExtendedButtonMenu(searchablemenu.SearchableMenu):
             if expandedtooltip.hasExpandedTooltips(action):
                 self._popuptooltip = expandedtooltip.ExpandedTooltipPopup(action, iconSize=utils.dpiScale(40),
                                                                           popupRelease=self.ttKey)
-                self._popuptooltip.setStyleSheet(self.themePref.stylesheet().data)
-
             self.ttKeyPressed = True
 
         super(ExtendedButtonMenu, self).keyPressEvent(event)
