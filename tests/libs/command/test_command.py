@@ -1,4 +1,4 @@
-import unittestBase
+from zoo.libs.utils import unittestBase
 from zoo.libs.command import command
 
 
