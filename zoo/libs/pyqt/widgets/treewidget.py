@@ -160,7 +160,7 @@ class TreeWidgetGroup(QtWidgets.QWidget):
         self.horizontalLayout.addItem(spacerItem)
         self.titleFrame.setFixedHeight(self.titleFrame.sizeHint().height())
 
-        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height()+3)
+        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height() + 3)
 
         self.horizontalLayout.addWidget(self.groupTextEdit)
         self.horizontalLayout.addLayout(self.titleExtrasLayout)
@@ -235,7 +235,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
         self.groupFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable
         self.groupUnlockedFlags = QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
 
-        self.itemWidgetFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled
+        self.itemWidgetFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled \
+                               | QtCore.Qt.ItemIsEnabled
         self.itemWidgetUnlockedFlags = QtCore.Qt.ItemIsDragEnabled
 
         self.locked = locked
@@ -381,7 +382,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
 
         :param widget: Expects ItemWidget or any subclass of QtWidgets.QWidget.
         :param index: Index to insert into
-        :param treeParent: The parent that it will insert into. If treeParent is None, it will assume the parent to be Root
+        :param treeParent: The parent that it will insert into. If treeParent is None, it will assume the parent to
+        be Root
         :type treeParent: TreeWidgetItem or None
         :param itemType: The type of widget being set for the new Item.
         :param icon: Icon to set for the TreeWidgetItem
@@ -552,6 +554,8 @@ class TreeWidget(QtWidgets.QTreeWidget):
                 return treeItem.text(self.WIDGET_COL)
         elif itemType == self.ITEMTYPE_GROUP:
             return treeItem.text(self.WIDGET_COL)
+        else:
+            return treeItem.text()
 
     def filter(self, text):
         """Hide anything that that doesnt have text. Used for searches.

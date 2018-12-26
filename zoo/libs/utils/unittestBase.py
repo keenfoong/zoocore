@@ -76,15 +76,14 @@ def runTests(directories=None, test=None, test_suite=None, buffer=False, resultC
     runner.run(test_suite)
 
 
-def getTests(directories=None, test=None, test_suite=None):
+def getTests(directories, test=None, test_suite=None):
     """Get a unittest.TestSuite containing all the desired tests.
 
-    @param directories: Optional list of directories with which to search for tests.  If omitted, use all "tests"
-    directories of the modules found in the MAYA_MODULE_PATH.
-    @param test: Optional test path to find a specific test such as 'test_mytest.SomeTestCase.test_function'.
-    @param test_suite: Optional unittest.TestSuite to add the discovered tests to.  If omitted a new TestSuite will be
+    :param directories: Optional list of directories with which to search for tests.
+    :param test: Optional test path to find a specific test such as 'test_mytest.SomeTestCase.test_function'.
+    :param test_suite: Optional unittest.TestSuite to add the discovered tests to.  If omitted a new TestSuite will be
     created.
-    @return: The populated TestSuite.
+    :return: The populated TestSuite.
     """
     # Populate a TestSuite with all the tests
     if test_suite is None:
@@ -92,7 +91,7 @@ def getTests(directories=None, test=None, test_suite=None):
 
     if test:
         # Find the specified test to run
-        directories_added_to_path = [os.path.dirname(p) for p in directories if env.addToSysPath(p)]
+        directories_added_to_path = [os.path.dirname(p) for p in directories]
         discovered_suite = unittest.TestLoader().loadTestsFromName(test)
         if discovered_suite.countTestCases():
             test_suite.addTests(discovered_suite)

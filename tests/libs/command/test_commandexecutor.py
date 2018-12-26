@@ -9,11 +9,15 @@ class TestCommandExecutor(unittestBase.BaseUnitest):
     @classmethod
     def setUpClass(cls):
         super(TestCommandExecutor, cls).setUpClass()
-        os.environ["TESTDATA"] = "test.testdata.commanddata"
+        os.environ["TESTDATA"] = "testdata.commanddata.testcommands"
 
     def setUp(self):
         self.executor = base.ExecutorBase()
         self.env = "TESTDATA"
+
+    @classmethod
+    def tearDownClass(cls):
+        del os.environ["TESTDATA"]
 
     def testRegisterCommand(self):
         self.executor.registry.registerPlugin(testcommands.TestCommandReg)

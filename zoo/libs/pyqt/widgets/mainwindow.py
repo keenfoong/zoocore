@@ -5,6 +5,8 @@ from zoo.libs.pyqt.widgets import dockwidget
 
 
 class MainWindow(QtWidgets.QMainWindow):
+    closed = QtCore.Signal()
+
     def __init__(self, title="", width=600, height=800, icon="",
                  parent=None, showOnInitialize=True, transparent=False):
         super(MainWindow, self).__init__(parent=parent)
@@ -134,7 +136,7 @@ class MainWindow(QtWidgets.QMainWindow):
             qsettings.setValue("pos", self.pos())
             qsettings.setValue("size", self.size())
         qsettings.endGroup()
-
+        self.closed.emit()
         super(MainWindow, self).closeEvent(ev)
 
     def reapplySettings(self):

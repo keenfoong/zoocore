@@ -47,5 +47,7 @@ class TestCommand(unittestBase.BaseUnitest):
     def testResolveArguments(self):
         command = TestZooPreparePassesCommand()
         command._prepareCommand()
-        self.assertTrue(command._resolveArguments({"shouldFail": "hopeful", "value": "hello"}))
-        self.assertRaises(ValueError, command._resolveArguments, {"shouldFail": "hopeful", "badArgument": "hello"})
+        self.assertTrue(command._resolveArguments({"shouldFail":
+                                                       "hopeful",
+                                                   "value": "hello"}))
+

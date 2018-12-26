@@ -3,7 +3,6 @@ from zoo.libs import iconlib
 from zoo.libs.pyqt import uiconstants
 from zoo.libs.pyqt.widgets import frame, extendedbutton
 from zoo.libs.pyqt import utils as qtutils
-from zoo.preferences import preference
 
 
 class StackWidget(QtWidgets.QWidget):
@@ -361,7 +360,6 @@ class StackItem(QtWidgets.QFrame):
         self.collapsed = collapsed
         self.titleFrame = frame.QFrame(parent=self)
         self.expandToggleButton = extendedbutton.ExtendedButton(parent=self)
-        self.themePref = preference.interface("core_interface")
 
         if not shiftArrowsEnabled:
             self.shiftDownBtn.hide()
@@ -421,9 +419,8 @@ class StackItem(QtWidgets.QFrame):
         self.stackTitleWgt.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents, trans)
 
     def initUi(self):
-        col = self.themePref.STACKITEM_HEADER_FOREGROUND
 
-        self.itemIcon.setIconByName(self._itemIcon, colors=col, size=self.itemIconSize)
+        self.itemIcon.setIconByName(self._itemIcon, colors=None, size=self.itemIconSize)
         self.itemIcon.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
 
         # Title Frame
@@ -437,9 +434,9 @@ class StackItem(QtWidgets.QFrame):
         iconSize = 12
         highlightOffset = 40
 
-        self.deleteBtn.setIconByName(self._deleteIconName, colors=col, size=iconSize, colorOffset=highlightOffset)
-        self.shiftUpBtn.setIconByName(self._upIconName, colors=col, size=iconSize, colorOffset=highlightOffset)
-        self.shiftDownBtn.setIconByName(self._downIconName, colors=col, size=iconSize, colorOffset=highlightOffset)
+        self.deleteBtn.setIconByName(self._deleteIconName, colors=None, size=iconSize, colorOffset=highlightOffset)
+        self.shiftUpBtn.setIconByName(self._upIconName, colors=None, size=iconSize, colorOffset=highlightOffset)
+        self.shiftDownBtn.setIconByName(self._downIconName, colors=None, size=iconSize, colorOffset=highlightOffset)
         self.expandToggleButton.setIconByName(self._expandIconName, colors=(192, 192, 192), size=iconSize)
 
     def setItemIconColor(self, col):
