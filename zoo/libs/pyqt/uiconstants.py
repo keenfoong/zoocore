@@ -5,4 +5,4 @@ MARGINS = (2, 2, 2, 2)  # default margins left, top, right, bottom
 SPACING = 2
 SMALLSPACING = 2
 DEFAULT_DPI = 96
-
+TEXT_SPACING = 7
