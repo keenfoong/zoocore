@@ -149,7 +149,6 @@ class Icon(object):
 
         origSize = iconLargest.availableSizes()[0]
         pixmap = cls.colorPixmap(iconLargest.pixmap(origSize), color)
-
         # Add overlay icon
         if overlayName is not None:
             overlayIcon = cls.icon(overlayName, -1)

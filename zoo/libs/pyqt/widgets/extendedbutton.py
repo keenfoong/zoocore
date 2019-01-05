@@ -3,13 +3,15 @@ from functools import partial
 from qt import QtWidgets, QtCore, QtGui
 
 from zoo.libs import iconlib
-from zoo.libs.pyqt import utils
+from zoo.libs.pyqt import utils, uiconstants
 from zoo.libs.pyqt.extended import searchablemenu, expandedtooltip
 from zoo.libs.pyqt.extended.searchablemenu import action as taggedAction
 from zoo.libs.utils import zlogging
 
 logger = zlogging.getLogger(__name__)
 
+BTN_DEFAULT = uiconstants.BTN_DEFAULT
+BTN_TRANSPARENT_BG = uiconstants.BTN_TRANSPARENT_BG
 
 class ButtonIcons(QtWidgets.QAbstractButton):
     """Set up the icons that change on mouse over, press and release. Inherit from this class to have icons
@@ -37,13 +39,16 @@ class ButtonIcons(QtWidgets.QAbstractButton):
     def setIconByName(self, iconNames, colors=None, size=None, colorOffset=None, iconScaling=None):
         """Set up both icons in a simple function
 
-        :param iconNames:
+        :param iconNames: name of the icon
         :type iconNames: basestring or list
-        :param colors:
+        :param colors: the icon regular color
         :type colors: tuple or list or None
-        :param size: Size is dpiScaled automatically here
-        :param colorOffset:
-        :return:
+        :param size: Size is dpiScaled automatically here, but can be passed in
+        :type size: int
+        :param colorOffset: the amount of tint white highlight that's added when mouse over hover 0-255
+        :type colorOffset: int
+        :param iconScaling: the icon's scale
+        :type iconScaling: int
         """
         if size is not None:
             self.setIconSize(QtCore.QSize(size, size))
@@ -523,5 +528,138 @@ class ExtendedButtonMenu(searchablemenu.SearchableMenu):
             self.ttKeyPressed = False
 
 
+class BtnTransparentBG(ExtendedButton):
+    """Create a button with a transparent bg.  Saves code from doing this over and over
+    Default Icon colour (None) is light grey and turns white (lighter in color) with mouse over.
+    *Note WIP: Will fill out more options with time
+    """
+    def __init__(self, text=None, icon=None, parent=None, toolTip="", textCaps=False, iconColor=(255, 255, 255), minWidth=None,
+                 maxWidth=None, iconSize=16, overlayIconName=None, overlayIconColor=None):
+        """Creates a regular pyside button
 
+        :param text: The button text
+        :type icon: str
+        :param icon: The icon image name, icon is automatically sized
+        :type icon: str
+        :param parent: The parent widget
+        :type parent: object
+        :param toolTip: The tooltip as seen with mouse over extra information
+        :type toolTip: str
+        :param textCaps: Bool to make the button text all caps
+        :type textCaps: bool
+        :param iconColor: The color of the icon (255, 134, 23) *Not implemented yet
+        :type iconColor: tuple
+        :param minWidth: minimum width of the button in pixels, DPI handled
+        :type minWidth: int
+        :param maxWidth: maximum width of the button in pixels, DPI handled
+        :type maxWidth: int
+        :param iconSize: The size of the icon in pixels, always square, DPI handled
+        :type iconSize: int
+        :param overlayIconName: The name of the icon image that will be overlayed on top of the original icon
+        :param overlayIconName: tuple
+        :param overlayIconColor: The color of the overlay image icon (255, 134, 23) *Not implemented yet
+        :type overlayIconColor: tuple
+        """
+        super(BtnTransparentBG, self).__init__(parent=parent, text=text)
+        if icon:
+            self.setIconByName(icon, colors=iconColor)
+            """
+            # icon colorized anti aliasing is not working correctly?  Icons appear thicker
+            self.setIcon(iconlib.iconColorized(icon, size=iconSize, color=iconColor, overlayName=overlayIconName,
+                               overlayColor=overlayIconColor))
+            """
+        self.setToolTip(toolTip)
+        if minWidth:
+            self.setMinimumWidth(utils.dpiScale(minWidth))
+
+
+class BtnRegular(QtWidgets.QPushButton):
+    """Creates regular pyside button with text or an icon
+    *Note WIP: Will fill out more options with time
+    * should probably override ExtendedButton and not QtWidgets.QPushButton for full options
+    """
+    def __init__(self, text=None, icon=None, parent=None, toolTip="", textCaps=False, iconColor=(255, 255, 255),
+                 minWidth=None, maxWidth=None, iconSize=16, overlayIconName=None, overlayIconColor=(255,255,255)):
+        """Creates a regular pyside button
+
+        :param text: The button text
+        :type icon: str
+        :param icon: The icon image name, icon is automatically sized
+        :type icon: str
+        :param parent: The parent widget
+        :type parent: object
+        :param toolTip: The tooltip as seen with mouse over extra information
+        :type toolTip: str
+        :param textCaps: Bool to make the button text all caps
+        :type textCaps: bool
+        :param iconColor: The color of the icon (255, 134, 23) *Not implemented yet
+        :type iconColor: tuple
+        :param minWidth: minimum width of the button in pixels, DPI handled
+        :type minWidth: int
+        :param maxWidth: maximum width of the button in pixels, DPI handled
+        :type maxWidth: int
+        :param iconSize: The size of the icon in pixels, always square, DPI handled
+        :type iconSize: int
+        :param overlayIconName: The name of the icon image that will be overlayed on top of the original icon
+        :param overlayIconName: tuple
+        :param overlayIconColor: The color of the overlay image icon (255, 134, 23) *Not implemented yet
+        :type overlayIconColor: tuple
+        """
+        super(BtnRegular, self).__init__(text, parent=parent)
+        if icon:
+            self.setIconByName(icon, colors=iconColor)
+            """
+            # icon colorized anti aliasing is not working correctly?  Icons appear thicker
+            self.setIcon(iconlib.iconColorized(icon, size=iconSize, color=iconColor, overlayName=overlayIconName,
+                               overlayColor=overlayIconColor))
+            """
+        if toolTip:
+            self.setToolTip(toolTip)
+        if minWidth:
+            self.setMinimumWidth(utils.dpiScale(minWidth))
+
+
+def BtnStyle(text=None, icon=None, parent=None, toolTip="", style=BTN_DEFAULT, textCaps=False,
+             iconColor=(255, 255, 255), minWidth=None, maxWidth=None, iconSize=16, overlayIconName=None,
+             overlayIconColor=None):
+    """Create a button with text or an icon in various styles and options
+
+    Style - 0 - BTN_DEFAULT - Default pyside button with optional text or an icon
+    Style - 1 - BTN_TRANSPARENT_BG - Default pyside button w transparent bg. Icon colour is grey and lighter with hover
+
+    :param text: The button text
+    :type icon: str
+    :param icon: The icon image name, icon is automatically sized
+    :type icon: str
+    :param parent: The parent widget
+    :type parent: object
+    :param toolTip: The tooltip as seen with mouse over extra information
+    :type toolTip: str
+    :param style: The style of the button, 0 default, 1 no bg. See pyside.uiconstants BTN_DEFAULT, BTN_TRANSPARENT_BG
+    :type style: int
+    :param textCaps: Bool to make the button text all caps
+    :type textCaps: bool
+    :param iconColor: The color of the icon (255, 134, 23) *Not implemented yet
+    :type iconColor: tuple
+    :param minWidth: minimum width of the button in pixels, DPI handled
+    :type minWidth: int
+    :param maxWidth: maximum width of the button in pixels, DPI handled
+    :type maxWidth: int
+    :param iconSize: The size of the icon in pixels, always square, DPI handled
+    :type iconSize: int
+    :param overlayIconName: The name of the icon image that will be overlayed on top of the original icon
+    :param overlayIconName: tuple
+    :param overlayIconColor: The color of the overlay image icon (255, 134, 23) *Not implemented yet
+    :type overlayIconColor: tuple
+    :return qtBtn: returns a qt button widget
+    :rtype qtBtn: object
+    """
+    if style == BTN_DEFAULT:
+        return BtnRegular(text=text, icon=icon, parent=parent, toolTip=toolTip, textCaps=textCaps,
+                          iconColor=iconColor, minWidth=minWidth, maxWidth=maxWidth, iconSize=iconSize,
+                          overlayIconName=overlayIconName, overlayIconColor=overlayIconColor)
+    if style == BTN_TRANSPARENT_BG:
+        return BtnTransparentBG(text=text, icon=icon, parent=parent, toolTip=toolTip, textCaps=textCaps,
+                                iconColor=iconColor, minWidth=minWidth, maxWidth=maxWidth, iconSize=iconSize,
+                                overlayIconName=overlayIconName, overlayIconColor=overlayIconColor)
 

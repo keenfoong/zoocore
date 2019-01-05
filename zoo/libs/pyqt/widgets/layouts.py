@@ -3,16 +3,15 @@ from collections import OrderedDict
 from qt import QtWidgets, QtCore, QtGui
 from zoo.libs import iconlib
 from zoo.libs.pyqt.extended import combobox
-from zoo.libs.pyqt import uiconstants
+from zoo.libs.pyqt import uiconstants, utils
 from zoo.libs.pyqt.widgets import frame
-
 
 class StringEdit(QtWidgets.QWidget):
     textChanged = QtCore.Signal(str)
     buttonClicked = QtCore.Signal()
 
-    def __init__(self, label, placeholderText=None, buttonText=None, parent=None, editWidth=None,
-                 labelRatio=1, btnRatio=1, editRatio=1):
+    def __init__(self, label, placeholder="", placeholderText=False, buttonText=None, parent=None, editWidth=None,
+                 labelRatio=1, btnRatio=1, editRatio=1, toolTip=""):
         """Creates a label, textbox (QLineEdit) and an optional button
         if the button is None then no button will be created
 
@@ -32,6 +31,8 @@ class StringEdit(QtWidgets.QWidget):
         :type btnRatio: float
         :param editRatio: the width ratio of the label/text/button corresponds to the ratios of labelRatio/btnRatio
         :type editRatio: float
+        :param toolTip: the tool tip message on mouse over hover, extra info
+        :type toolTip: str
         """
         super(StringEdit, self).__init__(parent=parent)
         self.edit = QtWidgets.QLineEdit(parent=self)
@@ -39,17 +40,19 @@ class StringEdit(QtWidgets.QWidget):
             self.edit.setFixedWidth(editWidth)
         self.layout = QtWidgets.QHBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.setSpacing(uiconstants.TEXT_SPACING)  # not sure why this is large spacing
+        self.layout.setSpacing(utils.dpiScale(uiconstants.SREG))  # reg spacing
         self.layout.addWidget(QtWidgets.QLabel(label, parent=self), labelRatio)
         if placeholderText:
-            self.edit.setPlaceholderText(placeholderText)
+            self.edit.setPlaceholderText(placeholder)
         else:
-            self.edit.setText(placeholderText)
+            self.edit.setText(placeholder)
         self.layout.addWidget(self.edit, editRatio)
         self.buttonText = buttonText
         if self.buttonText:
             self.btn = QtWidgets.QPushButton(buttonText, parent=self)
             self.layout.addWidget(self.btn, btnRatio)
+        if toolTip:
+            self.setToolTip(toolTip)
         self.setLayout(self.layout)
         self.connections()
 
@@ -823,3 +826,20 @@ class QVLine(QtWidgets.QFrame):
         super(QVLine, self).__init__()
         self.setFrameShape(QtWidgets.QFrame.VLine)
         self.setFrameShadow(QtWidgets.QFrame.Sunken)
+
+
+def HBoxLayout(marginOverride=(0, 0, 0, 0), spacingOverride=uiconstants.SREG):
+    """One liner for QtWidgets.QHBoxLayout() to make it easier to create an easy HBox layout
+    DPI (4k) is handled here
+    Defaults use regular spacing and no margins
+
+    :param marginOverride:  override the margins with this value
+    :type marginOverride: tuple
+    :param spacingOverride: override the spacing with this pixel value
+    :type spacingOverride: int
+    """
+    zooQHBoxLayout = QtWidgets.QHBoxLayout()
+    zooQHBoxLayout.setContentsMargins(*utils.marginsDpiScale(*marginOverride))
+    zooQHBoxLayout.setSpacing(utils.dpiScale(spacingOverride))
+    return zooQHBoxLayout
+
