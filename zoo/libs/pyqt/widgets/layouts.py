@@ -36,6 +36,8 @@ class StringEdit(QtWidgets.QWidget):
         """
         super(StringEdit, self).__init__(parent=parent)
         self.edit = QtWidgets.QLineEdit(parent=self)
+        # todo: hardcoded color here as a temp workaround, this should be in stylesheets
+        self.edit.setStyleSheet("background-color: rgb(27, 27, 27);")
         if editWidth:
             self.edit.setFixedWidth(editWidth)
         self.layout = QtWidgets.QHBoxLayout(self)
@@ -51,8 +53,7 @@ class StringEdit(QtWidgets.QWidget):
         if self.buttonText:
             self.btn = QtWidgets.QPushButton(buttonText, parent=self)
             self.layout.addWidget(self.btn, btnRatio)
-        if toolTip:
-            self.setToolTip(toolTip)
+        self.setToolTip(toolTip)
         self.setLayout(self.layout)
         self.connections()
 
@@ -74,10 +75,10 @@ class StringEdit(QtWidgets.QWidget):
         return self.edit.text()
 
 
-class ComboBox(QtWidgets.QWidget):
+class ComboBoxSearchable(QtWidgets.QWidget):
     itemChanged = QtCore.Signal(int, str)
 
-    def __init__(self, label="", items=(), parent=None):
+    def __init__(self, label="", items=(), parent=None, labelRatio=None, boxRatio=None, toolTip="", setIndex=0):
         """Creates a combo box (drop down menu) with a label
 
         :param label: the label of the combobox
@@ -87,15 +88,25 @@ class ComboBox(QtWidgets.QWidget):
         :param parent: the qt parent
         :type parent: class
         """
-        super(ComboBox, self).__init__(parent=parent)
+        super(ComboBoxSearchable, self).__init__(parent=parent)
         layout = QtWidgets.QHBoxLayout(self)
         layout.setContentsMargins(2, 2, 2, 2)
         layout.setSpacing(uiconstants.SPACING)
         self.box = combobox.ExtendedComboBox(items, parent)
 
-        if label != "":
+        if label:
             self.label = QtWidgets.QLabel(label, parent=self)
-            layout.addWidget(self.label)
+            if labelRatio:
+                layout.addWidget(self.label, labelRatio)
+            else:
+                layout.addWidget(self.label)
+        if boxRatio:
+            layout.addWidget(self.box, boxRatio)
+        else:
+            layout.addWidget(self.box)
+        self.box.setToolTip(toolTip)
+        if setIndex:
+            self.box.setCurrentIndex(setIndex)
 
         layout.addWidget(self.box)
         self.setLayout(layout)
@@ -105,7 +116,7 @@ class ComboBox(QtWidgets.QWidget):
     def __getattr__(self, item):
         if hasattr(self.box, item):
             return getattr(self.box, item)
-        super(ComboBox, self).__getAttribute__(item)
+        super(ComboBoxSearchable, self).__getAttribute__(item)
 
     def onItemChanged(self):
         """when the items changed return the tuple of values
@@ -147,7 +158,7 @@ class ComboBoxRegular(QtWidgets.QWidget):
     """
     itemChanged = QtCore.Signal(int, str)
 
-    def __init__(self, label="", items=None, parent=None, labelRatio=None, boxRatio=None):
+    def __init__(self, label="", items=(), parent=None, labelRatio=None, boxRatio=None, toolTip="", setIndex=0):
         """initialize class
 
         :param label: the label of the combobox
@@ -156,6 +167,10 @@ class ComboBoxRegular(QtWidgets.QWidget):
         :type items: list
         :param parent: the qt parent
         :type parent: class
+        :param toolTip: the tooltip info to display with mouse hover
+        :type toolTip: str
+        :param setIndex: set the combo box value as an int - 0 is the first value, 1 is the second
+        :type setIndex: int
         """
         super(ComboBoxRegular, self).__init__(parent=parent)
 
@@ -177,6 +192,9 @@ class ComboBoxRegular(QtWidgets.QWidget):
             layout.addWidget(self.box, boxRatio)
         else:
             layout.addWidget(self.box)
+        self.box.setToolTip(toolTip)
+        if setIndex:
+            self.box.setCurrentIndex(setIndex)
         self.setLayout(layout)
 
         self.box.currentIndexChanged.connect(self.onItemChanged)
@@ -219,6 +237,30 @@ class ComboBoxRegular(QtWidgets.QWidget):
         index = self.findText(text, QtCore.Qt.MatchFixedString)
         if index >= 0:
             self.setCurrentIndex(index)
+
+
+def CheckBoxRegular(label="", setChecked=False, parent=None, toolTip=""):
+    """Creates a regular check box (on off) with extra simple options
+
+    :param label: the label of the checkbox
+    :type label: string
+    :param setChecked: the default state of the checkbox (True on, False off)
+    :type setChecked: bool
+    :param parent: the qt parent
+    :type parent: class
+    :param toolTip: the tooltip info to display with mouse hover
+    :type toolTip: str
+    :return qWidget: the checkbox qt widget
+    :rtype value: object
+    """
+    box = QtWidgets.QCheckBox(label, parent=parent)
+    box.setToolTip(toolTip)
+    if setChecked:
+        box.setChecked(setChecked)
+    # todo: hardcoded color here as a temp workaround, should be in stylesheets
+    box.setStyleSheet("QCheckBox::indicator:checked, QCheckBox::indicator:unchecked "
+                       "{background: rgb(27, 27, 27);}")
+    return box
 
 
 class Vector(QtWidgets.QWidget):
@@ -345,7 +387,7 @@ class Transformation(QtWidgets.QWidget):
         self.translationVec = Vector("Translation:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
         self.rotationVec = Vector("Rotation:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
         self.scaleVec = Vector("Scale:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
-        self.rotationOrderBox = ComboBox("RotationOrder:", Transformation.rotOrders, parent=self)
+        self.rotationOrderBox = ComboBoxSearchable("RotationOrder:", Transformation.rotOrders, parent=self)
         self.layout.addWidget(self.translationVec)
         self.layout.addWidget(self.rotationVec)
         self.layout.addWidget(self.rotationVec)

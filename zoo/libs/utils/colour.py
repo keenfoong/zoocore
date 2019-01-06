@@ -303,6 +303,7 @@ class RGBRotate(object):
 
 def hslColourOffsetFloat(rgb, hueOffset=0, saturationOffset=0, lightnessOffset=0):
     """Offset color with hue, saturation and lightness (brighten/darken) values
+
     Colour is expected as rgb  in 0.0-1.0 float range eg (0.1, 0.34, 1.0)
     Offsets are in...
         hue: 0-360,
