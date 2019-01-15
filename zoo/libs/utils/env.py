@@ -143,3 +143,17 @@ def addToEnv(env, newPaths):
         if p not in paths:
             paths.append(p)
     os.environ[env] = os.pathsep.join(paths) + os.pathsep
+
+
+def addToSysPath(path):
+    """Add the specified path to the system path.
+
+    :param path: Path to add.
+    :type path: str
+    :return True if path was added. False if path does not exist or path was already in sys.path
+    :rtype: bool
+    """
+    if os.path.exists(path) and path not in sys.path:
+        sys.path.insert(0, path)
+        return True
+    return False

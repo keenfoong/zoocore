@@ -60,6 +60,11 @@ class ToolSet(object):
         self.roots = OrderedDict()
         self.extension = ".json"
 
+    def rootNameForPath(self, path):
+        for name, root in self.roots.items():
+            if root.startswith(path):
+                return name
+
     def root(self, name):
         if name not in self.roots:
             raise RootDoesntExistsError("Root by the name: {} doesn't exist".format(name))

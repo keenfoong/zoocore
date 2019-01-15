@@ -20,7 +20,7 @@ class ExecutorBase(object):
 
     @property
     def commands(self):
-        return self.commandRegistry.plugins
+        return self.registry.plugins
 
     def execute(self, name, *args, **kwargs):
         command = self.registry.getPlugin(name)

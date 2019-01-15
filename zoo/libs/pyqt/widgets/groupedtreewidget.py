@@ -580,7 +580,7 @@ class GroupWidget(QtWidgets.QWidget):
         self.horizontalLayout.addItem(spacerItem)
         self.titleFrame.setFixedHeight(self.titleFrame.sizeHint().height())
 
-        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height()+3)
+        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height() + 3)
 
         self.horizontalLayout.addWidget(self.groupTextEdit)
         self.horizontalLayout.addLayout(self.titleExtrasLayout)
