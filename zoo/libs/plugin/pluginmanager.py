@@ -52,8 +52,10 @@ class PluginManager(object):
             if os.path.exists(p) and os.path.isdir(p):
                 self.registerByPackage(p)
                 continue
-            elif p:
+            elif os.path.isfile(p):
                 importedModule = modules.importModule(modules.asDottedPath(os.path.normpath(p)))
+            elif modules.isDottedPath(p):
+                importedModule = modules.importModule(os.path.normpath(p))
             if importedModule:
                 self.registerByModule(importedModule)
                 continue

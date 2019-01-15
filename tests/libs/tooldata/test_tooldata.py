@@ -34,21 +34,24 @@ class TestToolData(unittest.TestCase):
 
     def test_addRoots(self):
         self._bindRoots()
-        self.assertEquals(len(tooldata.ROOTS.keys()), 3)
+        self.assertEquals(len(self.toolset.roots.keys()), 3)
+
         # check to make sure order is kept
-        for i in range(3):
-            rootKey = tooldata.ROOTS.keys()[i]
-            self.assertTrue(rootKey, tooldata.ROOTS[rootKey])
+        for i in range(len(self.roots.keys())):
+            testRoot = self.roots[self.roots.keys()[i]]
+            self.assertTrue(self.toolset.roots[self.toolset.roots.keys()[i]], testRoot)
         with self.assertRaises(tooldata.RootAlreadyExistsError):
-            self.toolset.addRoot(tooldata.ROOTS["internal"], "internal")
+            self.toolset.addRoot(self.toolset.root("internal"), "internal")
 
     def test_createSetting(self):
+        self.toolset.addRoot(self.roots["user"], "user")
         toolsSetting = self.toolset.createSetting(self.workspaceSetting, root="user",
                                                   data={"testdata": {"bob": "hello"}})
-        self.assertEquals(toolsSetting.root, "user")
-        self.assertTrue(os.path.exists(toolsSetting.path()))
-        self.assertTrue((tooldata.ROOTS["user"] / self.workspaceSetting).exists())
-        newSettings = toolsSetting.open(toolsSetting.root, toolsSetting.relativePath)
+        self.assertEquals(self.toolset.rootNameForPath(toolsSetting.rootPath()), "user")
+        toolsSetting.save()
+        self.assertTrue(os.path.exists(toolsSetting.path()), msg="Path doesn't exist: {}".format(toolsSetting.path()))
+        self.assertTrue(self.toolset.findSetting(self.workspaceSetting, root="user").isValid())
+        newSettings = self.toolset.open(toolsSetting.root, toolsSetting.relativePath)
         self.assertEquals(newSettings["relativePath"], toolsSetting["relativePath"])
         self.assertEquals(newSettings["root"], toolsSetting["root"])
         self.assertEquals(newSettings["testdata"], {"bob": "hello"})

@@ -6,7 +6,6 @@ from zoo.libs.pyqt.extended import expandedtooltip
 from zoo.libs.pyqt.extended.stackwidget import LineClickEdit
 from zoo.libs.pyqt.widgets import frame
 from zoo.libs.utils import zlogging
-import time
 
 logger = zlogging.getLogger(__name__)
 
@@ -581,7 +580,7 @@ class GroupWidget(QtWidgets.QWidget):
         self.horizontalLayout.addItem(spacerItem)
         self.titleFrame.setFixedHeight(self.titleFrame.sizeHint().height())
 
-        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height()+3)
+        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height() + 3)
 
         self.horizontalLayout.addWidget(self.groupTextEdit)
         self.horizontalLayout.addLayout(self.titleExtrasLayout)

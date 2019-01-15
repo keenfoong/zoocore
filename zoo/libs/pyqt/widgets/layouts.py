@@ -11,33 +11,45 @@ class StringEdit(QtWidgets.QWidget):
     textChanged = QtCore.Signal(str)
     buttonClicked = QtCore.Signal()
 
-    def __init__(self, label, placeholder="", buttonText=None, parent=None):
+    def __init__(self, label, placeholderText=None, buttonText=None, parent=None, editWidth=None,
+                 labelRatio=1, btnRatio=1, editRatio=1):
         """Creates a label, textbox (QLineEdit) and an optional button
         if the button is None then no button will be created
 
         :param label: the label name
         :type label: str
-        :param placeholder: default text (greyed) inside the textbox (QLineEdit)
-        :type placeholder: str
+        :param placeholderText: default text (greyed) inside the textbox (QLineEdit)
+        :type placeholderText: str
         :param buttonText: optional button name, if None no button will be created
         :type buttonText: str
         :param parent: the qt parent
         :type parent: class
+        :param editWidth: the width of the textbox in pixels optional, None is ignored
+        :type editWidth: int
+        :param labelRatio: the width ratio of the label/text/button corresponds to the ratios of ratioEdit/ratioBtn
+        :type labelRatio: float
+        :param btnRatio: the width ratio of the label/text/button corresponds to the ratios of editRatio/labelRatio
+        :type btnRatio: float
+        :param editRatio: the width ratio of the label/text/button corresponds to the ratios of labelRatio/btnRatio
+        :type editRatio: float
         """
         super(StringEdit, self).__init__(parent=parent)
         self.edit = QtWidgets.QLineEdit(parent=self)
-
+        if editWidth:
+            self.edit.setFixedWidth(editWidth)
         self.layout = QtWidgets.QHBoxLayout(self)
-        self.layout.setContentsMargins(2, 2, 2, 2)
-        self.layout.setSpacing(2)
-        self.layout.addWidget(QtWidgets.QLabel(label, parent=self))
-        self.edit.setPlaceholderText(placeholder)
-
-        self.layout.addWidget(self.edit)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(uiconstants.TEXT_SPACING)  # not sure why this is large spacing
+        self.layout.addWidget(QtWidgets.QLabel(label, parent=self), labelRatio)
+        if placeholderText:
+            self.edit.setPlaceholderText(placeholderText)
+        else:
+            self.edit.setText(placeholderText)
+        self.layout.addWidget(self.edit, editRatio)
         self.buttonText = buttonText
         if self.buttonText:
-            self.btn = QtWidgets.QPushButton(buttonText, self)
-            self.layout.addWidget(self.btn)
+            self.btn = QtWidgets.QPushButton(buttonText, parent=self)
+            self.layout.addWidget(self.btn, btnRatio)
         self.setLayout(self.layout)
         self.connections()
 
@@ -48,6 +60,9 @@ class StringEdit(QtWidgets.QWidget):
 
     def _onTextChanged(self):
         self.textChanged.emit(str(self.edit.text()))
+
+    def setDisabled(self, state):
+        self.edit.setDisabled(state)
 
     def setText(self, value):
         self.edit.setText(value)
@@ -72,7 +87,7 @@ class ComboBox(QtWidgets.QWidget):
         super(ComboBox, self).__init__(parent=parent)
         layout = QtWidgets.QHBoxLayout(self)
         layout.setContentsMargins(2, 2, 2, 2)
-        layout.setSpacing(2)
+        layout.setSpacing(uiconstants.SPACING)
         self.box = combobox.ExtendedComboBox(items, parent)
 
         if label != "":
@@ -88,6 +103,85 @@ class ComboBox(QtWidgets.QWidget):
         if hasattr(self.box, item):
             return getattr(self.box, item)
         super(ComboBox, self).__getAttribute__(item)
+
+    def onItemChanged(self):
+        """when the items changed return the tuple of values
+
+        :return valueTuple: the combobox value as an int and the literal string (text)
+        :rtype valueTuple: tuple
+        """
+        self.itemChanged.emit(int(self.box.currentIndex()), str(self.box.currentText()))
+
+    def value(self):
+        """returns the literal value of the combo box
+
+        :return value: the literal value of the combo box
+        :rtype value: str
+        """
+        return str(self.box.currentText())
+
+    def currentIndex(self):
+        """returns the int value of the combo box
+
+        :return currentIndex: the int value of the combo box
+        :rtype currentIndex: int
+        """
+        return int(self.box.currentIndex())
+
+    def setToText(self, text):
+        """Sets the index based on the text
+
+        :param text: Text to search and switch item to.
+        :return:
+        """
+        index = self.findText(text, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+            self.setCurrentIndex(index)
+
+
+class ComboBoxRegular(QtWidgets.QWidget):
+    """Creates a regular "not searchable" combo box (drop down menu) with a label
+    """
+    itemChanged = QtCore.Signal(int, str)
+
+    def __init__(self, label="", items=None, parent=None, labelRatio=None, boxRatio=None):
+        """initialize class
+
+        :param label: the label of the combobox
+        :type label: str
+        :param items: the item list of the combobox
+        :type items: list
+        :param parent: the qt parent
+        :type parent: class
+        """
+        super(ComboBoxRegular, self).__init__(parent=parent)
+
+        if items is None:
+            items = []
+
+        layout = QtWidgets.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(uiconstants.SPACING)
+        self.box = QtWidgets.QComboBox(parent)
+        self.box.addItems(items)
+        if label != "":
+            self.label = QtWidgets.QLabel(label, parent=self)
+            if labelRatio:
+                layout.addWidget(self.label, labelRatio)
+            else:
+                layout.addWidget(self.label)
+        if boxRatio:
+            layout.addWidget(self.box, boxRatio)
+        else:
+            layout.addWidget(self.box)
+        self.setLayout(layout)
+
+        self.box.currentIndexChanged.connect(self.onItemChanged)
+
+    def __getattr__(self, item):
+        if hasattr(self.box, item):
+            return getattr(self.box, item)
+        super(ComboBoxRegular, self).__getAttribute__(item)
 
     def onItemChanged(self):
         """when the items changed return the tuple of values
@@ -149,7 +243,7 @@ class Vector(QtWidgets.QWidget):
         super(Vector, self).__init__(parent=parent)
         self.mainLayout = QtWidgets.QHBoxLayout(self)
         self.mainLayout.setContentsMargins(2, 2, 2, 2)
-        self.mainLayout.setSpacing(2)
+        self.mainLayout.setSpacing(uiconstants.SPACING)
         if label:
             self.label = QtWidgets.QLabel(label, parent=self)
             self.mainLayout.addWidget(self.label)
@@ -208,7 +302,7 @@ class Matrix(QtWidgets.QWidget):
         super(Matrix, self).__init__(parent=parent)
         self.mainLayout = QtWidgets.QGridLayout(self)
         self.mainLayout.setContentsMargins(2, 2, 2, 2)
-        self.mainLayout.setSpacing(2)
+        self.mainLayout.setSpacing(uiconstants.SPACING)
         self.label = QtWidgets.QLabel(label, parent=self)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.mainLayout.addWidget(self.label, 0, 0)
@@ -242,8 +336,8 @@ class Transformation(QtWidgets.QWidget):
         super(Transformation, self).__init__(parent=parent)
         # self.group = QtWidgets.QGroupBox(parent=self)
         self.layout = QtWidgets.QVBoxLayout(self)
-        self.layout.setContentsMargins(2, 2, 2, 2)
-        self.layout.setSpacing(2)
+        self.layout.setContentsMargins(*uiconstants.MARGINS)
+        self.layout.setSpacing(uiconstants.SPACING)
         # self.group.setLayout(self.layout)
         self.translationVec = Vector("Translation:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
         self.rotationVec = Vector("Rotation:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
@@ -347,9 +441,14 @@ class HRadioButtonGroup(QtWidgets.QWidget):
 
 
 class labelColorBtn(QtWidgets.QWidget):
-    def __init__(self, label="Color:", initialRgbColor=(255, 0, 0), initialRgbColorF=None, parent=None):
-        """Creates a label and a color button (with no text) which opens a QT color picker,
-        returns both rgb (0-255) and rgbF (0-1.0) values
+    """Creates a label and a color button (with no text) which opens a QT color picker,
+    returns both rgb (0-255) and rgbF (0-1.0) values
+    """
+    colorChanged = QtCore.Signal(object)
+
+    def __init__(self, label="Color:", initialRgbColor=None, initialRgbColorF=None, contentsMargins=(0, 0, 0, 0),
+                 parent=None, labelWeight=1, colorWeight=1, colorWidth=None):
+        """Initialize variables
 
         :param label: The name of the label, usually "Color:"
         :type label: str
@@ -362,16 +461,37 @@ class labelColorBtn(QtWidgets.QWidget):
         """
         super(labelColorBtn, self).__init__(parent=parent)
         self.layout = QtWidgets.QHBoxLayout()
-        self.layout.addWidget(QtWidgets.QLabel(label, parent=self))
+        self.layout.setContentsMargins(*contentsMargins)
+        self.layout.addWidget(QtWidgets.QLabel(label, parent=self), labelWeight)
         self.colorPickerBtn = QtWidgets.QPushButton("", parent=self)
-        if not initialRgbColorF:  # if initialRgbColorF is None then input values are in 0-255 range
-            self.storedRgbColor = initialRgbColor
-        else:  # if initialRgbColorF exists then input values are in 0.0-1.0 range
-            self.storedRgbColor = tuple([i * 255 for i in initialRgbColorF])
+        # use initialRgbColor (255 range) or initialRgbColorF (float range 0-1)
+        # if no color given then default to red
+        self.storedRgbColor = initialRgbColor or tuple([i * 255 for i in initialRgbColorF]) or tuple([255, 0, 0])
         self.colorPickerBtn.setStyleSheet("background-color: rgb{}".format(str(self.storedRgbColor)))
-        self.layout.addWidget(self.colorPickerBtn)
+        if colorWidth:
+            self.colorPickerBtn.setFixedWidth(colorWidth)
+        self.layout.addWidget(self.colorPickerBtn, colorWeight)
         self.setLayout(self.layout)
         self.connections()
+
+    def setColor(self, rgbList):
+        """Sets the color of the button as per a rgb list in 0-255 range
+
+        :param rgbList: r g b color in 255 range eg [255, 0, 0]
+        :type rgbList: list
+        """
+        # if the user hits cancel the returned color is invalid, so don't update
+        self.storedRgbColor = rgbList
+        color = QtGui.QColor(self.storedRgbColor[0], self.storedRgbColor[1], self.storedRgbColor[2], 255)
+        self.colorPickerBtn.setStyleSheet("background-color: {}".format(color.name()))
+
+    def setColorSrgb(self, rgbList):
+        """Sets the color of the button as per a rgb list in 0-1 range
+
+        :param rgbList: r g b color in 255 range eg [1.0, 0.0, 0.0]
+        :type rgbList: list
+        """
+        self.setColor([color*255 for color in rgbList])
 
     def pickColor(self):
         """Opens the color picker window
@@ -379,10 +499,11 @@ class labelColorBtn(QtWidgets.QWidget):
         If Cancel is pressed the color is invalid and nothing happens
         """
         initialPickColor = QtGui.QColor(self.storedRgbColor[0], self.storedRgbColor[1], self.storedRgbColor[2], 255)
-        color = QtWidgets.QColorDialog.getColor(initialPickColor)
-        if QtGui.QColor.isValid(color):  # if the user hits cancel the returned color is invalid, so don't update
-            self.storedRgbColor = (color.getRgb())[0:3]
-            self.colorPickerBtn.setStyleSheet("background-color: {}".format(color.name()))
+        color = QtWidgets.QColorDialog.getColor(initialPickColor)  # expects 255 range
+        if QtGui.QColor.isValid(color):
+            rgbList = (color.getRgb())[0:3]
+            self.setColor(rgbList)
+            self.colorChanged.emit(color)
 
     def rgbColor(self):
         """returns rgb tuple with 0-255 ranges Eg (128, 255, 12)
@@ -392,7 +513,7 @@ class labelColorBtn(QtWidgets.QWidget):
     def rgbColorF(self):
         """returns rgb tuple with 0-1.0 float ranges Eg (1.0, .5, .6666)
         """
-        return tuple(float(i) / 255 for i in self.storedRgbColor)
+        return tuple(float(i)/255 for i in self.storedRgbColor)
 
     def connections(self):
         """Open the color picker when the button is pressed
