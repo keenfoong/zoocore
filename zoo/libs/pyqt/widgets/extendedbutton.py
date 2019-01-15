@@ -541,7 +541,6 @@ def BtnTransparentBG(**kwargs):
     parent = kwargs.get("parent")
     text = kwargs.get("text")
     icon = kwargs.get("icon", (255, 255, 255))
-    minWidth = kwargs.get("minWidth")
     toolTip = kwargs.get("toolTip", "")
     iconColor = kwargs.get("iconColor")
     minWidth = kwargs.get("minWidth")
@@ -582,9 +581,8 @@ def BtnRegular(**kwargs):
     parent = kwargs.get("parent")
     text = kwargs.get("text")
     icon = kwargs.get("icon", (255, 255, 255))
-    minWidth = kwargs.get("minWidth")
     toolTip = kwargs.get("toolTip", "")
-    iconColor = kwargs.get("iconColor")
+    iconSize = kwargs.get("iconSize")
     minWidth = kwargs.get("minWidth")
     maxWidth = kwargs.get("maxWidth")
     minHeight = kwargs.get("maxHeight")
@@ -593,6 +591,7 @@ def BtnRegular(**kwargs):
     btn = QtWidgets.QPushButton(text, parent=parent)
     if icon:
         btn.setIcon(iconlib.icon(icon))
+        btn.setIconSize(QtCore.QSize(iconSize, iconSize))
         """ todo: icon colorized anti aliasing is not working correctly?  Icons appear thicker
         self.setIcon(iconlib.iconColorized(icon, size=iconSize, color=iconColor, overlayName=overlayIconName,
                            overlayColor=overlayIconColor))
@@ -606,6 +605,11 @@ def BtnRegular(**kwargs):
         btn.setMinimumHeight(utils.dpiScale(minHeight))
     if maxHeight is not None:
         btn.setMaximumHeight(utils.dpiScale(maxHeight))
+    # todo: button height padding should be set in the prefs stylesheet
+    padWidth = utils.dpiScale(3)
+    padHeight = utils.dpiScale(4)
+    padding = "{0} {1} {0} {1}".format(padHeight, padWidth)
+    btn.setStyleSheet("QPushButton {padding: " + padding + ";}")
     return btn
 
 
@@ -641,6 +645,10 @@ def BtnStyle(text=None, icon=None, parent=None, toolTip="", textCaps=False,
     :param overlayIconName: tuple
     :param overlayIconColor: The color of the overlay image icon (255, 134, 23) *Not implemented yet
     :type overlayIconColor: tuple
+    :param minHeight: minimum height of the button in pixels, DPI handled
+    :type minHeight: int
+    :param maxHeight: maximum height of the button in pixels, DPI handled
+    :type maxHeight: int
     :return qtBtn: returns a qt button widget
     :rtype qtBtn: object
     """

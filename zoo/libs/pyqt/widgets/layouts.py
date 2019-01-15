@@ -4,21 +4,76 @@ from qt import QtWidgets, QtCore, QtGui
 from zoo.libs import iconlib
 from zoo.libs.pyqt.extended import combobox
 from zoo.libs.pyqt import uiconstants, utils
-from zoo.libs.pyqt.widgets import frame
+from zoo.libs.pyqt.widgets import frame, extendedbutton
+
+def Label(name, parent, toolTip=""):
+    """One liner for labels and tooltip
+
+    :param name: name of the text label
+    :type name: str
+    :param parent: the qt parent
+    :type parent: class
+    :param toolTip: the tool tip message on mouse over hover, extra info
+    :type toolTip: str
+    :return lbl: the QT QLabel widget
+    :rtype lbl: QWidget.QLabel
+    """
+    lbl = QtWidgets.QLabel(name, parent=parent)
+    lbl.setToolTip(toolTip)
+    return lbl
+
+
+def LineEdit(placeholder="", placeholderText=False, parent=None, toolTip="", editWidth=None, inputMode="string"):
+        """Creates a simple textbox (QLineEdit)
+
+        :param placeholder the default text in the text box, if placeholderText is True then it's greyed out
+        :type placeholder: str or float or int
+        :param placeholderText: default text is greyed out inside the textbox if true (QLineEdit)
+        :type placeholderText: bool
+        :param parent: the qt parent
+        :type parent: class
+        :param toolTip: the tool tip message on mouse over hover, extra info
+        :type toolTip: str
+        :param editWidth: the width of the textbox in pixels optional, None is ignored
+        :type editWidth: int
+        :param inputMode: restrict the user to this data entry, "string" text, "float" decimal or "int" no decimal
+        :type inputMode: str
+        :return textBox: the QT QLabel widget
+        :rtype textBox: QWidget.QLabel
+        """
+        textBox = QtWidgets.QLineEdit(parent=parent)
+        # todo: STYLESHEET hardcoded color & margins here as a temp workaround, this should be in stylesheets
+        textBox.setStyleSheet("QLineEdit {background: rgb(27, 27, 27);}")
+        if inputMode == "float":
+            placeholder = str(placeholder)
+            textBox.setValidator(QtGui.QDoubleValidator())
+        if inputMode == "int":
+            placeholder = int(placeholder)
+            textBox.setValidator(QtGui.QIntValidator())
+        textBox.setTextMargins(*utils.marginsDpiScale(2, 2, 2, 2))
+        if editWidth:
+            textBox.setFixedWidth(utils.dpiScale(editWidth))
+        if placeholderText:
+            textBox.setPlaceholderText(placeholder)
+        else:
+            textBox.setText(placeholder)
+        textBox.setToolTip(toolTip)
+        return textBox
+
 
 class StringEdit(QtWidgets.QWidget):
     textChanged = QtCore.Signal(str)
     buttonClicked = QtCore.Signal()
 
     def __init__(self, label, placeholder="", placeholderText=False, buttonText=None, parent=None, editWidth=None,
-                 labelRatio=1, btnRatio=1, editRatio=1, toolTip=""):
+                 labelRatio=1, btnRatio=1, editRatio=1, toolTip="", inputMode="string"):
         """Creates a label, textbox (QLineEdit) and an optional button
         if the button is None then no button will be created
 
         :param label: the label name
         :type label: str
-        :param placeholderText: default text (greyed) inside the textbox (QLineEdit)
-        :type placeholderText: str
+        :param placeholderText: default text is greyed out inside the textbox if true (QLineEdit)
+        :type placeholderText: bool
         :param buttonText: optional button name, if None no button will be created
         :type buttonText: str
         :param parent: the qt parent
@@ -26,52 +81,52 @@ class StringEdit(QtWidgets.QWidget):
         :param editWidth: the width of the textbox in pixels optional, None is ignored
         :type editWidth: int
         :param labelRatio: the width ratio of the label/text/button corresponds to the ratios of ratioEdit/ratioBtn
-        :type labelRatio: float
+        :type labelRatio: int
         :param btnRatio: the width ratio of the label/text/button corresponds to the ratios of editRatio/labelRatio
-        :type btnRatio: float
+        :type btnRatio: int
         :param editRatio: the width ratio of the label/text/button corresponds to the ratios of labelRatio/btnRatio
-        :type editRatio: float
+        :type editRatio: int
         :param toolTip: the tool tip message on mouse over hover, extra info
         :type toolTip: str
+        :param inputMode: restrict the user to this data entry, "string" text, "float" decimal or "int" no decimal
+        :type inputMode: str
+        :return StringEdit: returns the class with various options, see the methods
+        :rtype StringEdit: QWidget
         """
         super(StringEdit, self).__init__(parent=parent)
-        self.edit = QtWidgets.QLineEdit(parent=self)
-        # todo: hardcoded color here as a temp workaround, this should be in stylesheets
-        self.edit.setStyleSheet("background-color: rgb(27, 27, 27);")
-        if editWidth:
-            self.edit.setFixedWidth(editWidth)
-        self.layout = QtWidgets.QHBoxLayout(self)
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.setSpacing(utils.dpiScale(uiconstants.SREG))  # reg spacing
-        self.layout.addWidget(QtWidgets.QLabel(label, parent=self), labelRatio)
-        if placeholderText:
-            self.edit.setPlaceholderText(placeholder)
-        else:
-            self.edit.setText(placeholder)
+        self.layout = HBoxLayout(parent, (0, 0, 0, 0), spacing=uiconstants.SREG)
+        self.edit = LineEdit(placeholder, placeholderText, parent, toolTip, editWidth, inputMode)
+        self.label = Label(label, parent, toolTip)
+        self.layout.addWidget(self.label, labelRatio)
         self.layout.addWidget(self.edit, editRatio)
         self.buttonText = buttonText
         if self.buttonText:
-            self.btn = QtWidgets.QPushButton(buttonText, parent=self)
+            # todo button connections should be added from this class (connections)
+            self.btn = extendedbutton.BtnStyle(self.buttonText, toolTip=toolTip, style=uiconstants.BTN_DEFAULT)
             self.layout.addWidget(self.btn, btnRatio)
-        self.setToolTip(toolTip)
         self.setLayout(self.layout)
         self.connections()
 
     def connections(self):
+        """connects the buttons and text changed emit"""
         self.edit.textChanged.connect(self._onTextChanged)
         if self.buttonText:
             self.btn.clicked.connect(self.buttonClicked.emit)
 
     def _onTextChanged(self):
+        """If the text is changed emit"""
         self.textChanged.emit(str(self.edit.text()))
 
     def setDisabled(self, state):
+        """Disable the text (make it grey)"""
         self.edit.setDisabled(state)
 
     def setText(self, value):
+        """Change the text at any time"""
         self.edit.setText(value)
 
     def text(self):
+        """get the text of self.edit"""
         return self.edit.text()
 
 
@@ -79,7 +134,7 @@ class ComboBoxSearchable(QtWidgets.QWidget):
     itemChanged = QtCore.Signal(int, str)
 
     def __init__(self, label="", items=(), parent=None, labelRatio=None, boxRatio=None, toolTip="", setIndex=0):
-        """Creates a combo box (drop down menu) with a label
+        """Creates a searchable combo box (drop down menu) with a label
 
         :param label: the label of the combobox
         :type label: str
@@ -89,13 +144,14 @@ class ComboBoxSearchable(QtWidgets.QWidget):
         :type parent: class
         """
         super(ComboBoxSearchable, self).__init__(parent=parent)
-        layout = QtWidgets.QHBoxLayout(self)
-        layout.setContentsMargins(2, 2, 2, 2)
-        layout.setSpacing(uiconstants.SPACING)
+        layout = HBoxLayout(parent=None, margins=(0, 0, 0, 0),
+                            spacing=utils.dpiScale(uiconstants.SPACING))  # margins kwarg should be added
         self.box = combobox.ExtendedComboBox(items, parent)
-
+        self.box.setToolTip(toolTip)
+        if setIndex:
+            self.box.setCurrentIndex(setIndex)
         if label:
-            self.label = QtWidgets.QLabel(label, parent=self)
+            self.label = Label(label, parent, toolTip)
             if labelRatio:
                 layout.addWidget(self.label, labelRatio)
             else:
@@ -104,10 +160,6 @@ class ComboBoxSearchable(QtWidgets.QWidget):
             layout.addWidget(self.box, boxRatio)
         else:
             layout.addWidget(self.box)
-        self.box.setToolTip(toolTip)
-        if setIndex:
-            self.box.setCurrentIndex(setIndex)
-
         layout.addWidget(self.box)
         self.setLayout(layout)
 
@@ -177,13 +229,13 @@ class ComboBoxRegular(QtWidgets.QWidget):
         if items is None:
             items = []
 
-        layout = QtWidgets.QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(uiconstants.SPACING)
+        layout = HBoxLayout(parent=None, margins=utils.marginsDpiScale(0, 0, 0, 0),
+                            spacing=utils.dpiScale(uiconstants.SREG))  # margins kwarg should be added
         self.box = QtWidgets.QComboBox(parent)
         self.box.addItems(items)
+        self.box.setToolTip(toolTip)
         if label != "":
-            self.label = QtWidgets.QLabel(label, parent=self)
+            self.label = Label(label, parent, toolTip)
             if labelRatio:
                 layout.addWidget(self.label, labelRatio)
             else:
@@ -192,7 +244,6 @@ class ComboBoxRegular(QtWidgets.QWidget):
             layout.addWidget(self.box, boxRatio)
         else:
             layout.addWidget(self.box)
-        self.box.setToolTip(toolTip)
         if setIndex:
             self.box.setCurrentIndex(setIndex)
         self.setLayout(layout)
@@ -257,19 +308,100 @@ def CheckBoxRegular(label="", setChecked=False, parent=None, toolTip=""):
     box.setToolTip(toolTip)
     if setChecked:
         box.setChecked(setChecked)
-    # todo: hardcoded color here as a temp workaround, should be in stylesheets
+    # todo: STYLESHEET hardcoded color here as a temp workaround, should be in stylesheets
     box.setStyleSheet("QCheckBox::indicator:checked, QCheckBox::indicator:unchecked "
                        "{background: rgb(27, 27, 27);}")
     return box
 
 
-class Vector(QtWidgets.QWidget):
-    """Vector base Widget for transformations for n axis
+class VectorLineEdit(QtWidgets.QWidget):
+    """A label with multiple QLineEdits (text boxes), no spin boxes usually for x y z numeric input
+    use inputMode="float" to restrict the data entry to decimal numbers
+    """
+    textChanged = QtCore.Signal(tuple)
+
+    def __init__(self, label, value, axis=("x", "y", "z"), parent=None, toolTip="", inputMode="float", labelRatio=1,
+                 editRatio=1, spacing=uiconstants.SREG):
+        """A label with multiple QLineEdits (text boxes), no spin boxes usually for x y z numeric input
+        use inputMode="float" to restrict the data entry to decimal numbers
+
+        :param label: the label for the vector eg. translate, if the label is None or "" then it will be excluded
+        :type label: str
+        :param value: n floats corresponding with axis param
+        :type value: tuple(float)
+        :param axis: every axis which will have a doubleSpinBox eg. ("x", "y", "z") or ("x", "y", "z", "w")
+        :type axis: tuple(str)
+        :param parent: the widget parent
+        :type parent: QtWidget
+        :param inputMode: restrict the user to this data entry, "string" text, "float" decimal or "int" no decimal
+        :type inputMode: str
+        :param labelRatio: the width ratio of the label/edit boxes, the "label" ratio when compared to the "edit boxes"
+        :type labelRatio: int
+        :param editRatio: the width ratio of the label/edit boxes, the "edit boxes" ratio when compared to the label
+        :type editRatio: int
+        :param spacing: the spacing of each widget
+        :type spacing: int
+        """
+        super(VectorLineEdit, self).__init__(parent=parent)
+        self.mainLayout = HBoxLayout(parent, (0, 0, 0, 0), spacing)
+        if label:
+            self.label = QtWidgets.QLabel(label, parent=self)
+            self.mainLayout.addWidget(self.label, labelRatio)
+        self._widgets = OrderedDict()
+        vectorEditLayout = HBoxLayout(parent, (0, 0, 0, 0), spacing)
+        for i, v in enumerate(axis):
+            edit = LineEdit(value[i], False, parent, toolTip, inputMode=inputMode)
+            edit.setObjectName("".join([label, v]))
+            edit.textChanged.connect(self._onTextChanged)
+            self._widgets[v] = edit
+            vectorEditLayout.addWidget(edit)
+        self.mainLayout.addLayout(vectorEditLayout, editRatio)
+        self.setLayout(self.mainLayout)
+
+    def _onTextChanged(self):
+        """updates the text, should also update the dict
+        """
+        # todo: check that the methods below work, not tested
+        self.textChanged.emit(tuple([float(i.value()) for i in self._widgets.text()]))
+
+    def widget(self, axis):
+        """Gets the widget from the axis string name
+
+        :param axis: the single axis eg. "x"
+        :type axis: tuple(str)
+        :return widget: the LineEdit as a widget
+        :rtype widget: QWidget
+        """
+        return self._widgets.get(axis)
+
+    def value(self):
+        """Gets the tuple values (text) of all the QLineEdits
+
+        :return textValues: a tuple of string values from each QLineEdit textbox
+        :rtype textValues: tuple(str)
+        """
+        return tuple([float(i.value()) for i in self._widgets.text()])
+
+    def setValue(self, value):
+        """Sets the text values of all the QLineEdits, can be strings floats or ints depending on the inputMode
+
+        :param value: the value of all text boxes, as a list of strings (or floats, ints depending on inputMode)
+        :type value: tuple
+        """
+        # get the widgets in order
+        keys = self._widgets.keys()
+        for i, v in enumerate(value):
+            self._widgets[keys[i]].setText(v)
+
+
+class VectorSpinBox(QtWidgets.QWidget):
+    """Vector base Widget with spin box for transformations for n axis
+    3 x QDoubleSpinBox (numerical textEdit with spinBox)
     """
 
     valueChanged = QtCore.Signal(tuple)
 
-    def __init__(self, label, value, min, max, axis, parent=None):
+    def __init__(self, label, value, min, max, axis, parent=None, step=0.1, setDecimals=2):
         """Creates a double spinbox for axis and lays them out in a horizontal layout
         We give access to each spinbox with a property eg. self.x which returns the float value
 
@@ -282,23 +414,34 @@ class Vector(QtWidgets.QWidget):
         :param max: the max value for all three elements of the vector
         :type max: float
         :param axis: every axis which will have a doubleSpinBox eg. [X,Y,Z] or [X,Y,Z,W]
+        :type axis: list
         :param parent: the widget parent
         :type parent: QtWidget
+        :param step: the step amount while clicking on the spin box or keyboard up/down
+        :type step: float
         """
-        super(Vector, self).__init__(parent=parent)
-        self.mainLayout = QtWidgets.QHBoxLayout(self)
-        self.mainLayout.setContentsMargins(2, 2, 2, 2)
-        self.mainLayout.setSpacing(uiconstants.SPACING)
+        super(VectorSpinBox, self).__init__(parent=parent)
+        self.mainLayout = HBoxLayout(parent, (2, 2, 2, 2), uiconstants.SREG)
         if label:
             self.label = QtWidgets.QLabel(label, parent=self)
             self.mainLayout.addWidget(self.label)
         self._widgets = OrderedDict()
+        # todo: STYLESHEET needs to be in stylesheet and prefs
+        # rgb(27, 27, 27) is the QLineEdit/QDoubleSpinBox color
+        # images will need to be added and tweaked for hover states and press
+        borderSize = utils.dpiScale(3)
+        styleSheet = "QDoubleSpinBox {0} border: {2}px solid rgb(27, 27, 27); " \
+                     "border-radius: 0px; {1}".format("{", "}", borderSize)
+
         for i, v in enumerate(axis):
             box = QtWidgets.QDoubleSpinBox(self)
+            box.setSingleStep(step)
             box.setObjectName("".join([label, v]))
             box.setRange(min, max)
             box.setValue(value[i])
+            box.setDecimals(setDecimals)
             box.valueChanged.connect(self.onValueChanged)
+            box.setStyleSheet(styleSheet)
             self._widgets[v] = box
             self.mainLayout.addWidget(box)
 
@@ -308,7 +451,7 @@ class Vector(QtWidgets.QWidget):
         widget = self._widgets.get(item)
         if widget is not None:
             return float(widget.value())
-        return super(Vector, self).__getAttribute__(item)
+        return super(VectorSpinBox, self).__getAttribute__(item)
 
     def onValueChanged(self):
         self.valueChanged.emit(tuple([float(i.value()) for i in self._widgets.values()]))
@@ -355,7 +498,7 @@ class Matrix(QtWidgets.QWidget):
         self._widgets = OrderedDict()
         axislabels = ("X", "Y", "Z")
         for i, c in enumerate(matrix):
-            vec = Vector(label="", value=c, min=min[i], max=max[i], axis=axislabels, parent=self)
+            vec = VectorSpinBox(label="", value=c, min=min[i], max=max[i], axis=axislabels, parent=self)
             self.mainLayout.addWidget(vec, i, 1)
             self._widgets[i] = vec
 
@@ -384,9 +527,9 @@ class Transformation(QtWidgets.QWidget):
         self.layout.setContentsMargins(*uiconstants.MARGINS)
         self.layout.setSpacing(uiconstants.SPACING)
         # self.group.setLayout(self.layout)
-        self.translationVec = Vector("Translation:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
-        self.rotationVec = Vector("Rotation:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
-        self.scaleVec = Vector("Scale:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
+        self.translationVec = VectorSpinBox("Translation:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
+        self.rotationVec = VectorSpinBox("Rotation:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
+        self.scaleVec = VectorSpinBox("Scale:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
         self.rotationOrderBox = ComboBoxSearchable("RotationOrder:", Transformation.rotOrders, parent=self)
         self.layout.addWidget(self.translationVec)
         self.layout.addWidget(self.rotationVec)
@@ -452,37 +595,90 @@ class OkCancelButtons(QtWidgets.QWidget):
         self.cancelBtn.clicked.connect(self.CancelBtnPressed.emit)
 
 
-class HRadioButtonGroup(QtWidgets.QWidget):
+class RadioButtonGroup(QtWidgets.QWidget):
+    """Creates a horizontal group of radio buttons
+
+    Build widget example:
+        self.radioWidget = layouts.RadioButtonGroup(radioList=radioNameList, toolTipList=radioToolTipList,
+                                                            default=0, parent=parent)
+
+    Query the checked selection example:
+        nameChecked = radioWidget.getChecked().text()  # returns the text name of the checked item
+        numberChecked = radioWidget.getCheckedIndex() # returns the list number of the checked item
+
+    Return Selection Changed example:
+        radioWidget.toggled.connect(self.doSomething)
+    """
     toggled = QtCore.Signal(int)
 
-    def __init__(self, radioList=None, default=0, parent=None):
-        super(HRadioButtonGroup, self).__init__(parent=parent)
+    def __init__(self, radioList=None, toolTipList=None, default=0, parent=None, vertical=False):
+        """Horizontal group of radio buttons
+
+        :param radioList: a list of radio button names (strings)
+        :type radioList: list
+        :param default: the default button to be checked as on, starts at 0 matching the list
+        :type default: int
+        :param parent: the parent widget
+        :type parent: obj
+        """
+        super(RadioButtonGroup, self).__init__(parent=parent)
+        # todo: STYLESHEET needs to be in the stylesheet and not hardcoded
+        # rgb(27, 27, 27) is the main color of the unchecked button
+        # rgb(45, 45, 45) is the background color of the window, unchecked has no icon
+        indicatorWH = utils.dpiScale(14)
+        uncheckedWH = utils.dpiScale(10)
+        borderRadius = utils.dpiScale(7)
+        borderPx = utils.dpiScale(2)
+        styleSheetF = "QRadioButton::indicator {0}" \
+                      "width: {2}px; " \
+                      "height: {2}px;{1}" \
+                      "QRadioButton::indicator:unchecked " \
+                      "{0}background: rgb(27, 27, 27); " \
+                      "width: {3}px; " \
+                      "height: {3}px;" \
+                      "border-radius: {4}px; " \
+                      "border: {5}px solid rgb(45, 45, 45){1}".format("{", "}", indicatorWH, uncheckedWH,
+                                                                      borderRadius, borderPx)
         if radioList is None:
             radioList = []
-
         self.radioButtons = []
         self.group = QtWidgets.QButtonGroup(parent=self)
-        hRadioLayout = QtWidgets.QHBoxLayout()
-        for radioName in radioList:
+        if not vertical:
+            radioLayout = QtWidgets.QHBoxLayout()
+        else:
+            radioLayout = QtWidgets.QVBoxLayout()
+        for i, radioName in enumerate(radioList):
             newRadio = QtWidgets.QRadioButton(radioName, self)
+            newRadio.setStyleSheet(styleSheetF)
+            if toolTipList:
+                newRadio.setToolTip(toolTipList[i])
             self.group.addButton(newRadio)
-            hRadioLayout.addWidget(newRadio)
+            radioLayout.addWidget(newRadio)
             self.radioButtons.append(newRadio)
-
         if default is not None and default < len(self.radioButtons):
             self.radioButtons[default].setChecked(True)
         self.group.buttonClicked.connect(self.toggled.emit)
-        self.setLayout(hRadioLayout)
+        self.setLayout(radioLayout)
 
     def getChecked(self):
+        """ Returns the widget that is checked
+
+        :return widget: the widget that is checked
+        :type widget: QtWidgets.QRadioButton()
         """
-        Returns the widget that is checked
-        :return:
-        :type: QtWidgets.QRadioButton()
+        for radioBtn in self.radioButtons:
+            if radioBtn.isChecked():
+                return radioBtn
+
+    def getCheckedIndex(self):
+        """ Returns the widget number that is checked
+
+        :return numberChecked: the widget list number that is checked
+        :type numberChecked: int
         """
-        for r in self.radioButtons:
-            if r.isChecked():
-                return r
+        for i, radioBtn in enumerate(self.radioButtons):
+            if radioBtn.isChecked():
+                return i
 
 
 class labelColorBtn(QtWidgets.QWidget):
@@ -505,8 +701,8 @@ class labelColorBtn(QtWidgets.QWidget):
         :type parent: class
         """
         super(labelColorBtn, self).__init__(parent=parent)
-        self.layout = QtWidgets.QHBoxLayout()
-        self.layout.setContentsMargins(*contentsMargins)
+        self.layout = HBoxLayout(parent=None, margins=utils.marginsDpiScale(*contentsMargins),
+                                 spacing=utils.dpiScale(uiconstants.SPACING))
         self.layout.addWidget(QtWidgets.QLabel(label, parent=self), labelWeight)
         self.colorPickerBtn = QtWidgets.QPushButton("", parent=self)
         # use initialRgbColor (255 range) or initialRgbColorF (float range 0-1)
@@ -596,6 +792,7 @@ class CollapsableFrameLayout(QtWidgets.QWidget):
         :param parent: the widget parent
         :type parent: class
         """
+        # todo: STYLSHEET, cleanup this class, remove margin hardcoding and colors use stylesheet instead
         super(CollapsableFrameLayout, self).__init__(parent=parent)
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -870,18 +1067,81 @@ class QVLine(QtWidgets.QFrame):
         self.setFrameShadow(QtWidgets.QFrame.Sunken)
 
 
-def HBoxLayout(marginOverride=(0, 0, 0, 0), spacingOverride=uiconstants.SREG):
-    """One liner for QtWidgets.QHBoxLayout() to make it easier to create an easy HBox layout
+def HBoxLayout(parent=None, margins=(0, 0, 0, 0), spacing=uiconstants.SREG):
+    """One liner for QtWidgets.QHBoxLayout() to make it easier to create an easy Horizontal Box layout
     DPI (4k) is handled here
     Defaults use regular spacing and no margins
 
-    :param marginOverride:  override the margins with this value
-    :type marginOverride: tuple
-    :param spacingOverride: override the spacing with this pixel value
-    :type spacingOverride: int
+    :param margins:  override the margins with this value
+    :type margins: tuple
+    :param spacing: override the spacing with this pixel value
+    :type spacing: int
     """
-    zooQHBoxLayout = QtWidgets.QHBoxLayout()
-    zooQHBoxLayout.setContentsMargins(*utils.marginsDpiScale(*marginOverride))
-    zooQHBoxLayout.setSpacing(utils.dpiScale(spacingOverride))
+    zooQHBoxLayout = QtWidgets.QHBoxLayout(parent)
+    zooQHBoxLayout.setContentsMargins(*utils.marginsDpiScale(*margins))
+    zooQHBoxLayout.setSpacing(utils.dpiScale(spacing))
     return zooQHBoxLayout
+
+
+def VBoxLayout(parent=None, margins=(0, 0, 0, 0), spacing=uiconstants.SREG):
+    """One liner for QtWidgets.QVBoxLayout() to make it easier to create an easy Vertical Box layout
+    DPI (4k) is handled here
+    Defaults use regular spacing and no margins
+
+    :param margins:  override the margins with this value
+    :type margins: tuple
+    :param spacing: override the spacing with this pixel value
+    :type spacing: int
+    """
+    zooQVBoxLayout = QtWidgets.QVBoxLayout(parent)
+    zooQVBoxLayout.setContentsMargins(*utils.marginsDpiScale(*margins))
+    zooQVBoxLayout.setSpacing(utils.dpiScale(spacing))
+    return zooQVBoxLayout
+
+
+def GridLayout(parent=None, margins=(0, 0, 0, 0), spacing=uiconstants.SREG, columnMinWidth=None):
+    """One liner for QtWidgets.QGridLayout() to make it easier to create an easy Grid layout
+    DPI (4k) is handled here
+    Defaults use regular spacing and no margins
+
+    :param margins:  override the margins with this value
+    :type margins: tuple
+    :param spacing: override the spacing with this pixel value
+    :type spacing: int
+    :param columnMinWidth: option for one column number then it's min width, use obj.setColumnMinimumWidth for more
+    :type columnMinWidth: tuple
+    """
+    zooGridLayout = QtWidgets.QGridLayout()
+    zooGridLayout.setContentsMargins(*utils.marginsDpiScale(*margins))
+    zooGridLayout.setSpacing(utils.dpiScale(spacing))
+    if columnMinWidth:  # column number then the width in pixels
+        zooGridLayout.setColumnMinimumWidth(columnMinWidth[0], utils.dpiScale(columnMinWidth[1]))
+    return zooGridLayout
+
+
+def Spacer(width, height, hMin=QtWidgets.QSizePolicy.Minimum, vMin=QtWidgets.QSizePolicy.Minimum):
+    """creates an expanding spacer (empty area) with easy options.  DPI auto handled
+
+    Size Policies are
+    https://srinikom.github.io/pyside-docs/PySide/QtGui/QSizePolicy.html#PySide.QtGui.PySide.QtGui.QSizePolicy.Policy
+        QtWidgets.QSizePolicy.Fixed -  never grows or shrinks
+        QtWidgets.QSizePolicy.Minimum - no advantage being larger
+        QtWidgets.QSizePolicy.Maximum - no advantage being smaller
+        QtWidgets.QSizePolicy.Preferred - The sizeHint() is best, but the widget can be shrunk/expanded
+        QtWidgets.QSizePolicy.Expanding -  but the widget can be shrunk or make use of extra space
+        QtWidgets.QSizePolicy.MinimumExpanding - The sizeHint() is minimal, and sufficient
+        QtWidgets.QSizePolicy.Ignored - The sizeHint() is ignored. Will get as much space as possible
+
+    :param width: width of the spacer in pixels, DPI is auto handled
+    :type width: int
+    :param height: height of the spacer in pixels, DPI is auto handled
+    :type height: int
+    :param hMin: height of the spacer in pixels, DPI is auto handled
+    :type hMin: PySide.QtGui.QSizePolicy.Policy
+    :param vMin: vertical minimum
+    :type vMin: PySide.QtGui.QSizePolicy.Policy
+    :return spacerItem: item returned, ie the spacerItem
+    :rtype spacerItem: object
+    """
+    return QtWidgets.QSpacerItem(utils.dpiScale(width), utils.dpiScale(height), hMin, vMin)
 
