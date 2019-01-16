@@ -5,7 +5,7 @@ This module contains functions related to color but not specific to any particul
 
 import colorsys
 from math import radians, sqrt, cos, sin
-
+from zoo.libs.utils import zoomath
 
 def convertHsvToRgb(hsv):
     """Converts hsv values to rgb
@@ -166,7 +166,7 @@ def offsetColor(col, offset=0):
     :param offset: The int to offset the color
     :return: tuple (int,int,int)
     """
-    return tuple([clamp(c+offset) for c in col])
+    return tuple([zoomath.clamp((c + offset), 0, 255) for c in col])
 
 
 def offsetValue(hsv, offset):
@@ -217,7 +217,6 @@ def hexToRGBA(hexstr):
     :return: Returns in format tuple(R, G, B, A)
     :rtype: tuple
     """
-
     if len(hexstr) == 8:
         return int(hexstr[2:4], 16), int(hexstr[4:6], 16), int(hexstr[6:8], 16), int(hexstr[0:2], 16)
     elif len(hexstr) == 6:
@@ -252,14 +251,6 @@ def RGBToHex(rgb):
         return ret[-2:] + ret[:-2]  # Move the last two characters to the beginning
 
     return ret
-
-
-def clamp(v):
-    if v < 0:
-        return 0
-    if v > 255:
-        return 255
-    return int(v + 0.5)
 
 
 def rgbIntToFloat(color):
@@ -307,4 +298,75 @@ class RGBRotate(object):
         rx = r * self.matrix[0][0] + g * self.matrix[0][1] + b * self.matrix[0][2]
         gx = r * self.matrix[1][0] + g * self.matrix[1][1] + b * self.matrix[1][2]
         bx = r * self.matrix[2][0] + g * self.matrix[2][1] + b * self.matrix[2][2]
-        return clamp(rx), clamp(gx), clamp(bx)
+        return zoomath.clamp(rx, 0, 255), zoomath.clamp(gx, 0, 255), zoomath.clamp(bx, 0, 255)
+
+
+def hslColourOffsetFloat(rgb, hueOffset=0, saturationOffset=0, lightnessOffset=0):
+    """Offset color with hue, saturation and lightness (brighten/darken) values
+
+    Colour is expected as rgb  in 0.0-1.0 float range eg (0.1, 0.34, 1.0)
+    Offsets are in...
+        hue: 0-360,
+        saturation: 0.0-1.0,
+        value (lightness): 0.0-1.0
+    Returned colour is rgb in in 0-1.0 range eg (0.1, 0.34, 1.0)
+
+    :param rgb: the rgb color in 0.0-0.1 range eg (0.1, 0.34, 1.0)
+    :type rgb: tuple
+    :param hueOffset: the hue offset in 0-360 range
+    :type hueOffset: float
+    :param saturationOffset: the saturation offset in 0-255 range
+    :type saturationOffset: float
+    :param lightnessOffset: the lightness value offset, lighten (0.2) or darken (-0.3), 0-0.1 range as an offset
+    :type lightnessOffset: float
+    :return rgb: the changed rgb color in 0.0-0.1 range eg (0.1, 0.34, 1.0)
+    :rtype: rgb: tuple
+    """
+    if hueOffset:
+        hsv = convertRgbToHsv(list(rgb))
+        newHue = hsv[0] + hueOffset
+        if newHue > 360.0:
+            newHue -= 360.0
+        elif newHue < 360.0:
+            newHue += 360.0
+        hsv = (newHue, hsv[1], hsv[2])
+        rgb = convertHsvToRgb(list(hsv))
+    if saturationOffset:
+        hsv = convertRgbToHsv(rgb)
+        saturationOffset = saturationOffset
+        hsv = (hsv[0], zoomath.clamp(hsv[1] + saturationOffset), hsv[2])
+        rgb = convertHsvToRgb(list(hsv))
+    if lightnessOffset:
+        rgb = (zoomath.clamp(rgb[0] + lightnessOffset),
+               zoomath.clamp(rgb[1] + lightnessOffset),
+               zoomath.clamp(rgb[2] + lightnessOffset))
+    return rgb
+
+
+def hslColourOffsetInt(rgb, hueOffset=0, saturationOffset=0, lightnessOffset=0):
+    """Offset color with hue, saturation and lightness (brighten/darken) values
+    Colour is expected as rgb  in 0-255 range eg (255, 123, 23)
+    Offsets are in...
+        hue: 0-360,
+        saturation: 0-255,
+        value (lightness): 0-255
+    Returned colour is rgb in in 0-255 range eg (255, 123, 23)
+
+    :param rgb: the rgb color in 0-255 range eg (255, 123, 23)
+    :type rgb: tuple
+    :param hueOffset: the hue offset in 0-360 range
+    :type hueOffset: int
+    :param saturationOffset: the saturation offset in 0-255 range
+    :type saturationOffset: int
+    :param lightnessOffset: the lightness value offset, lighten (30) or darken (-30), 0-255 range as an offset
+    :type lightnessOffset: int
+    :return rgb: the changed rgb color in 0-255 range eg (255, 123, 23)
+    :rtype: rgb: tuple
+    """
+    rgb = rgbIntToFloat(rgb)
+    lightnessOffset = float(lightnessOffset) / 255.0
+    saturationOffset = float(saturationOffset) / 255.0
+    rgb = hslColourOffsetFloat(rgb, hueOffset=hueOffset, saturationOffset=saturationOffset,
+                               lightnessOffset=lightnessOffset)
+    return rgbFloatToInt(rgb)
+

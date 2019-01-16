@@ -52,10 +52,13 @@ class Icon(object):
         """Returns a QtGui.QIcon instance intialized to the icon path for the icon name if the icon name is found within
         the cache
 
-        :param iconName: str, iconName_size or iconName, then it will resize the largest icon found
+        :param iconName: iconName_size or iconName, then it will resize the largest icon found
+        :type iconName: str
         :param size: int, the size of the icon, the size will be used for both the width and height.
                      setting size=-1 will return the largest icon as well
-        :return: QtGui.Qicon
+        :type size: int
+        :return QIcon: QtGui.Qicon
+        :rtype QIcon: object
         """
         if env.isMayapy():
             return
@@ -149,7 +152,6 @@ class Icon(object):
 
         origSize = iconLargest.availableSizes()[0]
         pixmap = cls.colorPixmap(iconLargest.pixmap(origSize), color)
-
         # Add overlay icon
         if overlayName is not None:
             overlayIcon = cls.icon(overlayName, -1)
