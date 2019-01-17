@@ -25,23 +25,23 @@ class TestCommandExecutor(unittestBase.BaseUnitest):
         self.assertIsNotNone(self.executor.findCommand("test.testCommand"))
 
     def testRegisterEnv(self):
-        self.executor.registry.registryByEnv(self.env)
+        self.executor.registry.registerByEnv(self.env)
         self.assertTrue(len(self.executor.commands) > 0)
         self.assertIsNotNone(self.executor.findCommand("test.testCommand"))
 
     def testCommandExecutes(self):
-        self.executor.registry.registryByEnv(self.env)
+        self.executor.registry.registerByEnv(self.env)
         result = self.executor.execute("test.testCommand", value="helloWorld")
         self.assertEquals(result, "helloWorld")
 
     def testCommandFailsArguments(self):
-        self.executor.registry.registryByEnv(self.env)
+        self.executor.registry.registerByEnv(self.env)
         with self.assertRaises(ValueError) as context:
             self.executor.execute("test.failCommandArguments", value="helloWorld")
             self.assertTrue('Test.FailCommandArguments' in str(context.exception))
 
     def testUndoLast(self):
-        self.executor.registry.registryByEnv(self.env)
+        self.executor.registry.registerByEnv(self.env)
         result = self.executor.execute("test.testCommandUndoable", value="helloWorld")
         self.assertEquals(result, "helloWorld")
         self.assertEquals(len(self.executor.undoStack), 1)
@@ -51,7 +51,7 @@ class TestCommandExecutor(unittestBase.BaseUnitest):
         self.assertEquals(len(self.executor.redoStack), 1)
 
     def testUndoSkips(self):
-        self.executor.registry.registryByEnv(self.env)
+        self.executor.registry.registerByEnv(self.env)
         result = self.executor.execute("test.testCommandNotUndoable", value="helloWorld")
         self.assertEquals(result, "helloWorld")
         self.assertEquals(len(self.executor.undoStack), 0)
@@ -59,7 +59,7 @@ class TestCommandExecutor(unittestBase.BaseUnitest):
         self.assertFalse(result)
 
     def testFlush(self):
-        self.executor.registry.registryByEnv(self.env)
+        self.executor.registry.registerByEnv(self.env)
         result = self.executor.execute("test.testCommandUndoable", value="helloWorld")
         self.assertEquals(result, "helloWorld")
         self.assertEquals(len(self.executor.undoStack), 1)

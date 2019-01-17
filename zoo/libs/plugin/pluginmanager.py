@@ -28,7 +28,7 @@ class PluginManager(object):
         self.loadedPlugins = {}  # {className: instance}
         self.basePaths = []
 
-    def registryByEnv(self, env):
+    def registerByEnv(self, env):
         """Register's the environment variable value, each path must be separated by os.pathsep
 
         :param env: The environment variable key
