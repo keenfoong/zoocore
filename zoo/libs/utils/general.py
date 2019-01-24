@@ -36,17 +36,6 @@ def numericalSort(data):
     return sorted(data, key=lambda key: [int(c) if c.isdigit() else c for c in re.split('([0-9]+)', key)])
 
 
-def formatFrameToTime(start, current, frameRate):
-    total = current - start
-    seconds = float(total) / float(frameRate)
-    minutes = int(seconds / 60.0)
-    seconds -= minutes * 60
-
-    return ":".join(["00", str(minutes).zfill(2),
-                     str(round(seconds, 1)).zfill(2),
-                     str(int(current)).zfill(2)])
-
-
 def humanizeBytes(bytes, precision=1):
     """Return a humanized string representation of a number of bytes.
     Based on: http://code.activestate.com/recipes/577081-humanized-representation-of-a-number-of-bytes
@@ -131,6 +120,14 @@ def fuzzyFinder(input, collection):
 
 
 def isIteratable(obj):
+    """Determines if the object is an iterable.
+
+    This is done by attempting to iterate on the obj and if it raise's a 
+    type error then return False else True
+
+    :return: returns True if the obj is iterable.
+    :rtype: bool
+    """
     try:
         for i in iter(obj):
             return True

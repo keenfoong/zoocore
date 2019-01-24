@@ -146,6 +146,14 @@ def batchCopyFiles(paths, permissions=0777):
 
 
 def copyDirectoy(src, dst, ignorePattern=None):
+    """Copies the directory tree using shutil.copytree
+
+    :param src: the Source directory to copy.
+    :type src: str
+    :param dst: the destination directory.
+    :type dst: str
+    :raise: OSError
+    """
     try:
         if ignorePattern:
             shutil.copytree(src, dst, ignore=shutil.ignore_patterns(*ignorePattern))
