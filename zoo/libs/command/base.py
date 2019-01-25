@@ -16,7 +16,7 @@ class ExecutorBase(object):
         self.undoStack = deque()
         self.redoStack = deque()
         self.registry = pluginmanager.PluginManager(command.ZooCommand, variableName="id")
-        self.registry.registryByEnv("ZOO_COMMAND_LIB")
+        self.registry.registerByEnv("ZOO_COMMAND_LIB")
 
     @property
     def commands(self):

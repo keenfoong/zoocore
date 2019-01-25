@@ -28,3 +28,19 @@ def threePointParabola(a, b, c, iterations):
         p = r + (r - q) * x
         positions.append(p)
     return positions
+
+
+def clamp(value, minValue=0.0, maxValue=1.0):
+    """Clamps a value withing a max and min range
+
+    :param value: value/number
+    :type value: float
+    :param minValue: clamp/stop any value below this value
+    :type minValue: float
+    :param maxValue: clamp/stop any value above this value
+    :type maxValue: float
+    :return clampedValue: clamped value as a float
+    :rtype clampedValue: float
+    """
+    return max(minValue, min(value, maxValue))
+

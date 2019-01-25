@@ -3,13 +3,15 @@ from functools import partial
 from qt import QtWidgets, QtCore, QtGui
 
 from zoo.libs import iconlib
-from zoo.libs.pyqt import utils
+from zoo.libs.pyqt import utils, uiconstants
 from zoo.libs.pyqt.extended import searchablemenu, expandedtooltip
 from zoo.libs.pyqt.extended.searchablemenu import action as taggedAction
 from zoo.libs.utils import zlogging
 
 logger = zlogging.getLogger(__name__)
 
+BTN_DEFAULT = uiconstants.BTN_DEFAULT
+BTN_TRANSPARENT_BG = uiconstants.BTN_TRANSPARENT_BG
 
 class ButtonIcons(QtWidgets.QAbstractButton):
     """Set up the icons that change on mouse over, press and release. Inherit from this class to have icons
@@ -37,13 +39,16 @@ class ButtonIcons(QtWidgets.QAbstractButton):
     def setIconByName(self, iconNames, colors=None, size=None, colorOffset=None, iconScaling=None):
         """Set up both icons in a simple function
 
-        :param iconNames:
+        :param iconNames: name of the icon
         :type iconNames: basestring or list
-        :param colors:
+        :param colors: the icon regular color
         :type colors: tuple or list or None
-        :param size: Size is dpiScaled automatically here
-        :param colorOffset:
-        :return:
+        :param size: Size is dpiScaled automatically here, but can be passed in
+        :type size: int
+        :param colorOffset: the amount of tint white highlight that's added when mouse over hover 0-255
+        :type colorOffset: int
+        :param iconScaling: the icon's scale
+        :type iconScaling: int
         """
         if size is not None:
             self.setIconSize(QtCore.QSize(size, size))
@@ -523,5 +528,138 @@ class ExtendedButtonMenu(searchablemenu.SearchableMenu):
             self.ttKeyPressed = False
 
 
+def BtnTransparentBG(**kwargs):
+    """Create a button with a transparent bg.  Saves code from doing this over and over
+    Default Icon colour (None) is light grey and turns white (lighter in color) with mouse over.
+    *Note WIP: Will fill out more options with time
 
+    :param **kwargs: See the doc string from the function BtnStyle
+    :type **kwargs: dict
+    :return qtBtn: returns a qt button widget
+    :rtype qtBtn: object
+    """
+    parent = kwargs.get("parent")
+    text = kwargs.get("text")
+    icon = kwargs.get("icon", (255, 255, 255))
+    toolTip = kwargs.get("toolTip", "")
+    iconColor = kwargs.get("iconColor")
+    minWidth = kwargs.get("minWidth")
+    maxWidth = kwargs.get("maxWidth")
+    minHeight = kwargs.get("maxHeight")
+    maxHeight = kwargs.get("maxHeight")
+
+    btn = ExtendedButton(parent=parent, text=text)
+    if icon:
+        btn.setIconByName(icon, colors=iconColor)
+        """ todo: icon colorized anti aliasing is not working correctly?  Icons appear thicker
+        # will want this code later
+        self.setIcon(iconlib.iconColorized(icon, size=iconSize, color=iconColor, overlayName=overlayIconName,
+                           overlayColor=overlayIconColor))
+        """
+    btn.setToolTip(toolTip)
+    if minWidth is not None:
+        btn.setMinimumWidth(utils.dpiScale(minWidth))
+    if maxWidth is not None:
+        btn.setMaximumWidth(utils.dpiScale(maxWidth))
+    if minHeight is not None:
+        btn.setMinimumHeight(utils.dpiScale(minHeight))
+    if maxHeight is not None:
+        btn.setMaximumHeight(utils.dpiScale(maxHeight))
+    return btn
+
+
+def BtnRegular(**kwargs):
+    """Creates regular pyside button with text or an icon
+    *Note WIP: Will fill out more options with time
+    * should probably override ExtendedButton and not QtWidgets.QPushButton for full options
+
+    :param kwargs: See the doc string from the function BtnStyle
+    :type kwargs: dict
+    :return qtBtn: returns a qt button widget
+    :rtype qtBtn: object
+    """
+    parent = kwargs.get("parent")
+    text = kwargs.get("text")
+    icon = kwargs.get("icon", (255, 255, 255))
+    toolTip = kwargs.get("toolTip", "")
+    iconSize = kwargs.get("iconSize")
+    minWidth = kwargs.get("minWidth")
+    maxWidth = kwargs.get("maxWidth")
+    minHeight = kwargs.get("maxHeight")
+    maxHeight = kwargs.get("maxHeight")
+
+    btn = QtWidgets.QPushButton(text, parent=parent)
+    if icon:
+        btn.setIcon(iconlib.icon(icon))
+        btn.setIconSize(QtCore.QSize(iconSize, iconSize))
+        """ todo: icon colorized anti aliasing is not working correctly?  Icons appear thicker
+        self.setIcon(iconlib.iconColorized(icon, size=iconSize, color=iconColor, overlayName=overlayIconName,
+                           overlayColor=overlayIconColor))
+        """
+    btn.setToolTip(toolTip)
+    if minWidth is not None:
+        btn.setMinimumWidth(utils.dpiScale(minWidth))
+    if maxWidth is not None:
+        btn.setMaximumWidth(utils.dpiScale(maxWidth))
+    if minHeight is not None:
+        btn.setMinimumHeight(utils.dpiScale(minHeight))
+    if maxHeight is not None:
+        btn.setMaximumHeight(utils.dpiScale(maxHeight))
+    # todo: button height padding should be set in the prefs stylesheet
+    padWidth = utils.dpiScale(3)
+    padHeight = utils.dpiScale(4)
+    padding = "{0} {1} {0} {1}".format(padHeight, padWidth)
+    btn.setStyleSheet("QPushButton {padding: " + padding + ";}")
+    return btn
+
+
+def BtnStyle(text=None, icon=None, parent=None, toolTip="", textCaps=False,
+             iconColor=(255, 255, 255), minWidth=None, maxWidth=None, iconSize=16, overlayIconName=None,
+             overlayIconColor=None, minHeight=None, maxHeight=None, style=BTN_DEFAULT):
+    """Create a button with text or an icon in various styles and options
+
+    Style - 0 - BTN_DEFAULT - Default pyside button with optional text or an icon
+    Style - 1 - BTN_TRANSPARENT_BG - Default pyside button w transparent bg. Icon colour is grey and lighter with hover
+
+    :param text: The button text
+    :type icon: str
+    :param icon: The icon image name, icon is automatically sized
+    :type icon: str
+    :param parent: The parent widget
+    :type parent: object
+    :param toolTip: The tooltip as seen with mouse over extra information
+    :type toolTip: str
+    :param style: The style of the button, 0 default, 1 no bg. See pyside.uiconstants BTN_DEFAULT, BTN_TRANSPARENT_BG
+    :type style: int
+    :param textCaps: Bool to make the button text all caps
+    :type textCaps: bool
+    :param iconColor: The color of the icon (255, 134, 23) *Not implemented yet
+    :type iconColor: tuple
+    :param minWidth: minimum width of the button in pixels, DPI handled
+    :type minWidth: int
+    :param maxWidth: maximum width of the button in pixels, DPI handled
+    :type maxWidth: int
+    :param iconSize: The size of the icon in pixels, always square, DPI handled
+    :type iconSize: int
+    :param overlayIconName: The name of the icon image that will be overlayed on top of the original icon
+    :param overlayIconName: tuple
+    :param overlayIconColor: The color of the overlay image icon (255, 134, 23) *Not implemented yet
+    :type overlayIconColor: tuple
+    :param minHeight: minimum height of the button in pixels, DPI handled
+    :type minHeight: int
+    :param maxHeight: maximum height of the button in pixels, DPI handled
+    :type maxHeight: int
+    :return qtBtn: returns a qt button widget
+    :rtype qtBtn: object
+    """
+    if style == BTN_DEFAULT:
+        return BtnRegular(text=text, icon=icon, parent=parent, toolTip=toolTip, textCaps=textCaps,
+                          iconColor=iconColor, minWidth=minWidth, maxWidth=maxWidth, iconSize=iconSize,
+                          overlayIconName=overlayIconName, overlayIconColor=overlayIconColor, minHeight=minHeight,
+                          maxHeight=maxHeight)
+    if style == BTN_TRANSPARENT_BG:
+        return BtnTransparentBG(text=text, icon=icon, parent=parent, toolTip=toolTip, textCaps=textCaps,
+                                iconColor=iconColor, minWidth=minWidth, maxWidth=maxWidth, iconSize=iconSize,
+                                overlayIconName=overlayIconName, overlayIconColor=overlayIconColor, minHeight=minHeight,
+                                maxHeight=maxHeight)
 
