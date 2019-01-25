@@ -40,8 +40,8 @@ class IconMenuButton(ExtendedButton):
         self.setMenuAlign(QtCore.Qt.AlignRight)
 
 
-def IconMenuButtonCombo(modes, defaultMode, color=(255, 255, 255), parent=None, size=24, toolTip=""):
-    """Creates an IconMenuButton in a combo box style, like a combo box with an icon instead,
+def iconMenuButtonCombo(modes, defaultMode, color=(255, 255, 255), parent=None, size=24, toolTip=""):
+    """ Creates an IconMenuButton in a combo box style, like a combo box with an icon instead,
     works with left click and a regular menu
 
     modes = [("arnoldIcon", "Arnold"),
