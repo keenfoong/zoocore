@@ -7,6 +7,7 @@ import colorsys
 from math import radians, sqrt, cos, sin
 from zoo.libs.utils import zoomath
 
+
 def convertHsvToRgb(hsv):
     """Converts hsv values to rgb
     rgb is in 0-1 range, hsv is in (0-360, 0-1, 0-1) ranges
@@ -21,7 +22,7 @@ def convertHsvToRgb(hsv):
 
 
 def convertRgbToHsv(rgb):
-    """Converts rgb values to hsv
+    """ Converts rgb values to hsv
     rgb is in 0-1 range, hsv is in (0-360, 0-1, 0-1) ranges
 
     :return hsv: Red Green Blue values 0-1

@@ -10,11 +10,12 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, title="", width=600, height=800, icon="",
                  parent=None, showOnInitialize=True, transparent=False):
         super(MainWindow, self).__init__(parent=parent)
+        self.setObjectName(title or self.__class__.__name__)
+
         self.setContentsMargins(2, 2, 2, 2)
         self.setDockNestingEnabled(True)
         self.setDocumentMode(True)
         self.title = title
-        self.setObjectName(title or self.__class__.__name__)
         self.setWindowTitle(title)
         self.resize(width, height)
 

@@ -131,7 +131,7 @@ class Icon(object):
 
     @classmethod
     def iconColorized(cls, iconName, size=16, color=(255, 255, 255), overlayName=None, overlayColor=(255,255,255)):
-        """Colorizes the icon from the library expects the default icon
+        """ Colorizes the icon from the library expects the default icon
         to be white for tinting.
 
         :param iconName: the icon name from the library
@@ -159,7 +159,6 @@ class Icon(object):
             cls.addOverlay(pixmap, overlayPixmap, overlayColor)
 
         pixmap = pixmap.scaled(QtCore.QSize(size, size), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
-        cls.tint(pixmap)
 
         return QtGui.QIcon(pixmap)
 

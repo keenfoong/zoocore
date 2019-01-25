@@ -613,10 +613,10 @@ def BtnRegular(**kwargs):
     return btn
 
 
-def BtnStyle(text=None, icon=None, parent=None, toolTip="", textCaps=False,
-             iconColor=(255, 255, 255), minWidth=None, maxWidth=None, iconSize=16, overlayIconName=None,
-             overlayIconColor=None, minHeight=None, maxHeight=None, style=BTN_DEFAULT):
-    """Create a button with text or an icon in various styles and options
+def buttonStyle(text=None, icon=None, parent=None, toolTip="", textCaps=False,
+                iconColor=(255, 255, 255), minWidth=None, maxWidth=None, iconSize=16, overlayIconName=None,
+                overlayIconColor=None, minHeight=None, maxHeight=None, style=BTN_DEFAULT):
+    """ Create a button with text or an icon in various styles and options
 
     Style - 0 - BTN_DEFAULT - Default pyside button with optional text or an icon
     Style - 1 - BTN_TRANSPARENT_BG - Default pyside button w transparent bg. Icon colour is grey and lighter with hover
