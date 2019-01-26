@@ -23,49 +23,46 @@ def Label(name, parent, toolTip=""):
     return lbl
 
 
-def LineEdit(placeholder="", placeholderText=False, parent=None, toolTip="", editWidth=None, inputMode="string"):
-        """Creates a simple textbox (QLineEdit)
+def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, inputMode="string"):
+    """Creates a simple textbox (QLineEdit)
 
-        :param placeholder the default text in the text box, if placeholderText is True then it's greyed out
-        :type placeholder: str or float or int
-        :param placeholderText: default text is greyed out inside the textbox if true (QLineEdit)
-        :type placeholderText: bool
-        :param parent: the qt parent
-        :type parent: class
-        :param toolTip: the tool tip message on mouse over hover, extra info
-        :type toolTip: str
-        :param editWidth: the width of the textbox in pixels optional, None is ignored
-        :type editWidth: int
-        :param inputMode: restrict the user to this data entry, "string" text, "float" decimal or "int" no decimal
-        :type inputMode: str
-        :return textBox: the QT QLabel widget
-        :rtype textBox: QWidget.QLabel
-        """
-        textBox = QtWidgets.QLineEdit(parent=parent)
-        # todo: STYLESHEET hardcoded color & margins here as a temp workaround, this should be in stylesheets
-        textBox.setStyleSheet("QLineEdit {background: rgb(27, 27, 27);}")
-        if inputMode == "float":
-            placeholder = str(placeholder)
-            textBox.setValidator(QtGui.QDoubleValidator())
-        if inputMode == "int":
-            placeholder = int(placeholder)
-            textBox.setValidator(QtGui.QIntValidator())
-        textBox.setTextMargins(*utils.marginsDpiScale(2, 2, 2, 2))
-        if editWidth:
-            textBox.setFixedWidth(utils.dpiScale(editWidth))
-        if placeholderText:
-            textBox.setPlaceholderText(placeholder)
-        else:
-            textBox.setText(placeholder)
-        textBox.setToolTip(toolTip)
-        return textBox
+    :param text:
+    :param placeholder the default text in the text box
+    :type placeholder: str or float or int
+    :param parent: the qt parent
+    :type parent: class
+    :param toolTip: the tool tip message on mouse over hover, extra info
+    :type toolTip: str
+    :param editWidth: the width of the textbox in pixels optional, None is ignored
+    :type editWidth: int
+    :param inputMode: restrict the user to this data entry, "string" text, "float" decimal or "int" no decimal
+    :type inputMode: str
+    :return textBox: the QT QLabel widget
+    :rtype textBox: QWidget.QLabel
+    """
+    textBox = QtWidgets.QLineEdit(parent=parent)
+    # todo: STYLESHEET hardcoded color & margins here as a temp workaround, this should be in stylesheets
+    textBox.setStyleSheet("QLineEdit {background: rgb(27, 27, 27);}")
+    if inputMode == "float":
+        placeholder = str(placeholder)
+        textBox.setValidator(QtGui.QDoubleValidator())
+    if inputMode == "int":
+        placeholder = int(placeholder)
+        textBox.setValidator(QtGui.QIntValidator())
+    textBox.setTextMargins(*utils.marginsDpiScale(2, 2, 2, 2))
+    if editWidth:
+        textBox.setFixedWidth(utils.dpiScale(editWidth))
+    textBox.setPlaceholderText(placeholder)
+    textBox.setText(text)
+    textBox.setToolTip(toolTip)
+    return textBox
 
 
 class StringEdit(QtWidgets.QWidget):
     textChanged = QtCore.Signal(str)
     buttonClicked = QtCore.Signal()
 
-    def __init__(self, label, placeholder="", placeholderText=False, buttonText=None, parent=None, editWidth=None,
+    def __init__(self, label, editText="", editPlaceholder="", buttonText=None, parent=None, editWidth=None,
                  labelRatio=1, btnRatio=1, editRatio=1, toolTip="", inputMode="string"):
         """Creates a label, textbox (QLineEdit) and an optional button
         if the button is None then no button will be created
@@ -95,14 +92,14 @@ class StringEdit(QtWidgets.QWidget):
         """
         super(StringEdit, self).__init__(parent=parent)
         self.layout = HBoxLayout(parent, (0, 0, 0, 0), spacing=uiconstants.SREG)
-        self.edit = LineEdit(placeholder, placeholderText, parent, toolTip, editWidth, inputMode)
+        self.edit = LineEdit(editText, editPlaceholder, parent, toolTip, editWidth, inputMode)
         self.label = Label(label, parent, toolTip)
         self.layout.addWidget(self.label, labelRatio)
         self.layout.addWidget(self.edit, editRatio)
         self.buttonText = buttonText
         if self.buttonText:
             # todo button connections should be added from this class (connections)
-            self.btn = extendedbutton.BtnStyle(self.buttonText, toolTip=toolTip, style=uiconstants.BTN_DEFAULT)
+            self.btn = extendedbutton.buttonStyle(self.buttonText, toolTip=toolTip, style=uiconstants.BTN_DEFAULT)
             self.layout.addWidget(self.btn, btnRatio)
         self.setLayout(self.layout)
         self.connections()
