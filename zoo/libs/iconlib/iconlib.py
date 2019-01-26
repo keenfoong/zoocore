@@ -159,7 +159,6 @@ class Icon(object):
             cls.addOverlay(pixmap, overlayPixmap, overlayColor)
 
         pixmap = pixmap.scaled(QtCore.QSize(size, size), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
-        cls.tint(pixmap)
 
         return QtGui.QIcon(pixmap)
 
