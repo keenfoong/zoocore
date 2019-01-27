@@ -43,10 +43,10 @@ def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, i
     textBox = QtWidgets.QLineEdit(parent=parent)
     # todo: STYLESHEET hardcoded color & margins here as a temp workaround, this should be in stylesheets
     textBox.setStyleSheet("QLineEdit {background: rgb(27, 27, 27);}")
-    if inputMode == "float":
+    if inputMode == "float": #  todo: this should be a constant
         placeholder = str(placeholder)
         textBox.setValidator(QtGui.QDoubleValidator())
-    if inputMode == "int":
+    elif inputMode == "int":
         placeholder = int(placeholder)
         textBox.setValidator(QtGui.QIntValidator())
     textBox.setTextMargins(*utils.marginsDpiScale(2, 2, 2, 2))
