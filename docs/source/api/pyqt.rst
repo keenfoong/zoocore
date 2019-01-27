@@ -299,13 +299,6 @@ Toolbutton
     :undoc-members:
     :show-inheritance:
 
-Toolsetwidget
----------------------------------
-
-.. automodule:: zoo.libs.pyqt.widgets.toolsetwidget
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 Treeview
 ---------------------------------
