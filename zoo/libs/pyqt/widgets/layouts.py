@@ -53,7 +53,7 @@ def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, i
     if editWidth:
         textBox.setFixedWidth(utils.dpiScale(editWidth))
     textBox.setPlaceholderText(placeholder)
-    textBox.setText(text)
+    textBox.setText(str(text))
     textBox.setToolTip(toolTip)
     return textBox
 
