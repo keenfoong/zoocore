@@ -84,13 +84,12 @@ class ButtonIcons(QtWidgets.QAbstractButton):
         self.buttonIcon = iconlib.iconColorizedLayered(self.iconNames,
                                                        size=self.iconSize().width(),
                                                        iconScaling=self.iconScaling,
-                                                       tintColor=(0,0,0,255),
                                                        tintComposition=self.tintComposition,
                                                        colors=self.iconColors, grayscale=self.grayscale)
         self.buttonIconHover = iconlib.iconColorizedLayered(self.iconNames,
                                                             size=self.iconSize().width(),
                                                             colors=self.iconColors,
-                                                            tintComposition = self.tintComposition,
+                                                            tintComposition=self.tintComposition,
                                                             iconScaling=self.iconScaling,
                                                             tintColor=hoverCol, grayscale=self.grayscale)
 

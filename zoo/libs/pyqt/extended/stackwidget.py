@@ -330,7 +330,6 @@ class StackItem(QtWidgets.QFrame):
 
         super(StackItem, self).__init__(parent=parent)
 
-
         if startHidden:
             self.hide()
 
@@ -619,7 +618,6 @@ class StackItem(QtWidgets.QFrame):
     def connections(self):
         """ Connections for stack items"""
 
-
         self.expandToggleButton.leftClicked.connect(self.toggleContents)
 
         self.shiftUpBtn.leftClicked.connect(self.shiftUp)
@@ -677,4 +675,3 @@ class LineClickEdit(QtWidgets.QLineEdit):
 
     def mouseReleaseEvent(self, event):
         event.ignore()
-
