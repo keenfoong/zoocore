@@ -36,7 +36,8 @@ class ButtonIcons(QtWidgets.QAbstractButton):
     def setHighlight(self, highlight):
         self.highlightOffset = highlight
 
-    def setIconByName(self, iconNames, colors=None, size=None, colorOffset=None, iconScaling=None):
+    def setIconByName(self, iconNames, colors=None, size=None, colorOffset=None, tint=None,
+                      tintComposition=QtGui.QPainter.CompositionMode_Plus, iconScaling=None, grayscale=False):
         """Set up both icons in a simple function
 
         :param iconNames: name of the icon
@@ -48,7 +49,7 @@ class ButtonIcons(QtWidgets.QAbstractButton):
         :param colorOffset: the amount of tint white highlight that's added when mouse over hover 0-255
         :type colorOffset: int
         :param iconScaling: the icon's scale
-        :type iconScaling: int
+        :type iconScaling: list of int or int
         """
         if size is not None:
             self.setIconSize(QtCore.QSize(size, size))
@@ -58,7 +59,11 @@ class ButtonIcons(QtWidgets.QAbstractButton):
 
         if iconScaling is not None:
             self.iconScaling = iconScaling
+
+        self.tint = (255,0,0,100)
         colors = colors or self.iconColors
+        self.grayscale = grayscale
+        self.tintComposition = tintComposition
 
         self.iconNames = iconNames
         self.setIconColor(colors, update=False)
@@ -79,12 +84,15 @@ class ButtonIcons(QtWidgets.QAbstractButton):
         self.buttonIcon = iconlib.iconColorizedLayered(self.iconNames,
                                                        size=self.iconSize().width(),
                                                        iconScaling=self.iconScaling,
-                                                       colors=self.iconColors)
+                                                       tintColor=(0,0,0,255),
+                                                       tintComposition=self.tintComposition,
+                                                       colors=self.iconColors, grayscale=self.grayscale)
         self.buttonIconHover = iconlib.iconColorizedLayered(self.iconNames,
                                                             size=self.iconSize().width(),
                                                             colors=self.iconColors,
+                                                            tintComposition = self.tintComposition,
                                                             iconScaling=self.iconScaling,
-                                                            tintColor=hoverCol)
+                                                            tintColor=hoverCol, grayscale=self.grayscale)
 
         self.setIcon(self.buttonIcon)
 
