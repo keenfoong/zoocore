@@ -13,7 +13,7 @@ class Spinner(QtWidgets.QWidget):
         :param size: The width and height of the widget
         :type size: tuple(int)
         :param parent: The parent widget
-        :type parent: PySide2.QtGui.QWidget
+        :type parent: :class:`PySide2.QtGui.QWidget`
         """
         super(Spinner, self).__init__(parent)
 

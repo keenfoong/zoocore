@@ -1,21 +1,20 @@
-from PySide2.QtCore import QRegExp
-from PySide2.QtGui import QColor, QTextCharFormat, QFont, QSyntaxHighlighter
-
+from qt import QtGui, QtCore
 from zoo.libs.utils import filesystem
 
+
 def formatColor(color, style=None):
-    """Return a QTextCharFormat with the given attributes.
+    """Return a QtGui.QTextCharFormat with the given attributes.
     :param color: float3 rgb
     :type color: tuple
     :param style: the style name eg. 'bold'
     :type style: str or None
     """
     style = style or ""
-    _color = QColor(*color)
-    _format = QTextCharFormat()
+    _color = QtGui.QColor(*color)
+    _format = QtGui.QTextCharFormat()
     _format.setForeground(_color)
     if "bold" in style:
-        _format.setFontWeight(QFont.Bold)
+        _format.setFontWeight(QtGui.QFont.Bold)
     if "italic" in style:
         _format.setFontItalic(True)
 
@@ -37,7 +36,7 @@ def highlighterFromJson(filePath, document):
     return PythonHighlighter(document, syntaxData)
 
 
-class PythonHighlighter(QSyntaxHighlighter):
+class PythonHighlighter(QtGui.QSyntaxHighlighter):
     """Syntax highlighter for the Python language.
     """
 
@@ -48,12 +47,12 @@ class PythonHighlighter(QSyntaxHighlighter):
         :param styles: The style dict
         :type styles: dict
         """
-        QSyntaxHighlighter.__init__(self, document)
+        QtGui.QSyntaxHighlighter.__init__(self, document)
 
         colors = styles["colors"]
         syntax = styles["syntax"]
-        self.tri_single = (QRegExp("'''"), 1, colors['string'])
-        self.tri_double = (QRegExp('"""'), 2, colors['string'])
+        self.tri_single = (QtCore.QRegExp("'''"), 1, colors['string'])
+        self.tri_double = (QtCore.QRegExp('"""'), 2, colors['string'])
 
         rules = [
 
@@ -85,8 +84,8 @@ class PythonHighlighter(QSyntaxHighlighter):
         rules += [(r'%s' % o, 0, colors['operator']) for o in syntax["operators"]]
         rules += [(r'%s' % b, 0, colors['brace']) for b in syntax["braces"]]
 
-        # Build a QRegExp for each pattern
-        self.rules = [(QRegExp(pat), index, fmt)
+        # Build a QtCore.QRegExp for each pattern
+        self.rules = [(QtCore.QRegExp(pat), index, fmt)
                       for (pat, index, fmt) in rules]
 
     def highlightBlock(self, text):
@@ -109,14 +108,14 @@ class PythonHighlighter(QSyntaxHighlighter):
 
         self.setCurrentBlockState(0)
 
-        color = QColor(*self.tri_single[2][0])
+        color = QtGui.QColor(*self.tri_single[2][0])
         in_multiline = self.match_multiline(text, self.tri_single[0], self.tri_single[1], color)
         if not in_multiline:
             self.match_multiline(text, self.tri_double[0], self.tri_double[1], color)
 
     def match_multiline(self, text, delimiter, in_state, style):
         """Do highlighting of multi-line strings. ``delimiter`` should be a
-        ``QRegExp`` for triple-single-quotes or triple-double-quotes, and
+        ``QtCore.QRegExp`` for triple-single-quotes or triple-double-quotes, and
         ``in_state`` should be a unique integer to represent the corresponding
         state changes when inside those strings. Returns True if we're still
         inside a multi-line string when this function is finished.

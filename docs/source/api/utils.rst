@@ -49,14 +49,6 @@ Environment
     :undoc-members:
     :show-inheritance:
 
-File
---------------------------
-
-.. automodule:: zoo.libs.utils.file
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 Filesystem
 --------------------------------
 

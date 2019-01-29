@@ -44,10 +44,12 @@ def iconMenuButtonCombo(modes, defaultMode, color=(255, 255, 255), parent=None, 
     """ Creates an IconMenuButton in a combo box style, like a combo box with an icon instead,
     works with left click and a regular menu
 
-    modes = [("arnoldIcon", "Arnold"),
+    :example:
+
+        modes = [("arnoldIcon", "Arnold"),
              ("redshiftIcon", "Redshift"),
              ("rendermanIcon", "Renderman")]
-    defaultMode = "redshiftIcon"
+        defaultMode = "redshiftIcon"
 
     :param modes: A list of tuples, tuples are (iconName, menuName)
     :type modes: list(tuples)
