@@ -1,6 +1,6 @@
 import os
 
-from qt import QtGui, QtCore
+from qt import QtGui, QtCore, QtWidgets
 from zoo.libs.utils import env, classtypes
 
 
@@ -163,7 +163,8 @@ class Icon(object):
         return QtGui.QIcon(pixmap)
 
     @classmethod
-    def iconColorizedLayered(cls, iconNames, size=16, colors=None, iconScaling=None, tintColor=None):
+    def iconColorizedLayered(cls, iconNames, size=16, colors=None, iconScaling=None, tintColor=None,
+                             tintComposition=QtGui.QPainter.CompositionMode_Plus, grayscale=None):
         """ Layers multiple icons with various colours into one qicon. Maybe can replace icon colorized
 
         :param iconNames: the icon name from the library. Allow string or list for convenience
@@ -220,7 +221,6 @@ class Icon(object):
         else:
             pixmap = iconLargest.pixmap(origSize*scale)
 
-
         # Layer the additional icons
         for i, name in enumerate(iconNames):
             if name is None:
@@ -231,11 +231,20 @@ class Icon(object):
 
         # Tint
         if tintColor is not None:
-            cls.tint(pixmap, tintColor)
+            cls.tint(pixmap, tintColor, compositionMode=tintComposition)
 
-        pixmap = pixmap.scaled(QtCore.QSize(size, size), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
+        pixmap = pixmap.scaled(QtCore.QSize(size, size), QtCore.Qt.KeepAspectRatio,
+                               QtCore.Qt.SmoothTransformation)  # type: QtGui.QPixmap
 
-        return QtGui.QIcon(pixmap)
+        icon = QtGui.QIcon(pixmap)
+        if grayscale:
+            pixmap = cls.grayscale(pixmap)
+
+            # todo: rough code to darken icon for alpha, this should removed and done in tint
+            icon = QtGui.QIcon(pixmap)
+            icon.addPixmap(icon.pixmap(size, QtGui.QIcon.Disabled))
+
+        return icon
 
     @classmethod
     def grayscaleIcon(cls, iconName, size):
@@ -324,5 +333,26 @@ class Icon(object):
 
         painter.drawPixmap(0, 0, overlayPixmap.width(), overlayPixmap.height(), overlayPixmap)
         painter.end()
+
+    @classmethod
+    def grayscale(cls, pixmap):
+        """
+
+        :param icon:
+        :type icon: QtGui.QIcon
+        :return:
+        """
+
+        # This might be slow! Converts to grayscale format then back. Not sure if this the fastest way or not.
+        image = pixmap.toImage()  # type: QtGui.QImage
+        alpha = image.alphaChannel()
+        gray = image.convertToFormat(QtGui.QImage.Format_Grayscale8)  # type: QtGui.QImage
+        image = gray.convertToFormat(QtGui.QImage.Format_ARGB32)  # type: QtGui.QImage
+        image.setAlphaChannel(alpha)
+
+        return QtGui.QPixmap(image)
+
+
+
 
 

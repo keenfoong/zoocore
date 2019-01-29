@@ -1,4 +1,4 @@
-from qt import QtWidgets, QtCore, QtGui
+from qt import QtWidgets, QtCore
 from zoo.libs import iconlib
 from zoo.libs.pyqt import uiconstants
 from zoo.libs.pyqt.widgets import frame, extendedbutton
@@ -330,11 +330,9 @@ class StackItem(QtWidgets.QFrame):
 
         super(StackItem, self).__init__(parent=parent)
 
-
         if startHidden:
             self.hide()
 
-        self.setAutoFillBackground(True)
         self._itemIcon = icon or self._itemIcon
         self.stackWidget = parent
         self.hide()
@@ -620,7 +618,6 @@ class StackItem(QtWidgets.QFrame):
     def connections(self):
         """ Connections for stack items"""
 
-
         self.expandToggleButton.leftClicked.connect(self.toggleContents)
 
         self.shiftUpBtn.leftClicked.connect(self.shiftUp)
@@ -642,6 +639,7 @@ class LineClickEdit(QtWidgets.QLineEdit):
         self.editingStyle = self.styleSheet()
         self.defaultStyle = "QLineEdit { border: 0}"
         self.setStyleSheet(self.defaultStyle)
+        self.setContextMenuPolicy(QtCore.Qt.NoContextMenu)
 
         if single:
             self.mousePressEvent = self.editEvent
@@ -673,4 +671,7 @@ class LineClickEdit(QtWidgets.QLineEdit):
         self.editFinished()
 
     def mouseClickPassThrough(self, event):
+        event.ignore()
+
+    def mouseReleaseEvent(self, event):
         event.ignore()
