@@ -542,9 +542,13 @@ class IconPushButton(QtWidgets.QPushButton):
         A custom button that has a colored frame for the icon and a drop shadow for the overall button
 
         :param parent: Widget Parent
+        :type parent: QtWidgets.QWidget
         :param text: Button text
+        :type text: basestring
         :param shadowHeight: Height of shadow
+        :type shadowHeight: int
         :param forceUpper: Force upper case
+        :type forceUpper:
         """
         super(IconPushButton, self).__init__(parent=parent)
         self.forceUpper = forceUpper
@@ -559,6 +563,10 @@ class IconPushButton(QtWidgets.QPushButton):
         self.initUi()
 
     def initUi(self):
+        """ Initialize Ui
+
+        :return:
+        """
         self.setLayout(self.mainLayout)
 
         self.image.setFixedWidth(self.sizeHint().height())
@@ -573,14 +581,11 @@ class IconPushButton(QtWidgets.QPushButton):
         self.textLabel.setAlignment(QtCore.Qt.AlignCenter)
         self.mainLayout.setSpacing(0)
 
-    def sizeHint(self):
-        hint = super(IconPushButton, self).sizeHint()
-        return hint
-
     def setFixedHeight(self, height):
         """ Set Fixed Height
 
         :param height: Height in pixels of the button
+        :type height: int
         :return:
         """
         self.image.setFixedWidth(height)
@@ -590,6 +595,7 @@ class IconPushButton(QtWidgets.QPushButton):
         """ Set the text
 
         :param text: Text to set the button to
+        :type text: basestring
         :return:
         """
         if self.forceUpper:
