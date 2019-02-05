@@ -536,22 +536,25 @@ class ExtendedButtonMenu(searchablemenu.SearchableMenu):
 
 
 class IconPushButton(QtWidgets.QPushButton):
-    def __init__(self, parent=None, text="", shadowHeight=5):
+    def __init__(self, parent=None, text="", shadowHeight=5, forceUpper=False):
         """ IconPushButton
 
         A custom button that has a colored frame for the icon and a drop shadow for the overall button
 
         :param parent:
         :param text:
-        :param shadowHeight:
+        :param shadowHeight: Height of shadow
+        :param forceUpper: Force upper case
         """
         super(IconPushButton, self).__init__(parent=parent)
+        self.forceUpper = forceUpper
         self.image = IconPushButtonImage(parent=self)
-        self.textLabel = QtWidgets.QLabel(parent=self, text=text)
+        self.textLabel = QtWidgets.QLabel(parent=self)
         self.mainLayout = QtWidgets.QGridLayout(self)
         self.shadow = IconPushButtonShadow(parent=self)
         self.iconSize = utils.dpiScale(QtCore.QSize(30, 30))
         self.setShadowHeight(shadowHeight)
+        self.setText(text)
 
         self.initUi()
 
@@ -575,19 +578,58 @@ class IconPushButton(QtWidgets.QPushButton):
         return hint
 
     def setFixedHeight(self, height):
+        """ Set Fixed Height
+
+        :param height:
+        :return:
+        """
         self.image.setFixedWidth(height)
         super(IconPushButton, self).setFixedHeight(height)
 
     def setText(self, text):
+        """ Set the text
+
+        :param text:
+        :return:
+        """
+        if self.forceUpper:
+            text = text.upper()
         self.textLabel.setText(text)
 
+    def setForceUpper(self, force):
+        """ Force upper case
+
+        :param force:
+        :type force: bool
+        :return:
+        """
+        self.forceUpper = force
+
     def setShadowHeight(self, height):
+        """ Set the shadow height in pixels
+
+        :param height:
+        :return:
+        """
         self.shadow.setFixedHeight(height)
 
     def setIconSize(self, size):
+        """ Set the icon size
+
+        :param size:
+        :return:
+        """
         self.iconSize = utils.dpiScale(size)
 
     def setIconByName(self, iconNames, colors):
+        """ Set Icon Size by name
+
+        todo: needs additional features similar to the ButtonIcons.setIconByName() method
+
+        :param iconNames:
+        :param colors:
+        :return:
+        """
         self.image.setPixmap(iconlib.iconColorizedLayered(iconNames, colors=[colors]).pixmap(self.iconSize))
 
 
