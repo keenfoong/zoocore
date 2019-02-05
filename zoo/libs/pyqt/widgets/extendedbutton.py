@@ -535,7 +535,71 @@ class ExtendedButtonMenu(searchablemenu.SearchableMenu):
             self.ttKeyPressed = False
 
 
-def BtnTransparentBG(**kwargs):
+class IconPushButton(QtWidgets.QPushButton):
+    def __init__(self, parent=None, text="", shadowHeight=5):
+        """ IconPushButton
+
+        A custom button that has a colored frame for the icon and a drop shadow for the overall button
+
+        :param parent:
+        :param text:
+        :param shadowHeight:
+        """
+        super(IconPushButton, self).__init__(parent=parent)
+        self.image = IconPushButtonImage(parent=self)
+        self.textLabel = QtWidgets.QLabel(parent=self, text=text)
+        self.mainLayout = QtWidgets.QGridLayout(self)
+        self.shadow = IconPushButtonShadow(parent=self)
+        self.iconSize = utils.dpiScale(QtCore.QSize(30, 30))
+        self.setShadowHeight(shadowHeight)
+
+        self.initUi()
+
+    def initUi(self):
+        self.setLayout(self.mainLayout)
+
+        self.image.setFixedWidth(self.sizeHint().height())
+        self.image.setAlignment(QtCore.Qt.AlignCenter)
+        self.image.setSizePolicy(self.image.sizePolicy().horizontalPolicy(), QtWidgets.QSizePolicy.Expanding)
+
+        self.mainLayout.addWidget(self.image, 0, 0, 1, 1)
+        self.mainLayout.addWidget(self.textLabel, 0, 1, 1, 1)
+        self.mainLayout.addWidget(self.shadow, 1, 0, 1, 2)
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
+
+        self.textLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.mainLayout.setSpacing(0)
+
+    def sizeHint(self):
+        hint = super(IconPushButton, self).sizeHint()
+        return hint
+
+    def setFixedHeight(self, height):
+        self.image.setFixedWidth(height)
+        super(IconPushButton, self).setFixedHeight(height)
+
+    def setText(self, text):
+        self.textLabel.setText(text)
+
+    def setShadowHeight(self, height):
+        self.shadow.setFixedHeight(height)
+
+    def setIconSize(self, size):
+        self.iconSize = utils.dpiScale(size)
+
+    def setIconByName(self, iconNames, colors):
+        self.image.setPixmap(iconlib.iconColorizedLayered(iconNames, colors=[colors]).pixmap(self.iconSize))
+
+
+class IconPushButtonImage(QtWidgets.QLabel):
+    """ CSS Purposes """
+
+
+class IconPushButtonShadow(QtWidgets.QFrame):
+    """ CSS Purposes """
+
+
+def buttonTransparentBG(**kwargs):
     """Create a button with a transparent bg.  Saves code from doing this over and over
     Default Icon colour (None) is light grey and turns white (lighter in color) with mouse over.
 
@@ -576,7 +640,7 @@ def BtnTransparentBG(**kwargs):
     return btn
 
 
-def BtnRegular(**kwargs):
+def buttonRegular(**kwargs):
     """Creates regular pyside button with text or an icon.
 
     :note: Will fill out more options with time.
@@ -662,13 +726,12 @@ def buttonStyle(text=None, icon=None, parent=None, toolTip="", textCaps=False,
     :rtype qtBtn: object
     """
     if style == BTN_DEFAULT:
-        return BtnRegular(text=text, icon=icon, parent=parent, toolTip=toolTip, textCaps=textCaps,
-                          iconColor=iconColor, minWidth=minWidth, maxWidth=maxWidth, iconSize=iconSize,
-                          overlayIconName=overlayIconName, overlayIconColor=overlayIconColor, minHeight=minHeight,
-                          maxHeight=maxHeight)
+        return buttonRegular(text=text, icon=icon, parent=parent, toolTip=toolTip, textCaps=textCaps,
+                             iconColor=iconColor, minWidth=minWidth, maxWidth=maxWidth, iconSize=iconSize,
+                             overlayIconName=overlayIconName, overlayIconColor=overlayIconColor, minHeight=minHeight,
+                             maxHeight=maxHeight)
     if style == BTN_TRANSPARENT_BG:
-        return BtnTransparentBG(text=text, icon=icon, parent=parent, toolTip=toolTip, textCaps=textCaps,
-                                iconColor=iconColor, minWidth=minWidth, maxWidth=maxWidth, iconSize=iconSize,
-                                overlayIconName=overlayIconName, overlayIconColor=overlayIconColor, minHeight=minHeight,
-                                maxHeight=maxHeight)
-
+        return buttonTransparentBG(text=text, icon=icon, parent=parent, toolTip=toolTip, textCaps=textCaps,
+                                   iconColor=iconColor, minWidth=minWidth, maxWidth=maxWidth, iconSize=iconSize,
+                                   overlayIconName=overlayIconName, overlayIconColor=overlayIconColor, minHeight=minHeight,
+                                   maxHeight=maxHeight)

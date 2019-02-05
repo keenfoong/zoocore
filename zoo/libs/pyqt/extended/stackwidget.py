@@ -447,7 +447,7 @@ class StackItem(QtWidgets.QFrame):
         """ Builds the title part of the layout with a QFrame widget
         """
 
-        self.titleFrame.setContentsMargins(1, 1, 1, 1)
+        self.titleFrame.setContentsMargins(*qtutils.marginsDpiScale(1, 1, 1, 1))
 
         # the horizontal layout
         self.horizontalLayout = qtutils.hBoxLayout(self.titleFrame)
