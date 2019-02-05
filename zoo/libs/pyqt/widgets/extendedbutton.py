@@ -541,8 +541,8 @@ class IconPushButton(QtWidgets.QPushButton):
 
         A custom button that has a colored frame for the icon and a drop shadow for the overall button
 
-        :param parent:
-        :param text:
+        :param parent: Widget Parent
+        :param text: Button text
         :param shadowHeight: Height of shadow
         :param forceUpper: Force upper case
         """
@@ -580,7 +580,7 @@ class IconPushButton(QtWidgets.QPushButton):
     def setFixedHeight(self, height):
         """ Set Fixed Height
 
-        :param height:
+        :param height: Height in pixels of the button
         :return:
         """
         self.image.setFixedWidth(height)
@@ -589,7 +589,7 @@ class IconPushButton(QtWidgets.QPushButton):
     def setText(self, text):
         """ Set the text
 
-        :param text:
+        :param text: Text to set the button to
         :return:
         """
         if self.forceUpper:
@@ -599,7 +599,7 @@ class IconPushButton(QtWidgets.QPushButton):
     def setForceUpper(self, force):
         """ Force upper case
 
-        :param force:
+        :param force: Force upper case
         :type force: bool
         :return:
         """
@@ -608,7 +608,8 @@ class IconPushButton(QtWidgets.QPushButton):
     def setShadowHeight(self, height):
         """ Set the shadow height in pixels
 
-        :param height:
+        :param height: Height in pixels
+        :type height: int
         :return:
         """
         self.shadow.setFixedHeight(height)
@@ -626,8 +627,10 @@ class IconPushButton(QtWidgets.QPushButton):
 
         todo: needs additional features similar to the ButtonIcons.setIconByName() method
 
-        :param iconNames:
-        :param colors:
+        :param iconNames: Names of the icons
+        :type iconNames: list or basestring
+        :param colors: Colors of the icons
+        :type colors: list of tuple
         :return:
         """
         self.image.setPixmap(iconlib.iconColorizedLayered(iconNames, colors=[colors]).pixmap(self.iconSize))
