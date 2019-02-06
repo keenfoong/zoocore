@@ -61,6 +61,7 @@ def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, i
 class StringEdit(QtWidgets.QWidget):
     textChanged = QtCore.Signal(str)
     buttonClicked = QtCore.Signal()
+    editingFinished = QtCore.Signal()
 
     def __init__(self, label, editText="", editPlaceholder="", buttonText=None, parent=None, editWidth=None,
                  labelRatio=1, btnRatio=1, editRatio=1, toolTip="", inputMode="string"):
@@ -109,6 +110,8 @@ class StringEdit(QtWidgets.QWidget):
         self.edit.textChanged.connect(self._onTextChanged)
         if self.buttonText:
             self.btn.clicked.connect(self.buttonClicked.emit)
+
+        self.editingFinished = self.edit.editingFinished
 
     def _onTextChanged(self):
         """If the text is changed emit"""
