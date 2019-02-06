@@ -535,7 +535,122 @@ class ExtendedButtonMenu(searchablemenu.SearchableMenu):
             self.ttKeyPressed = False
 
 
-def BtnTransparentBG(**kwargs):
+class IconPushButton(QtWidgets.QPushButton):
+    def __init__(self, parent=None, text="", shadowHeight=5, forceUpper=False):
+        """ IconPushButton
+
+        A custom button that has a colored frame for the icon and a drop shadow for the overall button
+
+        :param parent: Widget Parent
+        :type parent: QtWidgets.QWidget
+        :param text: Button text
+        :type text: basestring
+        :param shadowHeight: Height of shadow
+        :type shadowHeight: int
+        :param forceUpper: Force upper case
+        :type forceUpper:
+        """
+        super(IconPushButton, self).__init__(parent=parent)
+        self.forceUpper = forceUpper
+        self.image = IconPushButtonImage(parent=self)
+        self.textLabel = QtWidgets.QLabel(parent=self)
+        self.mainLayout = QtWidgets.QGridLayout(self)
+        self.shadow = IconPushButtonShadow(parent=self)
+        self.iconSize = utils.dpiScale(QtCore.QSize(30, 30))
+        self.setShadowHeight(shadowHeight)
+        self.setText(text)
+
+        self.initUi()
+
+    def initUi(self):
+        """ Initialize Ui
+
+        :return:
+        """
+        self.setLayout(self.mainLayout)
+
+        self.image.setFixedWidth(self.sizeHint().height())
+        self.image.setAlignment(QtCore.Qt.AlignCenter)
+        self.image.setSizePolicy(self.image.sizePolicy().horizontalPolicy(), QtWidgets.QSizePolicy.Expanding)
+
+        self.mainLayout.addWidget(self.image, 0, 0, 1, 1)
+        self.mainLayout.addWidget(self.textLabel, 0, 1, 1, 1)
+        self.mainLayout.addWidget(self.shadow, 1, 0, 1, 2)
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
+
+        self.textLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.mainLayout.setSpacing(0)
+
+    def setFixedHeight(self, height):
+        """ Set Fixed Height
+
+        :param height: Height in pixels of the button
+        :type height: int
+        :return:
+        """
+        self.image.setFixedWidth(height)
+        super(IconPushButton, self).setFixedHeight(height)
+
+    def setText(self, text):
+        """ Set the text
+
+        :param text: Text to set the button to
+        :type text: basestring
+        :return:
+        """
+        if self.forceUpper:
+            text = text.upper()
+        self.textLabel.setText(text)
+
+    def setForceUpper(self, force):
+        """ Force upper case
+
+        :param force: Force upper case
+        :type force: bool
+        :return:
+        """
+        self.forceUpper = force
+
+    def setShadowHeight(self, height):
+        """ Set the shadow height in pixels
+
+        :param height: Height in pixels
+        :type height: int
+        :return:
+        """
+        self.shadow.setFixedHeight(height)
+
+    def setIconSize(self, size):
+        """ Set the icon size
+
+        :param size:
+        :return:
+        """
+        self.iconSize = utils.dpiScale(size)
+
+    def setIconByName(self, iconNames, colors):
+        """ Set Icon Size by name
+
+        todo: needs additional features similar to the ButtonIcons.setIconByName() method
+
+        :param iconNames: Names of the icons
+        :type iconNames: list or basestring
+        :param colors: Colors of the icons
+        :type colors: list of tuple
+        :return:
+        """
+        self.image.setPixmap(iconlib.iconColorizedLayered(iconNames, colors=[colors]).pixmap(self.iconSize))
+
+
+class IconPushButtonImage(QtWidgets.QLabel):
+    """ CSS Purposes """
+
+
+class IconPushButtonShadow(QtWidgets.QFrame):
+    """ CSS Purposes """
+
+
+def buttonTransparentBG(**kwargs):
     """Create a button with a transparent bg.  Saves code from doing this over and over
     Default Icon colour (None) is light grey and turns white (lighter in color) with mouse over.
 
@@ -576,7 +691,7 @@ def BtnTransparentBG(**kwargs):
     return btn
 
 
-def BtnRegular(**kwargs):
+def buttonRegular(**kwargs):
     """Creates regular pyside button with text or an icon.
 
     :note: Will fill out more options with time.
@@ -662,13 +777,12 @@ def buttonStyle(text=None, icon=None, parent=None, toolTip="", textCaps=False,
     :rtype qtBtn: object
     """
     if style == BTN_DEFAULT:
-        return BtnRegular(text=text, icon=icon, parent=parent, toolTip=toolTip, textCaps=textCaps,
-                          iconColor=iconColor, minWidth=minWidth, maxWidth=maxWidth, iconSize=iconSize,
-                          overlayIconName=overlayIconName, overlayIconColor=overlayIconColor, minHeight=minHeight,
-                          maxHeight=maxHeight)
+        return buttonRegular(text=text, icon=icon, parent=parent, toolTip=toolTip, textCaps=textCaps,
+                             iconColor=iconColor, minWidth=minWidth, maxWidth=maxWidth, iconSize=iconSize,
+                             overlayIconName=overlayIconName, overlayIconColor=overlayIconColor, minHeight=minHeight,
+                             maxHeight=maxHeight)
     if style == BTN_TRANSPARENT_BG:
-        return BtnTransparentBG(text=text, icon=icon, parent=parent, toolTip=toolTip, textCaps=textCaps,
-                                iconColor=iconColor, minWidth=minWidth, maxWidth=maxWidth, iconSize=iconSize,
-                                overlayIconName=overlayIconName, overlayIconColor=overlayIconColor, minHeight=minHeight,
-                                maxHeight=maxHeight)
-
+        return buttonTransparentBG(text=text, icon=icon, parent=parent, toolTip=toolTip, textCaps=textCaps,
+                                   iconColor=iconColor, minWidth=minWidth, maxWidth=maxWidth, iconSize=iconSize,
+                                   overlayIconName=overlayIconName, overlayIconColor=overlayIconColor, minHeight=minHeight,
+                                   maxHeight=maxHeight)
