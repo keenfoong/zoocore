@@ -45,6 +45,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.reapplySettings()
 
     def center(self):
+        """ Centers to center of desktop
+
+        :return:
+        """
         frameGm = self.frameGeometry()
         screen = QtWidgets.QApplication.desktop().screenNumber(QtWidgets.QApplication.desktop().cursor().pos())
         centerPoint = QtWidgets.QApplication.desktop().screenGeometry(screen).center()
@@ -63,7 +67,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.exitAction.setIcon(iconlib.icon("close"))
         self.exitAction.setText("Close")
         self.exitAction.setShortcut("ctrl+Q")
-        self.exitAction.setToolTip("Close's application")
+        self.exitAction.setToolTip("Closes application")
         self.fileMenu.addAction(self.exitAction)
         self.exitAction.triggered.connect(self.close)
 
@@ -107,7 +111,8 @@ class MainWindow(QtWidgets.QMainWindow):
         super(MainWindow, self).addDockWidget(area, dockWidget, orientation)
 
     def findDock(self, dockName):
-        """Returns the dock widget based on the object name passed in as the argument
+        """ Returns the dock widget based on the object name passed in as the argument
+
         :param dockName: str, the objectName to find, docks must be
         :return: QDockWidget
         """
@@ -116,17 +121,23 @@ class MainWindow(QtWidgets.QMainWindow):
                 return dock
 
     def toggleMaximized(self):
-        """Toggles the maximized window state
+        """ Toggles the maximized window state
+
+        :return:
         """
+
         if self.windowState() and QtCore.Qt.WindowMaximized:
             self.showNormal()
             return
         self.showMaximized()
 
     def closeEvent(self, ev):
+        """ Saves the window state on the close event
+
+        :param ev:
+        :return:
         """
-        saves the window state on the close event
-        """
+
         qsettings = QtCore.QSettings()
 
         qsettings.beginGroup(self.objectName())
@@ -141,25 +152,32 @@ class MainWindow(QtWidgets.QMainWindow):
         super(MainWindow, self).closeEvent(ev)
 
     def reapplySettings(self):
-        """
-        Read window attributes from settings,
+        """ Read window attributes from settings,
+
         using current attributes as defaults (if settings not exist.)
 
         Called at QMainWindow initialization, before show().
+
+        :return:
         """
+
         qsettings = QtCore.QSettings()
 
-        qsettings.beginGroup(self.objectName())
+        # Restore settings if there are any
+        if self.objectName() in qsettings.childGroups():
+            qsettings.beginGroup(self.objectName())
 
-        # No need for toPoint, etc. : PySide converts types
-        self.restoreGeometry(qsettings.value("geometry", self.saveGeometry()))
-        self.restoreState(qsettings.value("saveState", self.saveState()))
-        self.move(qsettings.value("pos", self.pos()))
-        self.resize(qsettings.value("size", self.size()))
-        if qsettings.value("maximized", False) == 'true':
-            self.showMaximized()
+            self.restoreGeometry(qsettings.value("geometry", self.saveGeometry()))
+            self.restoreState(qsettings.value("saveState", self.saveState()))
+            self.move(qsettings.value("pos", self.pos()))
+            self.resize(qsettings.value("size", self.size()))
+            if qsettings.value("maximized", False) == 'true':
+                self.showMaximized()
 
-        qsettings.endGroup()
+            qsettings.endGroup()
+        else:
+            # Center already gets called previously.
+            pass
 
     def helpAbout(self, copyrightDate, about, version=1.0):
         """
