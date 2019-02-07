@@ -650,6 +650,7 @@ class IconPushButtonShadow(QtWidgets.QFrame):
     """ CSS Purposes """
 
 
+
 def buttonTransparentBG(**kwargs):
     """Create a button with a transparent bg.  Saves code from doing this over and over
     Default Icon colour (None) is light grey and turns white (lighter in color) with mouse over.
