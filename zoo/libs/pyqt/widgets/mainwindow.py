@@ -175,9 +175,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.showMaximized()
 
             qsettings.endGroup()
-        else:
-            # Center already gets called previously.
-            pass
 
     def helpAbout(self, copyrightDate, about, version=1.0):
         """
