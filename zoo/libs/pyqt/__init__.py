@@ -1,5 +1,6 @@
 import os
-from . import stylesheet
+
+from zoo.libs.pyqt import stylesheet
 
 # load the zoo fonts
 fontPath = os.path.join(os.path.dirname(__file__), "fonts")
