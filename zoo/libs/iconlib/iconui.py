@@ -1,9 +1,9 @@
 import random
 
-import iconlib
 from qt import QtWidgets, QtCore
-from zoo.libs.pyqt.widgets import dialog
-from zoo.libs.pyqt.widgets import flowlayout
+
+import iconlib
+from zoo.libs.pyqt.widgets import dialog, flowlayout
 
 
 class IconUI(dialog.Dialog):
