@@ -1,7 +1,7 @@
-from qt import QtCore, QtGui, QtWidgets
-from zoo.libs.pyqt.extended import combobox
-from zoo.libs.pyqt.extended import searchwidget
+from qt import QtCore, QtWidgets
+
 from zoo.libs import iconlib
+from zoo.libs.pyqt.extended import combobox, searchwidget
 
 
 class ViewSearchWidget(QtWidgets.QWidget):

@@ -1,10 +1,12 @@
 from collections import OrderedDict
 
 from qt import QtWidgets, QtCore, QtGui
+
 from zoo.libs import iconlib
-from zoo.libs.pyqt.extended import combobox
 from zoo.libs.pyqt import uiconstants, utils
+from zoo.libs.pyqt.extended import combobox
 from zoo.libs.pyqt.widgets import frame, extendedbutton
+
 
 def Label(name, parent, toolTip=""):
     """One liner for labels and tooltip
