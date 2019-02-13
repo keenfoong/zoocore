@@ -28,8 +28,9 @@ def Label(name, parent, toolTip=""):
 def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, inputMode="string"):
     """Creates a simple textbox (QLineEdit)
 
-    :param text:
-    :param placeholder the default text in the text box
+    :param text: is the default text in the text box
+    :type placeholder: str or float or int
+    :param placeholder will be greyed out text in the text box, overrides text=""
     :type placeholder: str or float or int
     :param parent: the qt parent
     :type parent: class
@@ -45,20 +46,16 @@ def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, i
     textBox = QtWidgets.QLineEdit(parent=parent)
     # todo: STYLESHEET hardcoded color & margins here as a temp workaround, this should be in stylesheets
     textBox.setStyleSheet("QLineEdit {background: rgb(27, 27, 27);}")
-    if inputMode == "float":  # todo: this should be a constant
-        if placeholder:
-            placeholder = float(placeholder)
+    if inputMode == "float":  # float restricts to only numerical decimal point text entry
         textBox.setValidator(QtGui.QDoubleValidator())
-    elif inputMode == "int":
-        if placeholder:
-            placeholder = int(placeholder)
+    elif inputMode == "int":  # int restricts to numerical text entry, no decimal places
         textBox.setValidator(QtGui.QIntValidator())
     textBox.setTextMargins(*utils.marginsDpiScale(2, 2, 2, 2))
-    if editWidth:
+    if editWidth:  # limit the width of the textbox
         textBox.setFixedWidth(utils.dpiScale(editWidth))
-    if placeholder:
+    if placeholder:  # placeholder text will be greyed out
         textBox.setPlaceholderText(str(placeholder))
-    else:
+    else:  # is normal text default values
         textBox.setText(str(text))
     textBox.setToolTip(toolTip)
     return textBox
@@ -368,9 +365,7 @@ class VectorLineEdit(QtWidgets.QWidget):
         """updates the text, should also update the dict
         """
         # todo: check that the methods below work, not tested
-        valueList = list()
-        for axis in self._widgets:
-            valueList.append(self._widgets[axis].text())
+        valueList = [self._widgets[axis].text() for axis in self._widgets]
         self.textChanged.emit(tuple(valueList))
 
     def widget(self, axis):
@@ -389,9 +384,7 @@ class VectorLineEdit(QtWidgets.QWidget):
         :return textValues: a tuple of string values from each QLineEdit textbox
         :rtype textValues: tuple(str)
         """
-        valueList = list()
-        for axis in self._widgets:
-            valueList.append(self._widgets[axis].text())
+        valueList = [self._widgets[axis].text() for axis in self._widgets]
         return tuple(valueList)
 
     def setValue(self, value):
