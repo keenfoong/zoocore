@@ -53,9 +53,17 @@ class PluginManager(object):
                 self.registerByPackage(p)
                 continue
             elif os.path.isfile(p):
-                importedModule = modules.importModule(modules.asDottedPath(os.path.normpath(p)))
+                try:
+                    importedModule = modules.importModule(modules.asDottedPath(os.path.normpath(p)))
+                except ImportError:
+                    logger.error("Failed to import Plugin module: {}, skipped Load".format(p), exc_info=True)
+                    continue
             elif modules.isDottedPath(p):
-                importedModule = modules.importModule(os.path.normpath(p))
+                try:
+                    importedModule = modules.importModule(os.path.normpath(p))
+                except ImportError:
+                    logger.error("Failed to import Plugin module: {}, skipped Load".format(p), exc_info=True)
+                    continue
             if importedModule:
                 self.registerByModule(importedModule)
                 continue
@@ -82,7 +90,11 @@ class PluginManager(object):
             filename = os.path.splitext(os.path.basename(subModule))[0]
             if filename.startswith("__") or subModule.endswith(".pyc"):
                 continue
-            subModuleObj = modules.importModule(modules.asDottedPath(os.path.normpath(subModule)))
+            try:
+                subModuleObj = modules.importModule(modules.asDottedPath(os.path.normpath(subModule)))
+            except ImportError:
+                logger.error("Failed to Import Plugin module: {}".format(subModule),
+                             exc_info=True)
             for member in modules.iterMembers(subModuleObj, predicate=inspect.isclass):
                 self.registerPlugin(member[1])
 
@@ -113,7 +125,14 @@ class PluginManager(object):
 
             if (args and "manager" in args) or (keywords and "manager" in keywords):
                 kwargs["manager"] = self
-            self.loadedPlugins[pluginName] = tool(**kwargs)
+            try:
+                newTool = tool(**kwargs)
+            except Exception:
+                logger.error("Failed to load plugin: {}".format(pluginName),
+                             exc_info=True)
+                return
+
+            self.loadedPlugins[pluginName] = newTool
             self.loadedPlugins[pluginName].isLoaded = True
             return self.loadedPlugins[pluginName]
 
