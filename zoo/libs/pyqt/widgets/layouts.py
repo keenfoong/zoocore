@@ -28,8 +28,9 @@ def Label(name, parent, toolTip=""):
 def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, inputMode="string"):
     """Creates a simple textbox (QLineEdit)
 
-    :param text:
-    :param placeholder the default text in the text box
+    :param text: is the default text in the text box
+    :type placeholder: str or float or int
+    :param placeholder will be greyed out text in the text box, overrides text=""
     :type placeholder: str or float or int
     :param parent: the qt parent
     :type parent: class
@@ -45,17 +46,17 @@ def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, i
     textBox = QtWidgets.QLineEdit(parent=parent)
     # todo: STYLESHEET hardcoded color & margins here as a temp workaround, this should be in stylesheets
     textBox.setStyleSheet("QLineEdit {background: rgb(27, 27, 27);}")
-    if inputMode == "float":  # todo: this should be a constant
-        placeholder = str(placeholder)
+    if inputMode == "float":  # float restricts to only numerical decimal point text entry
         textBox.setValidator(QtGui.QDoubleValidator())
-    elif inputMode == "int":
-        placeholder = int(placeholder)
+    elif inputMode == "int":  # int restricts to numerical text entry, no decimal places
         textBox.setValidator(QtGui.QIntValidator())
     textBox.setTextMargins(*utils.marginsDpiScale(2, 2, 2, 2))
-    if editWidth:
+    if editWidth:  # limit the width of the textbox
         textBox.setFixedWidth(utils.dpiScale(editWidth))
-    textBox.setPlaceholderText(placeholder)
-    textBox.setText(str(text))
+    if placeholder:  # placeholder text will be greyed out
+        textBox.setPlaceholderText(str(placeholder))
+    else:  # is normal text default values
+        textBox.setText(str(text))
     textBox.setToolTip(toolTip)
     return textBox
 
@@ -352,7 +353,7 @@ class VectorLineEdit(QtWidgets.QWidget):
         self._widgets = OrderedDict()
         vectorEditLayout = HBoxLayout(parent, (0, 0, 0, 0), spacing)
         for i, v in enumerate(axis):
-            edit = LineEdit(value[i], False, parent, toolTip, inputMode=inputMode)
+            edit = LineEdit(text=value[i], placeholder="", parent=parent, toolTip=toolTip, inputMode=inputMode)
             edit.setObjectName("".join([label, v]))
             edit.textChanged.connect(self._onTextChanged)
             self._widgets[v] = edit
@@ -364,7 +365,8 @@ class VectorLineEdit(QtWidgets.QWidget):
         """updates the text, should also update the dict
         """
         # todo: check that the methods below work, not tested
-        self.textChanged.emit(tuple([float(i.value()) for i in self._widgets.text()]))
+        valueList = [self._widgets[axis].text() for axis in self._widgets]
+        self.textChanged.emit(tuple(valueList))
 
     def widget(self, axis):
         """Gets the widget from the axis string name
@@ -382,7 +384,8 @@ class VectorLineEdit(QtWidgets.QWidget):
         :return textValues: a tuple of string values from each QLineEdit textbox
         :rtype textValues: tuple(str)
         """
-        return tuple([float(i.value()) for i in self._widgets.text()])
+        valueList = [self._widgets[axis].text() for axis in self._widgets]
+        return tuple(valueList)
 
     def setValue(self, value):
         """Sets the text values of all the QLineEdits, can be strings floats or ints depending on the inputMode
@@ -390,6 +393,7 @@ class VectorLineEdit(QtWidgets.QWidget):
         :param value: the value of all text boxes, as a list of strings (or floats, ints depending on inputMode)
         :type value: tuple
         """
+        # TODO: Not tested
         # get the widgets in order
         keys = self._widgets.keys()
         for i, v in enumerate(value):
@@ -400,7 +404,6 @@ class VectorSpinBox(QtWidgets.QWidget):
     """Vector base Widget with spin box for transformations for n axis
     3 x QDoubleSpinBox (numerical textEdit with spinBox)
     """
-
     valueChanged = QtCore.Signal(tuple)
 
     def __init__(self, label, value, min, max, axis, parent=None, step=0.1, setDecimals=2):
