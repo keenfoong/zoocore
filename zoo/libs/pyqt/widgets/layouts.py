@@ -25,11 +25,47 @@ def Label(name, parent, toolTip=""):
     return lbl
 
 
+def TextEdit(text="", placeholderText="", parent=None, toolTip="", editWidth=None, minimumHeight=None,
+             maximumHeight=None):
+    """Creates a simple textbox (QTextEdit) which can have multiple lines unlike a (LineEdit)
+    Handles DPI for min and max height
+
+    :param text: is the default text in the text box
+    :type text: str or float or int
+    :param placeholderText will be greyed out text in the text box, overrides text=""
+    :type placeholderText: str or float or int
+    :param parent: the qt parent
+    :type parent: class
+    :param toolTip: the tool tip message on mouse over hover, extra info
+    :type toolTip: str
+    :param editWidth: the width of the textbox in pixels optional, None is ignored
+    :type editWidth: int
+    :param minimumHeight: the minimum height for the text box in pixels, optional, None is ignored
+    :type minimumHeight: int
+    :param maximumHeight: the maximum height for the text box in pixels, optional, None is ignored
+    :type maximumHeight: int
+    :return textEdit: the QT QTextEdit widget
+    :rtype textEdit: QWidget.QTextEdit
+    """
+    textEdit = QtWidgets.QTextEdit(parent=parent)
+    textEdit.setStyleSheet("QTextEdit {background: rgb(27, 27, 27);}")
+    if minimumHeight:
+        textEdit.setMinimumHeight(utils.dpiScale(minimumHeight))
+    if maximumHeight:
+        textEdit.setMaximumHeight(utils.dpiScale(maximumHeight))
+    textEdit.setPlaceholderText(placeholderText)
+    textEdit.setText(text)
+    textEdit.setToolTip(toolTip)
+
+
+    return textEdit
+
+
 def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, inputMode="string"):
     """Creates a simple textbox (QLineEdit)
 
     :param text: is the default text in the text box
-    :type placeholder: str or float or int
+    :type text: str or float or int
     :param placeholder will be greyed out text in the text box, overrides text=""
     :type placeholder: str or float or int
     :param parent: the qt parent
@@ -46,17 +82,15 @@ def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, i
     textBox = QtWidgets.QLineEdit(parent=parent)
     # todo: STYLESHEET hardcoded color & margins here as a temp workaround, this should be in stylesheets
     textBox.setStyleSheet("QLineEdit {background: rgb(27, 27, 27);}")
+    textBox.setTextMargins(*utils.marginsDpiScale(2, 2, 2, 2))  # TODO: should be in stylesheet
     if inputMode == "float":  # float restricts to only numerical decimal point text entry
         textBox.setValidator(QtGui.QDoubleValidator())
     elif inputMode == "int":  # int restricts to numerical text entry, no decimal places
         textBox.setValidator(QtGui.QIntValidator())
-    textBox.setTextMargins(*utils.marginsDpiScale(2, 2, 2, 2))
     if editWidth:  # limit the width of the textbox
         textBox.setFixedWidth(utils.dpiScale(editWidth))
-    if placeholder:  # placeholder text will be greyed out
-        textBox.setPlaceholderText(str(placeholder))
-    else:  # is normal text default values
-        textBox.setText(str(text))
+    textBox.setPlaceholderText(str(placeholder))
+    textBox.setText(str(text))
     textBox.setToolTip(toolTip)
     return textBox
 
@@ -66,8 +100,9 @@ class StringEdit(QtWidgets.QWidget):
     buttonClicked = QtCore.Signal()
     editingFinished = QtCore.Signal()
 
-    def __init__(self, label, editText="", editPlaceholder="", buttonText=None, parent=None, editWidth=None,
-                 labelRatio=1, btnRatio=1, editRatio=1, toolTip="", inputMode="string"):
+    def __init__(self, label="", editText="", editPlaceholder="", buttonText=None, parent=None, editWidth=None,
+                 labelRatio=1, btnRatio=1, editRatio=1, toolTip="", inputMode="string",
+                 orientation=QtCore.Qt.Horizontal):
         """Creates a label, textbox (QLineEdit) and an optional button
         if the button is None then no button will be created
 
@@ -91,14 +126,21 @@ class StringEdit(QtWidgets.QWidget):
         :type toolTip: str
         :param inputMode: restrict the user to this data entry, "string" text, "float" decimal or "int" no decimal
         :type inputMode: str
+        :param orientation: the orientation of the box layout QtCore.Qt.Horizontal HBox QtCore.Qt.Vertical VBox
+        :type orientation: bool
         :return StringEdit: returns the class with various options, see the methods
         :rtype StringEdit: QWidget
         """
         super(StringEdit, self).__init__(parent=parent)
-        self.layout = HBoxLayout(parent, (0, 0, 0, 0), spacing=uiconstants.SREG)
+        self.QLineEditBool = True
+        if orientation == QtCore.Qt.Horizontal:
+            self.layout = HBoxLayout(parent, (0, 0, 0, 0), spacing=uiconstants.SREG)
+        else:
+            self.layout = VBoxLayout(parent, (0, 0, 0, 0), spacing=uiconstants.SREG)
         self.edit = LineEdit(editText, editPlaceholder, parent, toolTip, editWidth, inputMode)
-        self.label = Label(label, parent, toolTip)
-        self.layout.addWidget(self.label, labelRatio)
+        if label:
+            self.label = Label(label, parent, toolTip)
+            self.layout.addWidget(self.label, labelRatio)
         self.layout.addWidget(self.edit, editRatio)
         self.buttonText = buttonText
         if self.buttonText:
@@ -113,7 +155,6 @@ class StringEdit(QtWidgets.QWidget):
         self.edit.textChanged.connect(self._onTextChanged)
         if self.buttonText:
             self.btn.clicked.connect(self.buttonClicked.emit)
-
         self.editingFinished = self.edit.editingFinished
 
     def _onTextChanged(self):
@@ -1149,4 +1190,43 @@ def Spacer(width, height, hMin=QtWidgets.QSizePolicy.Minimum, vMin=QtWidgets.QSi
     :rtype spacerItem: object
     """
     return QtWidgets.QSpacerItem(utils.dpiScale(width), utils.dpiScale(height), hMin, vMin)
+
+
+def FileDialog_directory(windowName="", parent="", defaultPath=""):
+    """simple function for QFileDialog.getExistingDirectory, a window popup that searches for a directory
+
+    Browses for a directory with a fileDialog window and returns the selected directory
+
+    :param windowName: The name of the fileDialog window
+    :type windowName: str
+    :param parent: The parent widget
+    :type parent: Qt.widget
+    :param defaultPath: The default directory path, where to open the fileDialog window
+    :type defaultPath: str
+    :return directoryPath: The selected full directory path
+    :rtype directoryPath: str
+    """
+    directoryPath = str(QtWidgets.QFileDialog.getExistingDirectory(parent, windowName, defaultPath))
+    if not directoryPath:
+        return
+    return directoryPath
+
+
+def MessageBox_ok(windowName="Confirm", parent="", message="Proceed?"):
+    """simple function for ok/cancel QMessageBox.question, a window popup that with ok/cancel buttons
+
+    :param windowName: The name of the ok/cancel window
+    :type windowName: str
+    :param parent: The parent widget
+    :type parent: Qt.widget
+    :param message: The message to ask the user
+    :type message: str
+    :return okPressed: True if the Ok button was pressed, False if cancelled
+    :rtype okPressed: bool
+    """
+    result = QtWidgets.QMessageBox.question(parent, windowName, message,
+                                            QtWidgets.QMessageBox.Cancel | QtWidgets.QMessageBox.Ok)
+    if result == QtWidgets.QMessageBox.Ok:
+        return True
+    return False
 

@@ -13,6 +13,7 @@ SPACING = 2
 SSML = 4  # the regular spacing of each widget, spacing is between each sub widget
 SREG = 6  # the regular spacing of each widget, spacing is between each sub widget
 SLRG = 10  # larger spacing of each widget, spacing is between each sub widget
+SVLRG = 15  # very large spacing of each widget, spacing is between each sub widget
 
 TOPPAD = 10  # padding between the top widget and the top of frame. ie top of a toolset
 BOTPAD = 5  # padding between the bottom widget and the bottom of frame. ie bot of a toolset
