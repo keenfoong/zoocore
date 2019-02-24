@@ -57,7 +57,6 @@ def TextEdit(text="", placeholderText="", parent=None, toolTip="", editWidth=Non
     textEdit.setText(text)
     textEdit.setToolTip(toolTip)
 
-
     return textEdit
 
 
@@ -80,9 +79,7 @@ def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, i
     :rtype textBox: QWidget.QLabel
     """
     textBox = QtWidgets.QLineEdit(parent=parent)
-    # todo: STYLESHEET hardcoded color & margins here as a temp workaround, this should be in stylesheets
-    textBox.setStyleSheet("QLineEdit {background: rgb(27, 27, 27);}")
-    textBox.setTextMargins(*utils.marginsDpiScale(2, 2, 2, 2))  # TODO: should be in stylesheet
+    utils.setStylesheetObjectName(textBox, "lineEditForced")  # TODO: might be removed once stack widget fixed
     if inputMode == "float":  # float restricts to only numerical decimal point text entry
         textBox.setValidator(QtGui.QDoubleValidator())
     elif inputMode == "int":  # int restricts to numerical text entry, no decimal places
@@ -352,9 +349,6 @@ def CheckBoxRegular(label="", setChecked=False, parent=None, toolTip=""):
     box.setToolTip(toolTip)
     if setChecked:
         box.setChecked(setChecked)
-    # todo: STYLESHEET hardcoded color here as a temp workaround, should be in stylesheets
-    box.setStyleSheet("QCheckBox::indicator:checked, QCheckBox::indicator:unchecked "
-                       "{background: rgb(27, 27, 27);}")
     return box
 
 
@@ -472,12 +466,6 @@ class VectorSpinBox(QtWidgets.QWidget):
             self.label = QtWidgets.QLabel(label, parent=self)
             self.mainLayout.addWidget(self.label)
         self._widgets = OrderedDict()
-        # todo: STYLESHEET needs to be in stylesheet and prefs
-        # rgb(27, 27, 27) is the QLineEdit/QDoubleSpinBox color
-        # images will need to be added and tweaked for hover states and press
-        borderSize = utils.dpiScale(3)
-        styleSheet = "QDoubleSpinBox {0} border: {2}px solid rgb(27, 27, 27); " \
-                     "border-radius: 0px; {1}".format("{", "}", borderSize)
 
         for i, v in enumerate(axis):
             box = QtWidgets.QDoubleSpinBox(self)
@@ -487,7 +475,6 @@ class VectorSpinBox(QtWidgets.QWidget):
             box.setValue(value[i])
             box.setDecimals(setDecimals)
             box.valueChanged.connect(self.onValueChanged)
-            box.setStyleSheet(styleSheet)
             self._widgets[v] = box
             self.mainLayout.addWidget(box)
 
@@ -668,23 +655,6 @@ class RadioButtonGroup(QtWidgets.QWidget):
         :type parent: obj
         """
         super(RadioButtonGroup, self).__init__(parent=parent)
-        # todo: STYLESHEET needs to be in the stylesheet and not hardcoded
-        # rgb(27, 27, 27) is the main color of the unchecked button
-        # rgb(45, 45, 45) is the background color of the window, unchecked has no icon
-        indicatorWH = utils.dpiScale(14)
-        uncheckedWH = utils.dpiScale(10)
-        borderRadius = utils.dpiScale(7)
-        borderPx = utils.dpiScale(2)
-        styleSheetF = "QRadioButton::indicator {0}" \
-                      "width: {2}px; " \
-                      "height: {2}px;{1}" \
-                      "QRadioButton::indicator:unchecked " \
-                      "{0}background: rgb(27, 27, 27); " \
-                      "width: {3}px; " \
-                      "height: {3}px;" \
-                      "border-radius: {4}px; " \
-                      "border: {5}px solid rgb(45, 45, 45){1}".format("{", "}", indicatorWH, uncheckedWH,
-                                                                      borderRadius, borderPx)
         if radioList is None:
             radioList = []
         self.radioButtons = []
@@ -695,7 +665,6 @@ class RadioButtonGroup(QtWidgets.QWidget):
             radioLayout = QtWidgets.QVBoxLayout()
         for i, radioName in enumerate(radioList):
             newRadio = QtWidgets.QRadioButton(radioName, self)
-            newRadio.setStyleSheet(styleSheetF)
             if toolTipList:
                 newRadio.setToolTip(toolTipList[i])
             self.group.addButton(newRadio)
