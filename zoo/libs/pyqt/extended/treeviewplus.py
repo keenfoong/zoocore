@@ -55,7 +55,7 @@ class TreeViewPlus(QtWidgets.QFrame):
         self.mainLayout = QtWidgets.QVBoxLayout(self)
         self.mainLayout.setContentsMargins(*utils.marginsDpiScale(2, 2, 2, 2))
         self.treeView = QtWidgets.QTreeView(parent=self)
-        self.treeView.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.treeView.setFocusPolicy(QtCore.Qt.NoFocus)
         self.treeView.setSelectionMode(self.treeView.ExtendedSelection)
         self.treeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.treeView.customContextMenuRequested.connect(self.contextMenu)

@@ -1,11 +1,12 @@
 from qt import QtCore, QtWidgets
 
 from zoo.libs import iconlib
+from zoo.libs.pyqt import utils
 from zoo.libs.pyqt.extended import combobox, searchwidget
 
 
 class ViewSearchWidget(QtWidgets.QWidget):
-    """Specialize widget for column row views eg. table view,
+    """Specialized widget for column row views eg. table view,
 
     contains::
     
@@ -28,14 +29,14 @@ class ViewSearchWidget(QtWidgets.QWidget):
 
     def __init__(self, showColumnVisBox=True, showHeaderBox=True, parent=None):
         super(ViewSearchWidget, self).__init__(parent=parent)
-        searchIcon = iconlib.icon("magnifier", 16)
-        closeIcon = iconlib.icon("close", 16)
+        searchIcon = iconlib.iconColorized("magnifier", size=utils.dpiScale(14), color=(128, 128, 128))
+        closeIcon = iconlib.iconColorized("close", size=utils.dpiScale(14), color=(128, 128, 128))
 
         self.searchFrame = QtWidgets.QFrame(parent=self)
         self.searchFrame.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.searchFrame.setFrameShadow(QtWidgets.QFrame.Plain)
         self.searchLayout = QtWidgets.QHBoxLayout(self)
-        self.searchLayout.setContentsMargins(2, 2, 2, 2)
+        self.searchLayout.setContentsMargins(0, 0, 0, 0)
 
         self.searchWidget = searchwidget.SearchLineEdit(searchIcon, closeIcon, parent=self)
         self.searchWidget.textCleared.connect(self.searchTextedCleared.emit)
@@ -43,7 +44,6 @@ class ViewSearchWidget(QtWidgets.QWidget):
 
         self.searchFrame.setLayout(self.searchLayout)
 
-        self.columnVisibilityBox = None
         self.columnVisibilityBox = combobox.ExtendedComboBox(parent=self)
         self.columnVisibilityBox.setMinimumWidth(100)
         self.columnVisibilityBox.checkStateChanged.connect(self.onVisibilityChanged)
