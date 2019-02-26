@@ -791,8 +791,7 @@ class CollapsableFrameLayout(QtWidgets.QWidget):
     _expandIcon = iconlib.icon("sortDown")
 
     def __init__(self, title, collapsed=False, collapsable=True, contentMargins=uiconstants.MARGINS,
-                 contentSpacing=uiconstants.SPACING, color=uiconstants.DARKBGCOLOR,
-                 parent=None):
+                 contentSpacing=uiconstants.SPACING, parent=None):
         """Collapsable framelayout, similar to Maya's cmds.frameLayout
         Title is inside a bg colored frame layout that can open and collapse
         Code example for how to use is as follows...
@@ -814,11 +813,9 @@ class CollapsableFrameLayout(QtWidgets.QWidget):
         :param parent: the widget parent
         :type parent: class
         """
-        # todo: STYLSHEET, cleanup this class, remove margin hardcoding and colors use stylesheet instead
         super(CollapsableFrameLayout, self).__init__(parent=parent)
         self.layout = VBoxLayout(parent=parent, margins=(0, 0, 0, 0), spacing=0)
         self.title = title
-        self.color = color
         self.contentMargins = contentMargins
         self.contentSpacing = contentSpacing
         self.collapsable = collapsable
@@ -840,34 +837,25 @@ class CollapsableFrameLayout(QtWidgets.QWidget):
     def buildTitleFrame(self):
         """Builds the title part of the layout with a QFrame widget
         """
-        # main dark grey qframe
         self.titleFrame = frame.QFrame(parent=self)
-        self.setFrameColor()
-        self.titleFrame.setContentsMargins(6, 0, 6, 0)
-        # the horizontal layout
+        self.titleFrame.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.titleFrame)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-        # the icon and title and spacer
+        # the icon
         self.iconButton = QtWidgets.QToolButton(parent=self)
         if self.collapsed:
             self.iconButton.setIcon(self._collapsedIcon)
         else:
             self.iconButton.setIcon(self._expandIcon)
+        self.iconButton.setContentsMargins(0, 0, 0, 0)
         self.titleLabel = QtWidgets.QLabel(self.title, parent=self)
         self.titleLabel.setStyleSheet("font: bold;")
         self.titleLabel.setContentsMargins(0, 0, 0, 0)
-        spacerItem = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(10, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         # add to horizontal layout
         self.horizontalLayout.addWidget(self.iconButton)
         self.horizontalLayout.addWidget(self.titleLabel)
         self.horizontalLayout.addItem(spacerItem)
-        self.titleFrame.setFixedHeight(self.titleFrame.sizeHint().height())
-        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height())
-
-    def setFrameColor(self):
-        self.titleFrame.setStyleSheet("background-color: rgb(35, 35, 35); "
-                                      "border-radius: 1px;"
-                                      "border: 1px solid rgb(35, 35, 35)")
 
     def addWidget(self, widget):
         self.hiderLayout.addWidget(widget)
