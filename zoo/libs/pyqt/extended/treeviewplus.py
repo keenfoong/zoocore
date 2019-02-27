@@ -42,9 +42,10 @@ class TreeViewPlus(QtWidgets.QFrame):
         self.reloadBtn = QtWidgets.QToolButton(parent=self)
         self.reloadBtn.setIcon(iconlib.icon("reload"))
         self.searchLayout = QtWidgets.QHBoxLayout(self)
-        self.searchLayout.setContentsMargins(2, 2, 2, 2)
+        self.searchLayout.setContentsMargins(0, 0, 0, 0)
         self.searchLayout.addWidget(self.reloadBtn)
         self.searchWidget = viewfilterwidget.ViewSearchWidget(showColumnVisBox=False, showHeaderBox=False, parent=self)
+        self.searchWidget.setFixedHeight(utils.dpiScale(23))
 
         self.searchLayout.addWidget(self.searchWidget)
         self.mainLayout.addLayout(self.searchLayout)
@@ -52,9 +53,9 @@ class TreeViewPlus(QtWidgets.QFrame):
     def _setupLayouts(self):
 
         self.mainLayout = QtWidgets.QVBoxLayout(self)
-        self.mainLayout.setContentsMargins(2, 2, 2, 2)
+        self.mainLayout.setContentsMargins(*utils.marginsDpiScale(2, 2, 2, 2))
         self.treeView = QtWidgets.QTreeView(parent=self)
-        self.treeView.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.treeView.setFocusPolicy(QtCore.Qt.NoFocus)
         self.treeView.setSelectionMode(self.treeView.ExtendedSelection)
         self.treeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.treeView.customContextMenuRequested.connect(self.contextMenu)
