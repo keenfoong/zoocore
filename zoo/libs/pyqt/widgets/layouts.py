@@ -22,11 +22,12 @@ def Label(name, parent, toolTip=""):
     """
     lbl = QtWidgets.QLabel(name, parent=parent)
     lbl.setToolTip(toolTip)
+
     return lbl
 
 
 def TextEdit(text="", placeholderText="", parent=None, toolTip="", editWidth=None, minimumHeight=None,
-             maximumHeight=None):
+             maximumHeight=None, fixedWidth=None):
     """Creates a simple textbox (QTextEdit) which can have multiple lines unlike a (LineEdit)
     Handles DPI for min and max height
 
@@ -44,15 +45,19 @@ def TextEdit(text="", placeholderText="", parent=None, toolTip="", editWidth=Non
     :type minimumHeight: int
     :param maximumHeight: the maximum height for the text box in pixels, optional, None is ignored
     :type maximumHeight: int
+    :param fixedWidth: the width (max and min) of the text box
+    :type fixedWidth: int
     :return textEdit: the QT QTextEdit widget
     :rtype textEdit: QWidget.QTextEdit
     """
     textEdit = QtWidgets.QTextEdit(parent=parent)
-    textEdit.setStyleSheet("QTextEdit {background: rgb(27, 27, 27);}")
+    utils.setStylesheetObjectName(textEdit, "textEditForced")  # TODO: might be removed once stack widget fixed
     if minimumHeight:
         textEdit.setMinimumHeight(utils.dpiScale(minimumHeight))
     if maximumHeight:
         textEdit.setMaximumHeight(utils.dpiScale(maximumHeight))
+    if fixedWidth:
+        textEdit.setFixedWidth(utils.dpiScale(fixedWidth))
     textEdit.setPlaceholderText(placeholderText)
     textEdit.setText(text)
     textEdit.setToolTip(toolTip)
@@ -60,7 +65,7 @@ def TextEdit(text="", placeholderText="", parent=None, toolTip="", editWidth=Non
     return textEdit
 
 
-def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, inputMode="string"):
+def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, inputMode="string", fixedWidth=None):
     """Creates a simple textbox (QLineEdit)
 
     :param text: is the default text in the text box
@@ -86,6 +91,8 @@ def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, i
         textBox.setValidator(QtGui.QIntValidator())
     if editWidth:  # limit the width of the textbox
         textBox.setFixedWidth(utils.dpiScale(editWidth))
+    if fixedWidth:
+        textBox.setFixedWidth(utils.dpiScale(fixedWidth))
     textBox.setPlaceholderText(str(placeholder))
     textBox.setText(str(text))
     textBox.setToolTip(toolTip)
@@ -784,8 +791,7 @@ class CollapsableFrameLayout(QtWidgets.QWidget):
     _expandIcon = iconlib.icon("sortDown")
 
     def __init__(self, title, collapsed=False, collapsable=True, contentMargins=uiconstants.MARGINS,
-                 contentSpacing=uiconstants.SPACING, color=uiconstants.DARKBGCOLOR,
-                 parent=None):
+                 contentSpacing=uiconstants.SPACING, parent=None):
         """Collapsable framelayout, similar to Maya's cmds.frameLayout
         Title is inside a bg colored frame layout that can open and collapse
         Code example for how to use is as follows...
@@ -807,13 +813,9 @@ class CollapsableFrameLayout(QtWidgets.QWidget):
         :param parent: the widget parent
         :type parent: class
         """
-        # todo: STYLSHEET, cleanup this class, remove margin hardcoding and colors use stylesheet instead
         super(CollapsableFrameLayout, self).__init__(parent=parent)
-        self.layout = QtWidgets.QVBoxLayout()
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.setSpacing(0)
+        self.layout = VBoxLayout(parent=parent, margins=(0, 0, 0, 0), spacing=0)
         self.title = title
-        self.color = color
         self.contentMargins = contentMargins
         self.contentSpacing = contentSpacing
         self.collapsable = collapsable
@@ -835,34 +837,25 @@ class CollapsableFrameLayout(QtWidgets.QWidget):
     def buildTitleFrame(self):
         """Builds the title part of the layout with a QFrame widget
         """
-        # main dark grey qframe
         self.titleFrame = frame.QFrame(parent=self)
-        self.setFrameColor(self.color)
-        self.titleFrame.setContentsMargins(4, 0, 4, 0)
-        # the horizontal layout
+        self.titleFrame.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.titleFrame)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-        # the icon and title and spacer
+        # the icon
         self.iconButton = QtWidgets.QToolButton(parent=self)
         if self.collapsed:
             self.iconButton.setIcon(self._collapsedIcon)
         else:
             self.iconButton.setIcon(self._expandIcon)
+        self.iconButton.setContentsMargins(0, 0, 0, 0)
         self.titleLabel = QtWidgets.QLabel(self.title, parent=self)
         self.titleLabel.setStyleSheet("font: bold;")
         self.titleLabel.setContentsMargins(0, 0, 0, 0)
-        spacerItem = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(10, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         # add to horizontal layout
         self.horizontalLayout.addWidget(self.iconButton)
         self.horizontalLayout.addWidget(self.titleLabel)
         self.horizontalLayout.addItem(spacerItem)
-        self.titleFrame.setFixedHeight(self.titleFrame.sizeHint().height())
-        self.setMinimumSize(self.titleFrame.sizeHint().width(), self.titleFrame.sizeHint().height())
-
-    def setFrameColor(self, color):
-        self.titleFrame.setStyleSheet("background-color: rgb{0}; "
-                                      "border-radius: 3px;"
-                                      "border: 1px solid rgb{0}".format(str(color)))
 
     def addWidget(self, widget):
         self.hiderLayout.addWidget(widget)
@@ -1114,7 +1107,8 @@ def VBoxLayout(parent=None, margins=(0, 0, 0, 0), spacing=uiconstants.SREG):
     return zooQVBoxLayout
 
 
-def GridLayout(parent=None, margins=(0, 0, 0, 0), spacing=uiconstants.SREG, columnMinWidth=None):
+def GridLayout(parent=None, margins=(0, 0, 0, 0), spacing=uiconstants.SREG, columnMinWidth=None, vSpacing=None,
+               hSpacing=None):
     """One liner for QtWidgets.QGridLayout() to make it easier to create an easy Grid layout
     DPI (4k) is handled here
     Defaults use regular spacing and no margins
@@ -1128,7 +1122,18 @@ def GridLayout(parent=None, margins=(0, 0, 0, 0), spacing=uiconstants.SREG, colu
     """
     zooGridLayout = QtWidgets.QGridLayout()
     zooGridLayout.setContentsMargins(*utils.marginsDpiScale(*margins))
-    zooGridLayout.setSpacing(utils.dpiScale(spacing))
+    if not vSpacing and not hSpacing:
+        zooGridLayout.setHorizontalSpacing(utils.dpiScale(spacing))
+        zooGridLayout.setVerticalSpacing(utils.dpiScale(spacing))
+    elif vSpacing and not hSpacing:
+        zooGridLayout.setHorizontalSpacing(utils.dpiScale(hSpacing))
+        zooGridLayout.setVerticalSpacing(utils.dpiScale(vSpacing))
+    elif hSpacing and not vSpacing:
+        zooGridLayout.setHorizontalSpacing(utils.dpiScale(hSpacing))
+        zooGridLayout.setVerticalSpacing(utils.dpiScale(spacing))
+    else:
+        zooGridLayout.setHorizontalSpacing(utils.dpiScale(hSpacing))
+        zooGridLayout.setVerticalSpacing(utils.dpiScale(vSpacing))
     if columnMinWidth:  # column number then the width in pixels
         zooGridLayout.setColumnMinimumWidth(columnMinWidth[0], utils.dpiScale(columnMinWidth[1]))
     return zooGridLayout
