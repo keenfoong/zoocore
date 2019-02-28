@@ -327,6 +327,25 @@ class ComboBoxRegular(QtWidgets.QWidget):
         """
         return int(self.box.currentIndex())
 
+    def addItem(self, item):
+        """adds an entry to the combo box
+
+        :param item: the name to add to the combo box
+        :type item: str
+        """
+        self.box.addItem(item)
+
+    def setItemData(self, index, value):
+        """Sets the data role for the item on the given index in the combobox to the specified value.
+        Good for metadata assigned to the name
+
+        :param index: the index to assign the value
+        :type index: int
+        :param value: the value to assign, can be any object or string etc
+        :type value: object
+        """
+        self.box.setItemData(index, value)
+
     def setToText(self, text):
         """Sets the index based on the text
 
