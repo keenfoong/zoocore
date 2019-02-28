@@ -1223,3 +1223,32 @@ def MessageBox_ok(windowName="Confirm", parent="", message="Proceed?"):
         return True
     return False
 
+
+def InputDialog(windowName="Add Name", textValue="", parent="", message="Rename?"):
+    """Opens a simple QT window that locks the program asking the user to input a string into a text box
+
+    Useful for renaming etc.
+
+    :param windowName: The name of the ok/cancel window
+    :type windowName: str
+    :param textValue: The initial text in the textbox, eg. The name to be renamed
+    :type textValue: str
+    :param parent: The parent widget
+    :type parent: Qt.widget
+    :param message: The message to ask the user
+    :type message: str
+    :return newTextValue: The new text name entered
+    :rtype newTextValue: str
+    """
+    dialog = QtWidgets.QInputDialog(parent)
+    dialog.setInputMode(QtWidgets.QInputDialog.TextInput)
+    dialog.setTextValue(textValue)
+    dialog.setWindowTitle(windowName)
+    dialog.setLabelText(message)
+    dialog.resize(utils.dpiScale(270), utils.dpiScale(100))
+    ok = dialog.exec_()
+    newTextValue = dialog.textValue()
+    if not ok:
+        return ""
+    return newTextValue
+
