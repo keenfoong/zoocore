@@ -38,3 +38,6 @@ BTN_W_REG_LRG = 180
 BTN_DEFAULT = 0
 BTN_TRANSPARENT_BG = 1
 
+# Colors
+COLOR_ERROR = "00ff06"  # fluorescent green
+
