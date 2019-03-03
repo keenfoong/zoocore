@@ -8,7 +8,7 @@ from zoo.libs.pyqt.extended import combobox
 from zoo.libs.pyqt.widgets import frame, extendedbutton
 
 
-def Label(name, parent, toolTip=""):
+def Label(name, parent, toolTip="", upper=False):
     """One liner for labels and tooltip
 
     :param name: name of the text label
@@ -17,9 +17,13 @@ def Label(name, parent, toolTip=""):
     :type parent: class
     :param toolTip: the tool tip message on mouse over hover, extra info
     :type toolTip: str
+    :param upper: make the label all caps
+    :type upper: bool
     :return lbl: the QT QLabel widget
     :rtype lbl: QWidget.QLabel
     """
+    if upper:
+        name = name.upper()
     lbl = QtWidgets.QLabel(name, parent=parent)
     lbl.setToolTip(toolTip)
 
@@ -350,11 +354,29 @@ class ComboBoxRegular(QtWidgets.QWidget):
         """Sets the index based on the text
 
         :param text: Text to search and switch item to.
-        :return:
+        :type text: str
         """
         index = self.findText(text, QtCore.Qt.MatchFixedString)
         if index >= 0:
-            self.setCurrentIndex(index)
+            self.box.setCurrentIndex(index)
+
+    def setIndex(self, index):
+        """Sets the combo box to the current index number
+
+        :param index: Sets the combo box to the current index
+        :type index: int
+        """
+        self.box.setCurrentIndex(index)
+
+    def removeItemByText(self, text):
+        """removes the index based on the text from the combo box (box.removeItem)
+
+        :param text: Text to search and delete it's entire entry from the combo box (removeItem)
+        :type text: str
+        """
+        index = self.findText(text, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+            self.box.removeItem(index)
 
 
 def CheckBoxRegular(label="", setChecked=False, parent=None, toolTip=""):
