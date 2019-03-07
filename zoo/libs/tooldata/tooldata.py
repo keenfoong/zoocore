@@ -175,11 +175,11 @@ class SettingObject(dict):
     def __setattr__(self, key, value):
         self[key] = value
 
-    def save(self, dump=False):
+    def save(self, indent=False):
         """Saves file to disk as json
 
-        :param dump: If True format the json nicely (indent=2)
-        :type dump: bool
+        :param indent: If True format the json nicely (indent=2)
+        :type indent: bool
         :return fullPath: The full path to the saved .json file
         :rtype fullPath: str
         """
@@ -195,7 +195,7 @@ class SettingObject(dict):
         exts = fullPath.getExtension(True)
         if not exts:
             fullPath = fullPath.setExtension("json", True)
-        if not dump:
+        if not indent:
             filesystem.saveJson(output, str(fullPath))
         else:
             filesystem.saveJson(output, str(fullPath), indent=2)
