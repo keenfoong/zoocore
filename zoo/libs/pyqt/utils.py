@@ -74,6 +74,7 @@ def hBoxLayout(parent=None):
     layout.setSpacing(1)
     return layout
 
+
 def hframeLayout(parent=None):
     subFrame = QtWidgets.QFrame(parent=parent)
     layout = hBoxLayout(subFrame)
@@ -186,7 +187,7 @@ def setStylesheetObjectName(widget, name, update=True):
 
 
 def windowFlagsString(windowFlags):
-    """Returns a nice string that describes whats inside a windowFlags object
+    """ Returns a nice string that describes what's inside a windowFlags object
 
     .. code-block:: python
 
@@ -245,6 +246,29 @@ def windowFlagsString(windowFlags):
     return text
 
 
+def alignmentString(alignmentFlags):
+    """ Returns a nice string that describes what's inside a alignment object
+
+    :param alignmentFlags: Alignment flags
+    :return:
+    """
+    # Window Flag types
+    windowFlagTypes = [QtCore.Qt.AlignLeft,
+                       QtCore.Qt.AlignHCenter,
+                       QtCore.Qt.AlignRight,
+                       QtCore.Qt.AlignTop,
+                       QtCore.Qt.AlignVCenter,
+                       QtCore.Qt.AlignBottom]
+    text = ""
+
+    # Add to text if the flag is found
+    for wt in windowFlagTypes:
+        if alignmentFlags & wt:
+            text += "{} | ".format(str(wt))
+
+    return text
+
+
 def dpiScale(value):
     """Resize by value based on current DPI
 
@@ -265,6 +289,18 @@ def marginsDpiScale(left, top, right, bottom):
     :return:
     """
     return (dpiScale(left), dpiScale(top), dpiScale(right), dpiScale(bottom))
+
+
+def pointByDpi(point):
+    """ Scales the QPoint by the current dpi scaling from maya.
+
+    :param point: The QPoint to Scale by the current dpi settings
+    :type point: QtCore.QPoint
+    :return: The newly scaled QPoint
+    :rtype: QtCore.QPoint
+    """
+
+    return QtCore.QPoint(dpiScale(point.x()), dpiScale(point.y()))
 
 
 def sizeByDpi(size):
