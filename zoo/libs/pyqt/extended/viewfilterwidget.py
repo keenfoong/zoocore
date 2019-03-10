@@ -29,6 +29,7 @@ class ViewSearchWidget(QtWidgets.QWidget):
 
     def __init__(self, showColumnVisBox=True, showHeaderBox=True, parent=None):
         super(ViewSearchWidget, self).__init__(parent=parent)
+        # TODO: colors should be in stylesheets
         searchIcon = iconlib.iconColorized("magnifier", size=utils.dpiScale(14), color=(128, 128, 128))
         closeIcon = iconlib.iconColorized("close", size=utils.dpiScale(14), color=(128, 128, 128))
 

@@ -40,4 +40,5 @@ BTN_TRANSPARENT_BG = 1
 
 # Colors
 COLOR_ERROR = "00ff06"  # fluorescent green
-
+COLOR_ADMIN_GREEN = "17a600"
+COLOR_ADMIN_GREEN_RGB = (23, 166, 0)

@@ -8,7 +8,7 @@ from zoo.libs.pyqt.extended import combobox
 from zoo.libs.pyqt.widgets import frame, extendedbutton
 
 
-def Label(name, parent, toolTip=""):
+def Label(name, parent, toolTip="", upper=False):
     """One liner for labels and tooltip
 
     :param name: name of the text label
@@ -17,9 +17,13 @@ def Label(name, parent, toolTip=""):
     :type parent: class
     :param toolTip: the tool tip message on mouse over hover, extra info
     :type toolTip: str
+    :param upper: make the label all caps
+    :type upper: bool
     :return lbl: the QT QLabel widget
     :rtype lbl: QWidget.QLabel
     """
+    if upper:
+        name = name.upper()
     lbl = QtWidgets.QLabel(name, parent=parent)
     lbl.setToolTip(toolTip)
 
@@ -327,15 +331,52 @@ class ComboBoxRegular(QtWidgets.QWidget):
         """
         return int(self.box.currentIndex())
 
+    def addItem(self, item):
+        """adds an entry to the combo box
+
+        :param item: the name to add to the combo box
+        :type item: str
+        """
+        self.box.addItem(item)
+
+    def setItemData(self, index, value):
+        """Sets the data role for the item on the given index in the combobox to the specified value.
+        Good for metadata assigned to the name
+
+        :param index: the index to assign the value
+        :type index: int
+        :param value: the value to assign, can be any object or string etc
+        :type value: object
+        """
+        self.box.setItemData(index, value)
+
     def setToText(self, text):
         """Sets the index based on the text
 
         :param text: Text to search and switch item to.
-        :return:
+        :type text: str
         """
         index = self.findText(text, QtCore.Qt.MatchFixedString)
         if index >= 0:
-            self.setCurrentIndex(index)
+            self.box.setCurrentIndex(index)
+
+    def setIndex(self, index):
+        """Sets the combo box to the current index number
+
+        :param index: Sets the combo box to the current index
+        :type index: int
+        """
+        self.box.setCurrentIndex(index)
+
+    def removeItemByText(self, text):
+        """removes the index based on the text from the combo box (box.removeItem)
+
+        :param text: Text to search and delete it's entire entry from the combo box (removeItem)
+        :type text: str
+        """
+        index = self.findText(text, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+            self.box.removeItem(index)
 
 
 def CheckBoxRegular(label="", setChecked=False, parent=None, toolTip=""):
@@ -1203,4 +1244,33 @@ def MessageBox_ok(windowName="Confirm", parent="", message="Proceed?"):
     if result == QtWidgets.QMessageBox.Ok:
         return True
     return False
+
+
+def InputDialog(windowName="Add Name", textValue="", parent="", message="Rename?"):
+    """Opens a simple QT window that locks the program asking the user to input a string into a text box
+
+    Useful for renaming etc.
+
+    :param windowName: The name of the ok/cancel window
+    :type windowName: str
+    :param textValue: The initial text in the textbox, eg. The name to be renamed
+    :type textValue: str
+    :param parent: The parent widget
+    :type parent: Qt.widget
+    :param message: The message to ask the user
+    :type message: str
+    :return newTextValue: The new text name entered
+    :rtype newTextValue: str
+    """
+    dialog = QtWidgets.QInputDialog(parent)
+    dialog.setInputMode(QtWidgets.QInputDialog.TextInput)
+    dialog.setTextValue(textValue)
+    dialog.setWindowTitle(windowName)
+    dialog.setLabelText(message)
+    dialog.resize(utils.dpiScale(270), utils.dpiScale(100))
+    ok = dialog.exec_()
+    newTextValue = dialog.textValue()
+    if not ok:
+        return ""
+    return newTextValue
 
