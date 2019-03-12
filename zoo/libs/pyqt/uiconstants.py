@@ -24,9 +24,6 @@ WINSIDEPAD = 10  # the overall window each side
 WINTOPPAD = 10  # the overall window padding at the top of frame
 WINBOTPAD = 10  # the overall window padding at the bottom of frame
 
-# Colors
-BRIGHT_GREY_BTN_ICON = (200, 200, 200)  # todo: should be set in stylesheet
-
 # Button Width Sizes
 BTN_W_ICN_SML = 10
 BTN_W_ICN_REG = 20

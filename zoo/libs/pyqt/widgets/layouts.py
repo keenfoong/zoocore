@@ -88,7 +88,7 @@ def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, i
     :rtype textBox: QWidget.QLabel
     """
     textBox = QtWidgets.QLineEdit(parent=parent)
-    utils.setStylesheetObjectName(textBox, "lineEditForced")  # TODO: might be removed once stack widget fixed
+    utils.setStylesheetObjectName(textBox, "lineEditForced")  # TODO: should be removed once stack widget fixed
     if inputMode == "float":  # float restricts to only numerical decimal point text entry
         textBox.setValidator(QtGui.QDoubleValidator())
     elif inputMode == "int":  # int restricts to numerical text entry, no decimal places
@@ -437,7 +437,7 @@ class VectorLineEdit(QtWidgets.QWidget):
         vectorEditLayout = HBoxLayout(parent, (0, 0, 0, 0), spacing)
         for i, v in enumerate(axis):
             edit = LineEdit(text=value[i], placeholder="", parent=parent, toolTip=toolTip, inputMode=inputMode)
-            edit.setObjectName("".join([label, v]))
+            # edit.setObjectName("".join([label, v]))  # might not need a label name?  Leave this line in case
             edit.textChanged.connect(self._onTextChanged)
             self._widgets[v] = edit
             vectorEditLayout.addWidget(edit)
@@ -1161,7 +1161,7 @@ def GridLayout(parent=None, margins=(0, 0, 0, 0), spacing=uiconstants.SREG, colu
     :param columnMinWidth: option for one column number then it's min width, use obj.setColumnMinimumWidth for more
     :type columnMinWidth: tuple
     """
-    zooGridLayout = QtWidgets.QGridLayout()
+    zooGridLayout = QtWidgets.QGridLayout(parent)
     zooGridLayout.setContentsMargins(*utils.marginsDpiScale(*margins))
     if not vSpacing and not hSpacing:
         zooGridLayout.setHorizontalSpacing(utils.dpiScale(spacing))
