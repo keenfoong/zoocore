@@ -24,9 +24,6 @@ WINSIDEPAD = 10  # the overall window each side
 WINTOPPAD = 10  # the overall window padding at the top of frame
 WINBOTPAD = 10  # the overall window padding at the bottom of frame
 
-# Colors
-BRIGHT_GREY_BTN_ICON = (200, 200, 200)  # todo: should be set in stylesheet
-
 # Button Width Sizes
 BTN_W_ICN_SML = 10
 BTN_W_ICN_REG = 20
@@ -35,8 +32,10 @@ BTN_W_REG_SML = 90
 BTN_W_REG_LRG = 180
 
 # Button Styles
-BTN_DEFAULT = 0
-BTN_TRANSPARENT_BG = 1
+BTN_DEFAULT = 0  # default style uses zoo's extended button
+BTN_TRANSPARENT_BG = 1  # transparent bg
+BTN_ICON_SHADOW = 3  # main icon button (in a box) with shadow underline
+BTN_DEFAULT_QT = 4   # default style uses vanilla QPushButton and not extended button
 
 # Colors
 COLOR_ERROR = "00ff06"  # fluorescent green

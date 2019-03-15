@@ -7,6 +7,8 @@ from zoo.libs.pyqt.widgets import dockwidget
 class MainWindow(QtWidgets.QMainWindow):
     closed = QtCore.Signal()
 
+    restoreWindowSize = True
+
     def __init__(self, title="", width=600, height=800, icon="",
                  parent=None, showOnInitialize=True, transparent=False):
         super(MainWindow, self).__init__(parent=parent)
@@ -167,10 +169,13 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.objectName() in qsettings.childGroups():
             qsettings.beginGroup(self.objectName())
 
-            self.restoreGeometry(qsettings.value("geometry", self.saveGeometry()))
+            if self.restoreWindowSize:
+                self.restoreGeometry(qsettings.value("geometry", self.saveGeometry()))
+                self.resize(qsettings.value("size", self.size()))
+
             self.restoreState(qsettings.value("saveState", self.saveState()))
             self.move(qsettings.value("pos", self.pos()))
-            self.resize(qsettings.value("size", self.size()))
+
             if qsettings.value("maximized", False) == 'true':
                 self.showMaximized()
 
