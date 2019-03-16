@@ -6,7 +6,7 @@ from zoo.libs import iconlib
 from zoo.libs.pyqt import utils
 from zoo.libs.pyqt import uiconstants as uic
 from zoo.libs.pyqt.extended import combobox
-from zoo.libs.pyqt.widgets import frame, extendedbutton
+from zoo.libs.pyqt.widgets import frame
 
 
 def Label(name, parent, toolTip="", upper=False, bold=False):
@@ -106,85 +106,6 @@ def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, i
     textBox.setText(str(text))
     textBox.setToolTip(toolTip)
     return textBox
-
-
-class StringEdit(QtWidgets.QWidget):
-    textChanged = QtCore.Signal(str)
-    buttonClicked = QtCore.Signal()
-    editingFinished = QtCore.Signal()
-
-    def __init__(self, label="", editText="", editPlaceholder="", buttonText=None, parent=None, editWidth=None,
-                 labelRatio=1, btnRatio=1, editRatio=1, toolTip="", inputMode="string",
-                 orientation=QtCore.Qt.Horizontal):
-        """Creates a label, textbox (QLineEdit) and an optional button
-        if the button is None then no button will be created
-
-        :param label: the label name
-        :type label: str
-        :param placeholderText: default text is greyed out inside the textbox if true (QLineEdit)
-        :type placeholderText: bool
-        :param buttonText: optional button name, if None no button will be created
-        :type buttonText: str
-        :param parent: the qt parent
-        :type parent: class
-        :param editWidth: the width of the textbox in pixels optional, None is ignored
-        :type editWidth: int
-        :param labelRatio: the width ratio of the label/text/button corresponds to the ratios of ratioEdit/ratioBtn
-        :type labelRatio: int
-        :param btnRatio: the width ratio of the label/text/button corresponds to the ratios of editRatio/labelRatio
-        :type btnRatio: int
-        :param editRatio: the width ratio of the label/text/button corresponds to the ratios of labelRatio/btnRatio
-        :type editRatio: int
-        :param toolTip: the tool tip message on mouse over hover, extra info
-        :type toolTip: str
-        :param inputMode: restrict the user to this data entry, "string" text, "float" decimal or "int" no decimal
-        :type inputMode: str
-        :param orientation: the orientation of the box layout QtCore.Qt.Horizontal HBox QtCore.Qt.Vertical VBox
-        :type orientation: bool
-        :return StringEdit: returns the class with various options, see the methods
-        :rtype StringEdit: QWidget
-        """
-        super(StringEdit, self).__init__(parent=parent)
-        self.QLineEditBool = True
-        if orientation == QtCore.Qt.Horizontal:
-            self.layout = HBoxLayout(parent, (0, 0, 0, 0), spacing=uic.SREG)
-        else:
-            self.layout = VBoxLayout(parent, (0, 0, 0, 0), spacing=uic.SREG)
-        self.edit = LineEdit(editText, editPlaceholder, parent, toolTip, editWidth, inputMode)
-        if label:
-            self.label = Label(label, parent, toolTip)
-            self.layout.addWidget(self.label, labelRatio)
-        self.layout.addWidget(self.edit, editRatio)
-        self.buttonText = buttonText
-        if self.buttonText:
-            # todo button connections should be added from this class (connections)
-            self.btn = extendedbutton.buttonStyle(self.buttonText, toolTip=toolTip, style=uic.BTN_DEFAULT)
-            self.layout.addWidget(self.btn, btnRatio)
-        self.setLayout(self.layout)
-        self.connections()
-
-    def connections(self):
-        """connects the buttons and text changed emit"""
-        self.edit.textChanged.connect(self._onTextChanged)
-        if self.buttonText:
-            self.btn.clicked.connect(self.buttonClicked.emit)
-        self.editingFinished = self.edit.editingFinished
-
-    def _onTextChanged(self):
-        """If the text is changed emit"""
-        self.textChanged.emit(str(self.edit.text()))
-
-    def setDisabled(self, state):
-        """Disable the text (make it grey)"""
-        self.edit.setDisabled(state)
-
-    def setText(self, value):
-        """Change the text at any time"""
-        self.edit.setText(value)
-
-    def text(self):
-        """get the text of self.edit"""
-        return self.edit.text()
 
 
 class ComboBoxSearchable(QtWidgets.QWidget):
