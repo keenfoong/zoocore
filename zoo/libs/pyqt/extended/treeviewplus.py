@@ -40,7 +40,9 @@ class TreeViewPlus(QtWidgets.QFrame):
 
     def _setupFilter(self):
         self.reloadBtn = QtWidgets.QToolButton(parent=self)
-        self.reloadBtn.setIcon(iconlib.icon("reload"))
+        # TODO: this button color needs stylesheeting once Stylesheeting is moved to zoocore
+        self.reloadBtn.setIcon(iconlib.iconColorized("reload", color=(255, 255, 255)))
+
         self.searchLayout = QtWidgets.QHBoxLayout(self)
         self.searchLayout.setContentsMargins(0, 0, 0, 0)
         self.searchLayout.addWidget(self.reloadBtn)

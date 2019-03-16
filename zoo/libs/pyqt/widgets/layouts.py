@@ -262,6 +262,30 @@ class ComboBoxSearchable(QtWidgets.QWidget):
             self.setCurrentIndex(index)
 
 
+def comboBox(items=None, parent=None, toolTip="", setIndex=0):
+    """Simple qComboBox with no label
+
+    :param items: the item list of the combobox
+    :type items: list
+    :param parent: the qt parent
+    :type parent: object
+    :param toolTip: the tooltip info to display with mouse hover
+    :type toolTip: str
+    :param setIndex: set the combo box value as an int - 0 is the first value, 1 is the second
+    :type setIndex: int
+    :return comboBx: the QComboBox Qt widget
+    :type comboBx: QComboBox
+    """
+    if items is None:
+        items = []
+    comboBx = QtWidgets.QComboBox(parent)
+    comboBx.addItems(items)
+    comboBx.setToolTip(toolTip)
+    if setIndex:
+        comboBx.setCurrentIndex(setIndex)
+    return comboBx
+
+
 class ComboBoxRegular(QtWidgets.QWidget):
     """Creates a regular "not searchable" combo box (drop down menu) with a label
     """
@@ -283,14 +307,10 @@ class ComboBoxRegular(QtWidgets.QWidget):
         """
         super(ComboBoxRegular, self).__init__(parent=parent)
 
-        if items is None:
-            items = []
+        self.box = comboBox(items=items, parent=parent, toolTip=toolTip, setIndex=setIndex)
 
         layout = HBoxLayout(parent=None, margins=utils.marginsDpiScale(0, 0, 0, 0),
                             spacing=utils.dpiScale(uic.SREG))  # margins kwarg should be added
-        self.box = QtWidgets.QComboBox(parent)
-        self.box.addItems(items)
-        self.box.setToolTip(toolTip)
         if label != "":
             self.label = Label(label, parent, toolTip)
             if labelRatio:
@@ -301,8 +321,6 @@ class ComboBoxRegular(QtWidgets.QWidget):
             layout.addWidget(self.box, boxRatio)
         else:
             layout.addWidget(self.box)
-        if setIndex:
-            self.box.setCurrentIndex(setIndex)
         self.setLayout(layout)
 
         self.box.currentIndexChanged.connect(self.onItemChanged)

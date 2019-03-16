@@ -29,9 +29,9 @@ class ViewSearchWidget(QtWidgets.QWidget):
 
     def __init__(self, showColumnVisBox=True, showHeaderBox=True, parent=None):
         super(ViewSearchWidget, self).__init__(parent=parent)
-        # TODO: colors should be in stylesheets
-        searchIcon = iconlib.iconColorized("magnifier", size=utils.dpiScale(14), color=(128, 128, 128))
-        closeIcon = iconlib.iconColorized("close", size=utils.dpiScale(14), color=(128, 128, 128))
+        # TODO: these button colors need stylesheeting once Stylesheeting is moved to zoocore
+        searchIcon = iconlib.iconColorized("magnifier", size=14, color=(255, 255, 255))
+        closeIcon = iconlib.iconColorized("close", size=14, color=(255, 255, 255))
 
         self.searchFrame = QtWidgets.QFrame(parent=self)
         self.searchFrame.setFrameShape(QtWidgets.QFrame.NoFrame)
