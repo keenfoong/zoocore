@@ -2,7 +2,7 @@ import os
 
 from qt import QtGui, QtCore, QtWidgets
 from zoo.libs.utils import env, classtypes
-
+from zoo.libs.pyqt import utils
 
 class Icon(object):
     """This class acts as a uniform interface to manipulate, create, retrieve Qt icons from the zoo library.
@@ -60,6 +60,7 @@ class Icon(object):
         :return QIcon: QtGui.Qicon
         :rtype QIcon: object
         """
+        # size = utils.dpiScale(size)  # TODO: too many references to add the dpi scale here?
         if env.isMayapy():
             return
         iconData = cls.iconDataForName(iconName, size)
@@ -145,6 +146,7 @@ class Icon(object):
         :param overlayColor: The colour of the overlay
         :rtype: QtGui.QIcon
         """
+        size = utils.dpiScale(size)
         iconLargest = cls.icon(iconName, -1)
 
         if not iconLargest:
@@ -179,7 +181,7 @@ class Icon(object):
         :rtype: QtGui.QIcon
         """
         defaultSize = 1
-
+        size = utils.dpiScale(size)
         if isinstance(iconNames, basestring):
             iconNames = [iconNames]
         elif isinstance(iconNames, list):
