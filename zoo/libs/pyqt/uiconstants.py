@@ -34,8 +34,9 @@ BTN_W_REG_LRG = 180
 # Button Styles
 BTN_DEFAULT = 0  # Default zoo extended button with optional text or an icon.
 BTN_TRANSPARENT_BG = 1  # Default zoo extended button w transparent bg.
-BTN_ICON_SHADOW = 3  # Main zoo IconPushButton button (icon in a colored box) with shadow underline
-BTN_DEFAULT_QT = 4   # Default style uses vanilla QPushButton and not zoo's extended button
+BTN_ICON_SHADOW = 2  # Main zoo IconPushButton button (icon in a colored box) with shadow underline
+BTN_DEFAULT_QT = 3   # Default style uses vanilla QPushButton and not zoo's extended button
+BTN_ROUNDED = 4  # Rounded button stylesheeted bg color and stylesheeted icon color
 
 # Colors
 COLOR_ERROR = "00ff06"  # fluorescent green
