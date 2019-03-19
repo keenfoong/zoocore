@@ -4,6 +4,7 @@ from qt import QtGui, QtCore, QtWidgets
 from zoo.libs.utils import env, classtypes
 from zoo.libs.pyqt import utils
 
+
 class Icon(object):
     """This class acts as a uniform interface to manipulate, create, retrieve Qt icons from the zoo library.
     """
