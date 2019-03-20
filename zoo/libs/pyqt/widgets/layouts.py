@@ -122,7 +122,7 @@ class ComboBoxSearchable(QtWidgets.QWidget):
         :type parent: class
         """
         super(ComboBoxSearchable, self).__init__(parent=parent)
-        layout = HBoxLayout(parent=None, margins=(0, 0, 0, 0),
+        layout = hBoxLayout(parent=None, margins=(0, 0, 0, 0),
                             spacing=utils.dpiScale(uic.SPACING))  # margins kwarg should be added
         self.box = combobox.ExtendedComboBox(items, parent)
         self.box.setToolTip(toolTip)
@@ -230,7 +230,7 @@ class ComboBoxRegular(QtWidgets.QWidget):
 
         self.box = comboBox(items=items, parent=parent, toolTip=toolTip, setIndex=setIndex)
 
-        layout = HBoxLayout(parent=None, margins=utils.marginsDpiScale(0, 0, 0, 0),
+        layout = hBoxLayout(parent=None, margins=utils.marginsDpiScale(0, 0, 0, 0),
                             spacing=utils.dpiScale(uic.SREG))  # margins kwarg should be added
         if label != "":
             self.label = Label(label, parent, toolTip)
@@ -373,12 +373,12 @@ class VectorLineEdit(QtWidgets.QWidget):
         :type spacing: int
         """
         super(VectorLineEdit, self).__init__(parent=parent)
-        self.mainLayout = HBoxLayout(parent, (0, 0, 0, 0), spacing)
+        self.mainLayout = hBoxLayout(parent, (0, 0, 0, 0), spacing)
         if label:
             self.label = QtWidgets.QLabel(label, parent=self)
             self.mainLayout.addWidget(self.label, labelRatio)
         self._widgets = OrderedDict()
-        vectorEditLayout = HBoxLayout(parent, (0, 0, 0, 0), spacing)
+        vectorEditLayout = hBoxLayout(parent, (0, 0, 0, 0), spacing)
         for i, v in enumerate(axis):
             edit = LineEdit(text=value[i], placeholder="", parent=parent, toolTip=toolTip, inputMode=inputMode)
             # edit.setObjectName("".join([label, v]))  # might not need a label name?  Leave this line in case
@@ -453,7 +453,7 @@ class VectorSpinBox(QtWidgets.QWidget):
         :type step: float
         """
         super(VectorSpinBox, self).__init__(parent=parent)
-        self.mainLayout = HBoxLayout(parent, (2, 2, 2, 2), uic.SREG)
+        self.mainLayout = hBoxLayout(parent, (2, 2, 2, 2), uic.SREG)
         if label:
             self.label = QtWidgets.QLabel(label, parent=self)
             self.mainLayout.addWidget(self.label)
@@ -708,7 +708,7 @@ class labelColorBtn(QtWidgets.QWidget):
         :type parent: class
         """
         super(labelColorBtn, self).__init__(parent=parent)
-        self.layout = HBoxLayout(parent=None, margins=utils.marginsDpiScale(*contentsMargins),
+        self.layout = hBoxLayout(parent=None, margins=utils.marginsDpiScale(*contentsMargins),
                                  spacing=utils.dpiScale(uic.SPACING))
         self.layout.addWidget(QtWidgets.QLabel(label, parent=self), labelWeight)
         self.colorPickerBtn = QtWidgets.QPushButton("", parent=self)
@@ -799,7 +799,7 @@ class CollapsableFrameLayout(QtWidgets.QWidget):
         :type parent: class
         """
         super(CollapsableFrameLayout, self).__init__(parent=parent)
-        self.layout = VBoxLayout(parent=parent, margins=(0, 0, 0, 0), spacing=0)
+        self.layout = vBoxLayout(parent=parent, margins=(0, 0, 0, 0), spacing=0)
         self.title = title
         self.contentMargins = contentMargins
         self.contentSpacing = contentSpacing
@@ -824,7 +824,7 @@ class CollapsableFrameLayout(QtWidgets.QWidget):
         """
         self.titleFrame = frame.QFrame(parent=self)
         self.titleFrame.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout = HBoxLayout(self.titleFrame, margins=(0, 0, 0, 0))
+        self.horizontalLayout = hBoxLayout(self.titleFrame, margins=(0, 0, 0, 0))
         # the icon
         self.iconButton = QtWidgets.QToolButton(parent=self)
 
@@ -853,7 +853,7 @@ class CollapsableFrameLayout(QtWidgets.QWidget):
         """
         self.widgetHider = QtWidgets.QFrame()
         self.widgetHider.setContentsMargins(0, 0, 0, 0)
-        self.hiderLayout = VBoxLayout(self.widgetHider, margins=self.contentMargins, spacing=self.contentSpacing)
+        self.hiderLayout = vBoxLayout(self.widgetHider, margins=self.contentMargins, spacing=self.contentSpacing)
         self.widgetHider.setHidden(self.collapsed)
 
     def onCollapsed(self):
@@ -1057,7 +1057,7 @@ class QVLine(QtWidgets.QFrame):
         self.setFrameShadow(QtWidgets.QFrame.Sunken)
 
 
-def HBoxLayout(parent=None, margins=(0, 0, 0, 0), spacing=uic.SREG):
+def hBoxLayout(parent=None, margins=(0, 0, 0, 0), spacing=uic.SREG):
     """One liner for QtWidgets.QHBoxLayout() to make it easier to create an easy Horizontal Box layout
     DPI (4k) is handled here
     Defaults use regular spacing and no margins
@@ -1073,7 +1073,7 @@ def HBoxLayout(parent=None, margins=(0, 0, 0, 0), spacing=uic.SREG):
     return zooQHBoxLayout
 
 
-def VBoxLayout(parent=None, margins=(0, 0, 0, 0), spacing=uic.SREG):
+def vBoxLayout(parent=None, margins=(0, 0, 0, 0), spacing=uic.SREG):
     """One liner for QtWidgets.QVBoxLayout() to make it easier to create an easy Vertical Box layout
     DPI (4k) is handled here
     Defaults use regular spacing and no margins
@@ -1253,12 +1253,12 @@ class EmbeddedWindow(QtWidgets.QFrame):
         """
         self.setFrameStyle(QtWidgets.QFrame.Box | QtWidgets.QFrame.Plain)
         utils.setStylesheetObjectName(self, "embededWindowBG")  # setObjectName with ui update
-        self.propertiesLayout = VBoxLayout(self.parent, margins=(uic.WINSIDEPAD, 4, uic.WINSIDEPAD,
-                                                            uic.WINBOTPAD), spacing=uic.SREG)
+        self.propertiesLayout = vBoxLayout(self.parent, margins=(uic.WINSIDEPAD, 4, uic.WINSIDEPAD,
+                                                                 uic.WINBOTPAD), spacing=uic.SREG)
         self.setLayout(self.propertiesLayout)  # container for stylesheet
 
         # Title Of the Embedded Window
-        propertyTitleLayout = HBoxLayout(self.parent, margins=(0, 0, 0, 0), spacing=uic.SSML)
+        propertyTitleLayout = hBoxLayout(self.parent, margins=(0, 0, 0, 0), spacing=uic.SSML)
         self.propertiesLbl = Label(self.title, self.parent, upper=self.uppercase, bold=True)
         toolTip = "Close this embedded window"
         self.hidePropertiesBtn = extendedbutton.buttonStyle("", "closeX", self.parent, toolTip,
