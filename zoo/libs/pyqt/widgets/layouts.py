@@ -1218,7 +1218,7 @@ def InputDialog(windowName="Add Name", textValue="", parent="", message="Rename?
 
 class EmbeddedWindow(QtWidgets.QFrame):
 
-    def __init__(self, parent, title, defaultVisibility=True, uppercase=False):
+    def __init__(self, parent, title, defaultVisibility=True, uppercase=False, closeButton=None):
         """An embedded window is a QFrame widget that appears like a window inside of another ui.
 
         It is not a window itself, more like a fake window.  It has some simple stylesheeting and a title
@@ -1236,14 +1236,21 @@ class EmbeddedWindow(QtWidgets.QFrame):
         :type title: str
         :param defaultVisibility: Is the embedded window visible on initialize?
         :type defaultVisibility: bool
+        :param closeButton: the button (object) used to close the window
+        :type closeButton: qt object
         """
         super(EmbeddedWindow, self).__init__(parent)
         self.title = title
         self.parent = parent
         self.uppercase = uppercase
+        if closeButton:
+            self.hidePropertiesBtn = closeButton
+        else:
+            self.hidePropertiesBtn = None
         self.setHidden(defaultVisibility)
         self.ui()
         self.connections()
+
 
     def ui(self):
         """Create the UI with a title and close icon top right
@@ -1260,12 +1267,10 @@ class EmbeddedWindow(QtWidgets.QFrame):
         # Title Of the Embedded Window
         propertyTitleLayout = hBoxLayout(self.parent, margins=(0, 0, 0, 0), spacing=uic.SSML)
         self.propertiesLbl = Label(self.title, self.parent, upper=self.uppercase, bold=True)
-        toolTip = "Close this embedded window"
-        self.hidePropertiesBtn = extendedbutton.buttonStyle("", "closeX", self.parent, toolTip,
-                                                            maxWidth=uic.BTN_W_ICN_SML, minWidth=uic.BTN_W_ICN_SML,
-                                                            style=uic.BTN_TRANSPARENT_BG)
+
         propertyTitleLayout.addWidget(self.propertiesLbl, 10)
-        propertyTitleLayout.addWidget(self.hidePropertiesBtn, 1)
+        if self.hidePropertiesBtn:
+            propertyTitleLayout.addWidget(self.hidePropertiesBtn, 1)
 
         self.propertiesLayout.addLayout(propertyTitleLayout)
 
@@ -1282,7 +1287,8 @@ class EmbeddedWindow(QtWidgets.QFrame):
     def getHideButton(self):
         """Returns the hide button so functionality can be assigned to it
         """
-        return self.hidePropertiesBtn
+        if self.hidePropertiesBtn:
+            return self.hidePropertiesBtn
 
     def setTitle(self, title):
         """Set the title of the embedded window
