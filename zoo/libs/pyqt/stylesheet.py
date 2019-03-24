@@ -80,7 +80,6 @@ class StyleSheet(object):
                                    .format(value[5:], key))
 
                 replaceVal = os.path.normcase(path).replace("\\", "/")
-
             data = data.replace(key, str(replaceVal))
         self.data = data
         return True
