@@ -143,7 +143,6 @@ class ComboBoxSearchable(QtWidgets.QWidget):
             layout.addWidget(self.box, boxRatio)
         else:
             layout.addWidget(self.box)
-        layout.addWidget(self.box)
         self.setLayout(layout)
 
         self.box.currentIndexChanged.connect(self.onItemChanged)
