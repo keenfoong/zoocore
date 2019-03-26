@@ -112,7 +112,7 @@ class ComboBoxSearchable(QtWidgets.QWidget):
     itemChanged = QtCore.Signal(int, str)
 
     def __init__(self, label="", items=(), parent=None, labelRatio=None, boxRatio=None, toolTip="", setIndex=0):
-        """Creates a searchable combo box (drop down menu) with a label
+        """ Creates a searchable combo box (drop down menu) with a label
 
         :param label: the label of the combobox
         :type label: str
@@ -138,7 +138,6 @@ class ComboBoxSearchable(QtWidgets.QWidget):
             layout.addWidget(self.box, boxRatio)
         else:
             layout.addWidget(self.box)
-        layout.addWidget(self.box)
         self.setLayout(layout)
 
         self.box.currentIndexChanged.connect(self.onItemChanged)
