@@ -71,7 +71,7 @@ def colorStr(c):
 def hBoxLayout(parent=None):
     layout = QtWidgets.QHBoxLayout(parent)
     layout.setContentsMargins(2, 2, 2, 2)
-    layout.setSpacing(1)
+    layout.setSpacing(2)
     return layout
 
 
@@ -89,7 +89,7 @@ def vframeLayout(parent=None):
     return subFrame, layout
 
 
-def vBoxLayout(parent=None, margins=(2, 2, 2, 2), spacing=1):
+def vBoxLayout(parent=None, margins=(2, 2, 2, 2), spacing=2):
     layout = QtWidgets.QVBoxLayout(parent)
     layout.setContentsMargins(*margins)
     layout.setSpacing(spacing)
@@ -272,11 +272,28 @@ def alignmentString(alignmentFlags):
 def dpiScale(value):
     """Resize by value based on current DPI
 
-    :param value:
-    :return:
+    :param value: the default 2k size in pixels
+    :type value: int
+    :return value: the size in pixels now dpi monitor ready (4k 2k etc)
+    :rtype value: int
     """
     mult = QtWidgets.QApplication.desktop().logicalDpiY() / uiconstants.DEFAULT_DPI
     return value * mult
+
+
+def dpiScaleDivide(value):
+    """Inverse resize by value based on current DPI, for values that may get resized twice
+
+    :param value: the size in pixels
+    :type value: int
+    :return value: the divided size in pixels
+    :rtype value: int
+    """
+    mult = QtWidgets.QApplication.desktop().logicalDpiY() / uiconstants.DEFAULT_DPI
+    if value != 0:
+        return value / mult
+    else:
+        return value
 
 
 def marginsDpiScale(left, top, right, bottom):

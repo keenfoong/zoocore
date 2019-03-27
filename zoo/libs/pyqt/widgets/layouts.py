@@ -111,8 +111,9 @@ def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, i
 class ComboBoxSearchable(QtWidgets.QWidget):
     itemChanged = QtCore.Signal(int, str)
 
-    def __init__(self, label="", items=(), parent=None, labelRatio=None, boxRatio=None, toolTip="", setIndex=0):
-        """ Creates a searchable combo box (drop down menu) with a label
+    def __init__(self, label="", items=(), parent=None, labelRatio=None, boxRatio=None, toolTip="", setIndex=0,
+                 sortAlphabetically=False):
+        """Creates a searchable combo box (drop down menu) with a label
 
         :param label: the label of the combobox
         :type label: str
@@ -126,6 +127,10 @@ class ComboBoxSearchable(QtWidgets.QWidget):
                             spacing=utils.dpiScale(uic.SPACING))  # margins kwarg should be added
         self.box = combobox.ExtendedComboBox(items, parent)
         self.box.setToolTip(toolTip)
+        if sortAlphabetically:
+            items = list(items)
+            self.box.InsertPolicy(QtWidgets.QComboBox.InsertAlphabetically)
+            items.sort(key=str.lower)  # sort list alphabetically case insensitive
         if setIndex:
             self.box.setCurrentIndex(setIndex)
         if label:
@@ -146,6 +151,18 @@ class ComboBoxSearchable(QtWidgets.QWidget):
         if hasattr(self.box, item):
             return getattr(self.box, item)
         super(ComboBoxSearchable, self).__getAttribute__(item)
+
+    def addItem(self, item, sortAlphabetically=False):
+        """adds an entry to the combo box
+
+        :param item: the name to add to the combo box
+        :type item: str
+        :param sortAlphabetically: sorts the full combo box alphabetically after adding
+        :type sortAlphabetically: bool
+        """
+        self.box.addItem(item)
+        if sortAlphabetically:
+            self.themeBox.model().sort(0)
 
     def onItemChanged(self):
         """when the items changed return the tuple of values
@@ -182,7 +199,7 @@ class ComboBoxSearchable(QtWidgets.QWidget):
             self.setCurrentIndex(index)
 
 
-def comboBox(items=None, parent=None, toolTip="", setIndex=0):
+def comboBox(items=(), parent=None, toolTip="", setIndex=0, sortAlphabetically=False):
     """Simple qComboBox with no label
 
     :param items: the item list of the combobox
@@ -196,9 +213,13 @@ def comboBox(items=None, parent=None, toolTip="", setIndex=0):
     :return comboBx: the QComboBox Qt widget
     :type comboBx: QComboBox
     """
-    if items is None:
-        items = []
     comboBx = QtWidgets.QComboBox(parent)
+    if sortAlphabetically:
+        comboBx.InsertPolicy(QtWidgets.QComboBox.InsertAlphabetically)
+        if items:
+            items = list(items)
+            items = [x.encode('UTF8') for x in items]  # if unicode convert to str
+            items.sort(key=str.lower)  # sort list alphabetically case insensitive
     comboBx.addItems(items)
     comboBx.setToolTip(toolTip)
     if setIndex:
@@ -211,7 +232,8 @@ class ComboBoxRegular(QtWidgets.QWidget):
     """
     itemChanged = QtCore.Signal(int, str)
 
-    def __init__(self, label="", items=(), parent=None, labelRatio=None, boxRatio=None, toolTip="", setIndex=0):
+    def __init__(self, label="", items=(), parent=None, labelRatio=None, boxRatio=None, toolTip="", setIndex=0,
+                 sortAlphabetically=False):
         """initialize class
 
         :param label: the label of the combobox
@@ -227,7 +249,8 @@ class ComboBoxRegular(QtWidgets.QWidget):
         """
         super(ComboBoxRegular, self).__init__(parent=parent)
 
-        self.box = comboBox(items=items, parent=parent, toolTip=toolTip, setIndex=setIndex)
+        self.box = comboBox(items=items, parent=parent, toolTip=toolTip, setIndex=setIndex,
+                            sortAlphabetically=sortAlphabetically)
 
         layout = hBoxLayout(parent=None, margins=utils.marginsDpiScale(0, 0, 0, 0),
                             spacing=utils.dpiScale(uic.SREG))  # margins kwarg should be added
@@ -274,13 +297,17 @@ class ComboBoxRegular(QtWidgets.QWidget):
         """
         return int(self.box.currentIndex())
 
-    def addItem(self, item):
+    def addItem(self, item, sortAlphabetically=False):
         """adds an entry to the combo box
 
         :param item: the name to add to the combo box
         :type item: str
+        :param sortAlphabetically: sorts the full combo box alphabetically after adding
+        :type sortAlphabetically: bool
         """
         self.box.addItem(item)
+        if sortAlphabetically:
+            self.themeBox.model().sort(0)
 
     def setItemData(self, index, value):
         """Sets the data role for the item on the given index in the combobox to the specified value.
@@ -809,6 +836,7 @@ class CollapsableFrameLayout(QtWidgets.QWidget):
         self.initUi()
         self.setLayout(self.layout)
         self.connections()
+        utils.setStylesheetObjectName(self.titleFrame, "collapse")
 
     def initUi(self):
         """Builds the UI, the title and the collapsable widget that' the container for self.hiderLayout
