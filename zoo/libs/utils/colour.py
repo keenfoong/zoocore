@@ -270,8 +270,20 @@ def rgbFloatToInt(color):
     :param color: float color tuple eg (0.5, 0.5, 1.0, 1.0)
     :return: int color eg (128, 128, 255, 255)
     """
+    return tuple([int(round(255*float(c))) for c in color])
 
-    return tuple([int(255*float(c)) for c in color])
+def rgbIntRound(color):
+    """Rounds all values of 255 color
+
+    example:
+        (244.9, 100, 10.33) is returned as (255, 100, 10)
+
+    :param color: int color tuple eg (255.0, 0.001, 0.0)
+    :type: tuple
+    :return: int color converted eg (255, 0, 0)
+    :rtype: tuple
+    """
+    return tuple([int(round(c)) for c in color])
 
 
 class RGBRotate(object):

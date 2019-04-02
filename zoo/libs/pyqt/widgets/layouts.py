@@ -385,7 +385,7 @@ class VectorLineEdit(QtWidgets.QWidget):
         :type label: str
         :param value: n floats corresponding with axis param
         :type value: tuple(float)
-        :param axis: every axis which will have a doubleSpinBox eg. ("x", "y", "z") or ("x", "y", "z", "w")
+        :param axis: every axis ("x", "y", "z") or ("x", "y", "z", "w")
         :type axis: tuple(str)
         :param parent: the widget parent
         :type parent: QtWidget
@@ -400,6 +400,7 @@ class VectorLineEdit(QtWidgets.QWidget):
         """
         super(VectorLineEdit, self).__init__(parent=parent)
         self.mainLayout = hBoxLayout(parent, (0, 0, 0, 0), spacing)
+        self.axis = axis
         if label:
             self.label = QtWidgets.QLabel(label, parent=self)
             self.mainLayout.addWidget(self.label, labelRatio)
@@ -438,6 +439,10 @@ class VectorLineEdit(QtWidgets.QWidget):
         :rtype textValues: tuple(str)
         """
         valueList = [self._widgets[axis].text() for axis in self._widgets]
+        if type(self._widgets[self.axis[0]].validator()) == QtGui.QDoubleValidator:  # float
+            return [float(value) for value in valueList]
+        elif type(self._widgets[self.axis[0]].validator()) == QtGui.QIntValidator:  # int:
+            return [int(value) for value in valueList]
         return tuple(valueList)
 
     def setValue(self, value):
@@ -446,11 +451,10 @@ class VectorLineEdit(QtWidgets.QWidget):
         :param value: the value of all text boxes, as a list of strings (or floats, ints depending on inputMode)
         :type value: tuple
         """
-        # TODO: Not tested
         # get the widgets in order
         keys = self._widgets.keys()
         for i, v in enumerate(value):
-            self._widgets[keys[i]].setText(v)
+            self._widgets[keys[i]].setText(str(v))
 
 
 class VectorSpinBox(QtWidgets.QWidget):
@@ -760,7 +764,7 @@ class labelColorBtn(QtWidgets.QWidget):
         self.colorPickerBtn.setStyleSheet("background-color: {}".format(color.name()))
 
     def setColorSrgb(self, rgbList):
-        """Sets the color of the button as per a rgb list in 0-1 range
+        """Sets the color of the button as per a rgb list in 0-1 range, colors are not rounded
 
         :param rgbList: r g b color in 255 range eg [1.0, 0.0, 0.0]
         :type rgbList: list
