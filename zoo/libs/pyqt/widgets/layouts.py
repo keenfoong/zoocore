@@ -74,6 +74,38 @@ def TextEdit(text="", placeholderText="", parent=None, toolTip="", editWidth=Non
     return textEdit
 
 
+class ExtendedLineEdit(QtWidgets.QLineEdit):
+    textModified = QtCore.Signal()
+
+    def __init__(self, contents='', parent=None):
+        super(ExtendedLineEdit, self).__init__(contents, parent)
+        self.editingFinished.connect(self.__handleEditingFinished)
+        self.textChanged.connect(self.__handleTextChanged)
+        self.returnPressed.connect(self.__handleReturnPressed)
+        self._before = contents
+
+    def __handleTextChanged(self, text):
+        """If text has changed update self._before
+        """
+        if not self.hasFocus():
+            self._before = text
+
+    def __handleEditingFinished(self):
+        """if text has changed and editingFinished emit textModified
+        """
+        before, after = self._before, self.text()
+        if before != after:
+            self._before = after
+            self.textModified.emit()
+
+    def __handleReturnPressed(self):
+        """if text hasn't changed and returnPressed emit textModified
+        """
+        before, after = self._before, self.text()
+        if before == after:
+            self.textModified.emit()
+
+
 def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, inputMode="string", fixedWidth=None):
     """Creates a simple textbox (QLineEdit)
 
@@ -92,7 +124,7 @@ def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, i
     :return textBox: the QT QLabel widget
     :rtype textBox: QWidget.QLabel
     """
-    textBox = QtWidgets.QLineEdit(parent=parent)
+    textBox = ExtendedLineEdit(parent=parent)
     utils.setStylesheetObjectName(textBox, "lineEditForced")  # TODO: should be removed once stack widget fixed
     if inputMode == "float":  # float restricts to only numerical decimal point text entry
         textBox.setValidator(QtGui.QDoubleValidator())
