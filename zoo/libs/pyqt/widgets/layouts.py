@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from functools import partial
 
 from qt import QtWidgets, QtCore, QtGui
 
@@ -9,7 +10,7 @@ from zoo.libs.pyqt.extended import combobox
 from zoo.libs.pyqt.widgets import frame
 
 
-def Label(name, parent, toolTip="", upper=False, bold=False):
+def Label(name, parent, toolTip="", upper=False, bold=False, enableMenu=True):
     """One liner for labels and tooltip
 
     :param name: name of the text label
@@ -27,7 +28,10 @@ def Label(name, parent, toolTip="", upper=False, bold=False):
     """
     if upper:
         name = name.upper()
-    lbl = QtWidgets.QLabel(name, parent=parent)
+    if enableMenu:
+        lbl = ExtendedLabelMenu(name, parent=parent)
+    else:
+        lbl = QtWidgets.QLabel(name, parent=parent)
     lbl.setToolTip(toolTip)
     if bold:
         lbl.setStyleSheet("font: bold;")
@@ -77,12 +81,12 @@ def TextEdit(text="", placeholderText="", parent=None, toolTip="", editWidth=Non
 class ExtendedLineEdit(QtWidgets.QLineEdit):
     textModified = QtCore.Signal()
 
-    def __init__(self, contents='', parent=None):
-        super(ExtendedLineEdit, self).__init__(contents, parent)
+    def __init__(self, parent=None):
+        super(ExtendedLineEdit, self).__init__(parent)
         self.editingFinished.connect(self.__handleEditingFinished)
         self.textChanged.connect(self.__handleTextChanged)
         self.returnPressed.connect(self.__handleReturnPressed)
-        self._before = contents
+        self._before = ""
 
     def __handleTextChanged(self, text):
         """If text has changed update self._before
@@ -105,8 +109,8 @@ class ExtendedLineEdit(QtWidgets.QLineEdit):
         if before == after:
             self.textModified.emit()
 
-
-def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, inputMode="string", fixedWidth=None):
+def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, inputMode="string", fixedWidth=None,
+             enableMenu=True):
     """Creates a simple textbox (QLineEdit)
 
     :param text: is the default text in the text box
@@ -121,10 +125,15 @@ def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, i
     :type editWidth: int
     :param inputMode: restrict the user to this data entry, "string" text, "float" decimal or "int" no decimal
     :type inputMode: str
+    :param enableMenu: If True (default) uses ExtendedLineEditMenu, right/middle/left click menus can be added
+    :type enableMenu: bool
     :return textBox: the QT QLabel widget
     :rtype textBox: QWidget.QLabel
     """
-    textBox = ExtendedLineEdit(parent=parent)
+    if enableMenu:
+        textBox = ExtendedLineEditMenu(parent=parent)
+    else:
+        textBox = ExtendedLineEdit(parent=parent)
     utils.setStylesheetObjectName(textBox, "lineEditForced")  # TODO: should be removed once stack widget fixed
     if inputMode == "float":  # float restricts to only numerical decimal point text entry
         textBox.setValidator(QtGui.QDoubleValidator())
@@ -138,6 +147,134 @@ def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, i
     textBox.setText(str(text))
     textBox.setToolTip(toolTip)
     return textBox
+
+
+class StringEdit(QtWidgets.QWidget):
+    textChanged = QtCore.Signal(str)
+    buttonClicked = QtCore.Signal()
+    editingFinished = QtCore.Signal()
+
+    def __init__(self, label="", editText="", editPlaceholder="", buttonText=None, parent=None, editWidth=None,
+                 labelRatio=1, btnRatio=1, editRatio=1, toolTip="", inputMode="string",
+                 orientation=QtCore.Qt.Horizontal, enableMenu=True):
+        """Creates a label, textbox (QLineEdit) and an optional button
+        if the button is None then no button will be created
+
+        :param label: the label name
+        :type label: str
+        :param placeholderText: default text is greyed out inside the textbox if true (QLineEdit)
+        :type placeholderText: bool
+        :param buttonText: optional button name, if None no button will be created
+        :type buttonText: str
+        :param parent: the qt parent
+        :type parent: class
+        :param editWidth: the width of the textbox in pixels optional, None is ignored
+        :type editWidth: int
+        :param labelRatio: the width ratio of the label/text/button corresponds to the ratios of ratioEdit/ratioBtn
+        :type labelRatio: int
+        :param btnRatio: the width ratio of the label/text/button corresponds to the ratios of editRatio/labelRatio
+        :type btnRatio: int
+        :param editRatio: the width ratio of the label/text/button corresponds to the ratios of labelRatio/btnRatio
+        :type editRatio: int
+        :param toolTip: the tool tip message on mouse over hover, extra info
+        :type toolTip: str
+        :param inputMode: restrict the user to this data entry, "string" text, "float" decimal or "int" no decimal
+        :type inputMode: str
+        :param orientation: the orientation of the box layout QtCore.Qt.Horizontal HBox QtCore.Qt.Vertical VBox
+        :type orientation: bool
+        :param enableMenu: If True (default) uses ExtendedLineEditMenu, right/middle/left click menus can be added
+        :type enableMenu: bool
+        :return StringEdit: returns the class with various options, see the methods
+        :rtype StringEdit: QWidget
+        """
+        super(StringEdit, self).__init__(parent=parent)
+        self.enableMenu = enableMenu
+        self.QLineEditBool = True
+        if orientation == QtCore.Qt.Horizontal:
+            self.layout = hBoxLayout(parent, (0, 0, 0, 0), spacing=uic.SREG)
+        else:
+            self.layout = vBoxLayout(parent, (0, 0, 0, 0), spacing=uic.SREG)
+        self.edit = LineEdit(editText, editPlaceholder, parent, toolTip, editWidth, inputMode, enableMenu=enableMenu)
+        if label:
+            self.label = Label(label, parent, toolTip)
+            self.layout.addWidget(self.label, labelRatio)
+        self.layout.addWidget(self.edit, editRatio)
+        self.buttonText = buttonText
+        if self.buttonText:
+            # todo button connections should be added from this class (connections)
+            self.btn = QtWidgets.QPushButton(buttonText, parent)
+            self.layout.addWidget(self.btn, btnRatio)
+        self.setLayout(self.layout)
+        self.connections()
+
+    def connections(self):
+        """connects the buttons and text changed emit"""
+        self.edit.textChanged.connect(self._onTextChanged)
+        if self.buttonText:
+            self.btn.clicked.connect(self.buttonClicked.emit)
+        self.editingFinished = self.edit.editingFinished
+
+    def _onTextChanged(self):
+        """If the text is changed emit"""
+        self.textChanged.emit(str(self.edit.text()))
+
+    def setDisabled(self, state):
+        """Disable the text (make it grey)"""
+        self.edit.setDisabled(state)
+        self.label.setDisabled(state)
+
+    def setText(self, value):
+        """Change the text at any time"""
+        self.edit.setText(value)
+
+    def text(self):
+        """get the text of self.edit"""
+        return self.edit.text()
+
+    def clearFocus(self):
+        self.edit.clearFocus()
+
+    # ----------
+    # MENUS
+    # ----------
+    def setMenu(self, menu, modeList=None, mouseButton=QtCore.Qt.RightButton):
+        """Add the left/middle/right click menu by passing in a QMenu
+
+        If a modeList is passed in then create/reset the menu to the modeList:
+
+            [("icon1", "menuName1"), ("icon2", "menuName2")]
+
+        If no modelist the menu won't change
+
+        :param menu: the Qt menu to show on middle click
+        :type menu: QtWidgets.QMenu
+        :param modeList: a list of menu modes (tuples) eg [("icon1", "menuName1"), ("icon2", "menuName2")]
+        :type modeList: list(tuple(str))
+        :param mouseButton: the mouse button clicked QtCore.Qt.LeftButton, QtCore.Qt.RightButton, QtCore.Qt.MiddleButton
+        :type mouseButton: QtCore.Qt.ButtonClick
+        """
+        if mouseButton != QtCore.Qt.LeftButton:  # don't create an edit menu if left mouse button menu
+            self.edit.setMenu(menu, mouseButton=mouseButton)
+        # only add the action list (menu items) to the label, as the line edit uses the same menu
+        self.label.setMenu(menu, modeList=modeList, mouseButton=mouseButton)
+
+    def addActionList(self, modes, mouseButton=QtCore.Qt.RightButton):
+        """resets the appropriate mouse click menu with the incoming modes
+
+            modeList: [("icon1", "menuName1"), ("icon2", "menuName2"), ("icon3", "menuName3")]
+
+        resets the lists and menus:
+
+            self.menuIconList: ["icon1", "icon2", "icon3"]
+            self.menuIconList: ["menuName1", "menuName2", "menuName3"]
+
+        :param modes: a list of menu modes (tuples) eg [("icon1", "menuName1"), ("icon2", "menuName2")]
+        :type modes: list(tuple(str))
+        :param mouseButton: the mouse button clicked QtCore.Qt.LeftButton, QtCore.Qt.RightButton, QtCore.Qt.MiddleButton
+        :type mouseButton: QtCore.Qt.ButtonClick
+        """
+        # only add the action list (menu items) to the label, as the line edit uses the same menu
+        self.label.addActionList(modes, mouseButton=mouseButton)
 
 
 class ComboBoxSearchable(QtWidgets.QWidget):
@@ -381,8 +518,12 @@ class ComboBoxRegular(QtWidgets.QWidget):
             self.box.removeItem(index)
 
 
-def CheckBoxRegular(label="", setChecked=False, parent=None, toolTip=""):
-    """Creates a regular check box (on off) with extra simple options
+def CheckBoxRegular(label="", setChecked=False, parent=None, toolTip="", enableMenu=False):
+    """Creates a regular QCheckbox check box (on off) with extra simple options
+
+    Uses the ExtendedCheckboxMenu so left/right/middle click menus can be added
+
+    Set enableMenu to True if you'd like to add menus to the checkbox (uses ExtendedCheckboxMenu)
 
     :param label: the label of the checkbox
     :type label: string
@@ -395,7 +536,10 @@ def CheckBoxRegular(label="", setChecked=False, parent=None, toolTip=""):
     :return qWidget: the checkbox qt widget
     :rtype value: object
     """
-    box = QtWidgets.QCheckBox(label, parent=parent)
+    if enableMenu:
+        box = ExtendedCheckboxMenu(label, parent=parent)
+    else:
+        box = QtWidgets.QCheckBox(label, parent=parent)
     box.setToolTip(toolTip)
     if setChecked:
         box.setChecked(setChecked)
@@ -614,7 +758,8 @@ class Transformation(QtWidgets.QWidget):
         self.layout.setContentsMargins(*uic.MARGINS)
         self.layout.setSpacing(uic.SPACING)
         # self.group.setLayout(self.layout)
-        self.translationVec = VectorSpinBox("Translation:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
+        self.translationVec = VectorSpinBox("Translation:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis,
+                                            parent=self)
         self.rotationVec = VectorSpinBox("Rotation:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
         self.scaleVec = VectorSpinBox("Scale:", [0.0, 0.0, 0.0], -99999, 99999, Transformation.axis, parent=self)
         self.rotationOrderBox = ComboBoxSearchable("RotationOrder:", Transformation.rotOrders, parent=self)
@@ -801,7 +946,7 @@ class labelColorBtn(QtWidgets.QWidget):
         :param rgbList: r g b color in 255 range eg [1.0, 0.0, 0.0]
         :type rgbList: list
         """
-        self.setColor([color*255 for color in rgbList])
+        self.setColor([color * 255 for color in rgbList])
 
     def pickColor(self):
         """Opens the color picker window
@@ -823,7 +968,7 @@ class labelColorBtn(QtWidgets.QWidget):
     def rgbColorF(self):
         """returns rgb tuple with 0-1.0 float ranges Eg (1.0, .5, .6666)
         """
-        return tuple(float(i)/255 for i in self.storedRgbColor)
+        return tuple(float(i) / 255 for i in self.storedRgbColor)
 
     def connections(self):
         """Open the color picker when the button is pressed
@@ -1280,7 +1425,6 @@ def InputDialog(windowName="Add Name", textValue="", parent="", message="Rename?
 
 
 class EmbeddedWindow(QtWidgets.QFrame):
-
     def __init__(self, parent, title, defaultVisibility=True, uppercase=False, closeButton=None):
         """An embedded window is a QFrame widget that appears like a window inside of another ui.
 
@@ -1313,7 +1457,6 @@ class EmbeddedWindow(QtWidgets.QFrame):
         self.setHidden(defaultVisibility)
         self.ui()
         self.connections()
-
 
     def ui(self):
         """Create the UI with a title and close icon top right
@@ -1375,3 +1518,281 @@ class EmbeddedWindow(QtWidgets.QFrame):
         """UI interaction connections, hide button
         """
         self.hidePropertiesBtn.clicked.connect(self.hideEmbedWindow)
+
+"""
+EXTENDED WIDGET MENU CODE
+"""
+
+
+class MenuCreateClickMethods(object):
+
+    def __init__(self):
+        """This class can be added to any widget to help add left/right/middle click menus to any widget
+        The widget must be extended to support the menus
+
+        To add a menu to a supported extended widget:
+
+            myQMenu =  QtWidgets.QMenu(parent)  # create a menu, need to set it up with menu etc
+            zooQtWidget.setMenu(myQMenu, mouseButton=QtCore.Qt.RightButton)  # add menu to the UI with a mouse click
+
+        Or if you are using ExtendedMenu in zoocore_pro, you can easily automatically build the menu items/icons
+
+            myExtMenu =  extendedmenu.ExtendedMenu()  # create an empty zoocore_pro menu (an extended QMenu)
+            theMenuModeList = [("menuIcon1", "Menu Item Name 1"),
+                                (" menuIcon1  ", " Menu Item Name 2")]  # create the menu names and icons
+            zooQtWidget.setMenu(myExtMenu, modeList=theMenuModeList, mouseButton=QtCore.Qt.RightButton)  # add menu
+
+        ExtendedMenu in zoocore_pro can connect when a menu is changed with
+
+            theMenu.menuChanged.connect(runTheMenuFunction)
+
+        Then write a method or function that finds the menu and runs the appropriate code
+        (must be a zoocore_pro ExtendedMenu)
+
+            def runTheMenuFunction(self):
+                if theMenu.currentMenuItem() == theMenuModeList[0][1]:  # menu item name 1
+                    print "first menu item clicked",
+                elif theMenu.currentMenuItem() == theMenuModeList[1][1]:  # menu item name 1
+                    print "second menu item clicked",
+
+        """
+        super(MenuCreateClickMethods, self).__init__()
+
+    def setupMenuClass(self, menuVOffset=20):
+        """ The __init__ of this class is not run with multi-inheritance, not sure why, so this is the __init__ code
+
+        :param menuVOffset:  The vertical offset (down) menu drawn from widget top corner.  DPI is handled
+        :type menuVOffset: int
+        """
+        self.menuVOffset = menuVOffset  # offset neg vertical of the menu when drawn, dpi is handled
+        # To check of the menu is active
+        self.menuActive = {QtCore.Qt.LeftButton: False,
+                           QtCore.Qt.MidButton: False,
+                           QtCore.Qt.RightButton: False}
+
+        # Store menus into a dictionary
+        self.clickMenu = {QtCore.Qt.LeftButton: None,
+                          QtCore.Qt.MidButton: None,
+                          QtCore.Qt.RightButton: None}
+
+        # Is menu searchable? Not implimented
+        self.menuSearchable = {QtCore.Qt.LeftButton: False,
+                               QtCore.Qt.MidButton: False,
+                               QtCore.Qt.RightButton: False}
+
+    def setMenu(self, menu, modeList=None, mouseButton=QtCore.Qt.RightButton):
+        """Add the left/middle/right click menu by passing in a QMenu and assign it to the appropriate mouse click key
+
+        If a modeList is passed in then auto create/reset the menu to the modeList:
+
+            [("icon1", "menuName1"), ("icon2", "menuName2")]
+
+        If no modelist the menu won't change
+
+        :param menu: the Qt menu to show on middle click
+        :type menu: QtWidgets.QMenu
+        :param modeList: a list of menu modes (tuples) eg [("icon1", "menuName1"), ("icon2", "menuName2")]
+        :type modeList: list(tuple(str))
+        :param mouseButton: the mouse button clicked QtCore.Qt.LeftButton, QtCore.Qt.RightButton, QtCore.Qt.MiddleButton
+        :type mouseButton: QtCore.Qt.ButtonClick
+        """
+        self.clickMenu[mouseButton] = menu
+        self.menuActive[mouseButton] = True
+        # setup the connection
+        if modeList:
+            self.addActionList(modeList, mouseButton=mouseButton)
+
+    def contextMenu(self, mouseButton):
+        """Draw the menu depending on mouse click
+
+        :param mouseButton: the mouse button clicked QtCore.Qt.LeftButton, QtCore.Qt.RightButton, QtCore.Qt.MiddleButton
+        :type mouseButton: QtCore.Qt.ButtonClick
+        """
+        menu = self.getMenu(mouseButton=mouseButton)
+        # Show menu
+        if menu is not None and self.menuActive[mouseButton]:
+            self.setFocus()
+            parentPosition = self.mapToGlobal(QtCore.QPoint(0, 0))
+            # TODO: Should auto find the height of the QLineEdit
+            pos = parentPosition + QtCore.QPoint(0, utils.dpiScale(self.menuVOffset))
+            menu.exec_(pos)
+
+    def getMenu(self, mouseButton=QtCore.Qt.RightButton):
+        """Get menu depending on the mouse button pressed
+
+        :param mouseButton: the mouse button clicked QtCore.Qt.LeftButton, QtCore.Qt.RightButton, QtCore.Qt.MiddleButton
+        :type mouseButton: QtCore.Qt.ButtonClick
+        :return: The requested menu
+        :rtype: QtWidgets.QMenu
+        """
+        return self.clickMenu[mouseButton]
+
+    def addActionList(self, modes, mouseButton=QtCore.Qt.RightButton):
+        """resets the appropriate menu with the incoming modes,
+        Note: Use this method only if the menu is an ExtendedMenu from zoocore_pro
+
+        modeList: [("icon1", "menuName1"), ("icon2", "menuName2"), ("icon3", "menuName3")]
+
+        resets the lists and menus:
+
+            self.menuIconList: ["icon1", "icon2", "icon3"]
+            self.menuIconList: ["menuName1", "menuName2", "menuName3"]
+
+        :param modes: a list of menu modes (tuples) eg [("icon1", "menuName1"), ("icon2", "menuName2")]
+        :type modes: list(tuple(str))
+        :param mouseButton: the mouse button clicked QtCore.Qt.LeftButton, QtCore.Qt.RightButton, QtCore.Qt.MiddleButton
+        :type mouseButton: QtCore.Qt.ButtonClick
+        """
+        menu = self.getMenu(mouseButton=mouseButton)
+        if menu is not None:
+            menu.actionConnectList(modes)  # this only exists in ExtendedMenu which is not in zoocore
+
+
+class ExtendedLineEditMenu(ExtendedLineEdit, MenuCreateClickMethods):
+    leftClicked = QtCore.Signal()
+    middleClicked = QtCore.Signal()
+    rightClicked = QtCore.Signal()
+
+    def __init__(self, parent=None, menuVOffset=20):
+        """This class adds the capacity for a left/middle/right click menu to be added to a QLineEdit
+
+        Inherits from zoo's ExtendedLineEdit and MenuCreateClickMethods
+
+        Menus are not added by default they must be set in the ui code. QMenu's can be passed in via setMenu():
+
+            zooQtWidget.setMenu(myQMenu, mouseButton=QtCore.Qt.RightButton)
+
+        Recommended to use zoocore_pro's extendedmenu.ExtendedMenu(). Pass that in instead of a QMenu for extra
+        functionality
+
+        See the class docs for MenuCreateClickMethods() for more information
+
+        :param parent: the parent widget
+        :type parent: QWidget
+        :param menuVOffset:  The vertical offset (down) menu drawn from widget top corner.  DPI is handled
+        :type menuVOffset: int
+        """
+        super(ExtendedLineEditMenu, self).__init__(parent=parent)
+        self.setupMenuClass(menuVOffset=menuVOffset)
+        self.leftClicked.connect(partial(self.contextMenu, QtCore.Qt.LeftButton))
+        self.middleClicked.connect(partial(self.contextMenu, QtCore.Qt.MidButton))
+        self.rightClicked.connect(partial(self.contextMenu, QtCore.Qt.RightButton))
+
+    def mousePressEvent(self, event):
+        """ mouseClick emit
+
+        Checks to see if a menu exists on the current clicked mouse button, if not, use the original Qt behaviour
+
+        :param event: the mouse pressed event from the QLineEdit
+        :type event: QEvent
+        """
+        for mouseButton, menu in self.clickMenu.iteritems():
+            if menu and event.button() == mouseButton:  # if a menu exists and that mouse has been pressed
+                if mouseButton == QtCore.Qt.LeftButton:
+                    return self.leftClicked.emit()
+                if mouseButton == QtCore.Qt.MidButton:
+                    return self.middleClicked.emit()
+                if mouseButton == QtCore.Qt.RightButton:
+                    return self.rightClicked.emit()
+        super(ExtendedLineEditMenu, self).mousePressEvent(event)
+
+
+class ExtendedCheckboxMenu(QtWidgets.QCheckBox, MenuCreateClickMethods):
+    leftClicked = QtCore.Signal()
+    middleClicked = QtCore.Signal()
+    rightClicked = QtCore.Signal()
+
+    def __init__(self, label, parent=None, menuVOffset=20):
+        """This class adds the capacity for a middle/right click menu to be added to the QCheckBox
+
+        Note: This class disables the regular left click button states of a checkbox so has to handle them manual
+        Inherits from QtWidgets.QCheckBox and MenuCreateClickMethods
+
+        Menus are not added by default they must be set in the ui code. QMenu's can be passed in via setMenu():
+
+            zooQtWidget.setMenu(myQMenu, mouseButton=QtCore.Qt.RightButton)
+
+        If using zoocore_pro's ExtendedMenu() you can pass that in instead of a QMenu for extra functionality
+
+        See the class docs for MenuCreateClickMethods() for more information
+
+        :param parent: the parent widget
+        :type parent: QWidget
+        :param menuVOffset:  The vertical offset (down) menu drawn from widget top corner.  DPI is handled
+        :type menuVOffset: int
+        """
+        super(ExtendedCheckboxMenu, self).__init__(label, parent=parent)
+        self.setupMenuClass(menuVOffset=menuVOffset)
+
+        self.leftClicked.connect(partial(self.contextMenu, QtCore.Qt.LeftButton))
+        self.middleClicked.connect(partial(self.contextMenu, QtCore.Qt.MidButton))
+        self.rightClicked.connect(partial(self.contextMenu, QtCore.Qt.RightButton))
+        # TODO: the setDown should turn off as soon as the mouse moves off the widget, like a hover state, looks tricky
+
+    def mousePressEvent(self, event):
+        """ mouseClick emit
+
+        Checks to see if a menu exists on the current clicked mouse button, if not, use the original Qt behaviour
+
+        :param event: the mouse pressed event from the QLineEdit
+        :type event: QEvent
+        """
+        for mouseButton, menu in self.clickMenu.iteritems():
+            if menu and event.button() == mouseButton:  # if a menu exists and that mouse has been pressed
+                if mouseButton == QtCore.Qt.LeftButton:
+                    return self.leftClicked.emit()
+                if mouseButton == QtCore.Qt.MidButton:
+                    return self.middleClicked.emit()
+                if mouseButton == QtCore.Qt.RightButton:
+                    return self.rightClicked.emit()
+        super(ExtendedCheckboxMenu, self).mousePressEvent(event)
+
+
+class ExtendedLabelMenu(QtWidgets.QLabel, MenuCreateClickMethods):
+    leftClicked = QtCore.Signal()
+    middleClicked = QtCore.Signal()
+    rightClicked = QtCore.Signal()
+
+    def __init__(self, name, parent=None, menuVOffset=20):
+        """This class adds the capacity for a left/middle/right click menu to be added to a QLabel
+
+        Inherits from zoo's QtWidgets.QLabel and MenuCreateClickMethods
+
+        Menus are not added by default they must be set in the ui code. QMenu's can be passed in via setMenu():
+
+            zooQtWidget.setMenu(myQMenu, mouseButton=QtCore.Qt.RightButton)
+
+        Recommended to use zoocore_pro's extendedmenu.ExtendedMenu(). Pass that in instead of a QMenu for extra
+        functionality
+
+        See the class docs for MenuCreateClickMethods() for more information
+
+        :param parent: the parent widget
+        :type parent: QWidget
+        :param menuVOffset:  The vertical offset (down) menu drawn from widget top corner.  DPI is handled
+        :type menuVOffset: int
+        """
+        super(ExtendedLabelMenu, self).__init__(name, parent=parent)
+        self.setupMenuClass(menuVOffset=menuVOffset)
+        self.leftClicked.connect(partial(self.contextMenu, QtCore.Qt.LeftButton))
+        self.middleClicked.connect(partial(self.contextMenu, QtCore.Qt.MidButton))
+        self.rightClicked.connect(partial(self.contextMenu, QtCore.Qt.RightButton))
+
+    def mousePressEvent(self, event):
+        """ mouseClick emit
+
+        Checks to see if a menu exists on the current clicked mouse button, if not, use the original Qt behaviour
+
+        :param event: the mouse pressed event from the QLineEdit
+        :type event: QEvent
+        """
+        for mouseButton, menu in self.clickMenu.iteritems():
+            if menu and event.button() == mouseButton:  # if a menu exists and that mouse has been pressed
+                if mouseButton == QtCore.Qt.LeftButton:
+                    return self.leftClicked.emit()
+                if mouseButton == QtCore.Qt.MidButton:
+                    return self.middleClicked.emit()
+                if mouseButton == QtCore.Qt.RightButton:
+                    return self.rightClicked.emit()
+        super(ExtendedLabelMenu, self).mousePressEvent(event)
+
