@@ -7,7 +7,7 @@ from zoo.libs.pyqt.widgets import dockwidget
 class MainWindow(QtWidgets.QMainWindow):
     closed = QtCore.Signal()
 
-    restoreWindowSize = True
+    restoreWindowSize = False
 
     def __init__(self, title="", width=600, height=800, icon="",
                  parent=None, showOnInitialize=True, transparent=False):
