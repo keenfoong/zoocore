@@ -7,7 +7,6 @@ from zoo.libs.pyqt import utils, uiconstants
 from zoo.libs.pyqt import uiconstants as uic
 from zoo.libs.pyqt.extended import combobox
 from zoo.libs.pyqt.widgets import frame
-from zoo.libs.pyqt.widgetspro import buttons
 
 
 def Label(name, parent, toolTip="", upper=False, bold=False):
@@ -1428,8 +1427,7 @@ class StringEdit(QtWidgets.QWidget):
         self.buttonText = buttonText
         if self.buttonText:
             # todo button connections should be added from this class (connections)
-            self.btn = QtWidgets.QPushButton(self.buttonText, parent=parent)
-            self.btn.setToolTip(toolTip)
+            self.btn = buttons.styledButton(self.buttonText, toolTip=toolTip, style=uiconstants.BTN_DEFAULT)
             self.layout.addWidget(self.btn, btnRatio)
         self.setLayout(self.layout)
         self.connections()
@@ -1448,6 +1446,7 @@ class StringEdit(QtWidgets.QWidget):
     def setDisabled(self, state):
         """Disable the text (make it grey)"""
         self.edit.setDisabled(state)
+        self.label.setDisabled(state)
 
     def setText(self, value):
         """Change the text at any time"""
@@ -1456,3 +1455,6 @@ class StringEdit(QtWidgets.QWidget):
     def text(self):
         """get the text of self.edit"""
         return self.edit.text()
+
+    def clearFocus(self):
+        self.edit.clearFocus()
