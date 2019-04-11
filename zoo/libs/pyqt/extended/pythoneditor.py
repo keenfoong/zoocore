@@ -2,8 +2,8 @@ import os
 import sys
 import traceback
 from qt import QtWidgets, QtGui, QtCore
-from zoo.libs.pyqt import utils as qtutils
 from zoo.libs.pyqt.syntaxhighlighter import highlighter
+from zoo.libs.pyqt.widgets import layouts
 
 
 class NumberBar(QtWidgets.QWidget):
@@ -156,7 +156,7 @@ class Editor(QtWidgets.QFrame):
         self.textEdit = TextEditor(parent=self)
         self.numberBar = NumberBar(self.textEdit)
 
-        hbox = qtutils.hBoxLayout(parent=self)
+        hbox = layouts.hBoxLayout(parent=self)
         hbox.addWidget(self.numberBar)
         hbox.addWidget(self.textEdit)
 
