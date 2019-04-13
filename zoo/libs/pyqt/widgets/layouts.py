@@ -109,6 +109,7 @@ class ExtendedLineEdit(QtWidgets.QLineEdit):
         if before == after:
             self.textModified.emit()
 
+
 def LineEdit(text="", placeholder="", parent=None, toolTip="", editWidth=None, inputMode="string", fixedWidth=None,
              enableMenu=True):
     """Creates a simple textbox (QLineEdit)
@@ -1170,7 +1171,7 @@ class HotkeyDetectEdit(QtWidgets.QLineEdit):
         elif modifiers == (QtCore.Qt.AltModifier | QtCore.Qt.ShiftModifier):
             hotkey = 'Shift+Alt+' + keyStr
         elif modifiers == (QtCore.Qt.AltModifier | QtCore.Qt.ControlModifier |
-                               QtCore.Qt.ShiftModifier):
+                           QtCore.Qt.ShiftModifier):
             hotkey = 'Ctrl+Alt+Shift+' + keyStr
         elif modifiers == (QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier):
             hotkey = 'Ctrl+' + keyStr
@@ -1519,6 +1520,7 @@ class EmbeddedWindow(QtWidgets.QFrame):
         """
         self.hidePropertiesBtn.clicked.connect(self.hideEmbedWindow)
 
+
 """
 EXTENDED WIDGET MENU CODE
 """
@@ -1795,4 +1797,3 @@ class ExtendedLabelMenu(QtWidgets.QLabel, MenuCreateClickMethods):
                 if mouseButton == QtCore.Qt.RightButton:
                     return self.rightClicked.emit()
         super(ExtendedLabelMenu, self).mousePressEvent(event)
-
