@@ -46,6 +46,9 @@ class PluginStats(object):
                           })
         self.info.update(env.machineInfo())
 
+    def start(self):
+        self.startTime = time.time()
+
     def finish(self, tb=None):
         """Called when the plugin has finish executing.
 
