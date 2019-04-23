@@ -83,29 +83,38 @@ class ExtendedLineEdit(QtWidgets.QLineEdit):
 
     def __init__(self, parent=None):
         super(ExtendedLineEdit, self).__init__(parent)
-        self.editingFinished.connect(self.__handleEditingFinished)
-        self.textChanged.connect(self.__handleTextChanged)
-        self.returnPressed.connect(self.__handleReturnPressed)
+        self.editingFinished.connect(self._handleEditingFinished)
+        self.textChanged.connect(self._handleTextChanged)
+        self.returnPressed.connect(self._handleReturnPressed)
         self._before = ""
 
-    def __handleTextChanged(self, text):
+    def _getBeforeAfter(self):
+        """returns the before state and the after
+
+        Checks if the textbox is a float, if so compare the numbers to account for irrelevant decimal differences"""
+        if type(self.validator()) == QtGui.QDoubleValidator:  # float
+            return float(self._before), float(self.text())
+        else:
+            return self._before, self.text()
+
+    def _handleTextChanged(self, text):
         """If text has changed update self._before
         """
         if not self.hasFocus():
             self._before = text
 
-    def __handleEditingFinished(self):
+    def _handleEditingFinished(self):
         """if text has changed and editingFinished emit textModified
         """
-        before, after = self._before, self.text()
+        before, after = self._getBeforeAfter()
         if before != after:
             self._before = after
             self.textModified.emit()
 
-    def __handleReturnPressed(self):
+    def _handleReturnPressed(self):
         """if text hasn't changed and returnPressed emit textModified
         """
-        before, after = self._before, self.text()
+        before, after = self._getBeforeAfter()
         if before == after:
             self.textModified.emit()
 
@@ -552,6 +561,7 @@ class VectorLineEdit(QtWidgets.QWidget):
     use inputMode="float" to restrict the data entry to decimal numbers
     """
     textChanged = QtCore.Signal(tuple)
+    textModified = QtCore.Signal(tuple)
 
     def __init__(self, label, value, axis=("x", "y", "z"), parent=None, toolTip="", inputMode="float", labelRatio=1,
                  editRatio=1, spacing=uic.SREG):
@@ -586,6 +596,8 @@ class VectorLineEdit(QtWidgets.QWidget):
         for i, v in enumerate(axis):
             edit = LineEdit(text=value[i], placeholder="", parent=parent, toolTip=toolTip, inputMode=inputMode)
             # edit.setObjectName("".join([label, v]))  # might not need a label name?  Leave this line in case
+
+            edit.textModified.connect(self._onTextModified)
             edit.textChanged.connect(self._onTextChanged)
             self._widgets[v] = edit
             vectorEditLayout.addWidget(edit)
@@ -595,9 +607,14 @@ class VectorLineEdit(QtWidgets.QWidget):
     def _onTextChanged(self):
         """updates the text, should also update the dict
         """
-        # todo: check that the methods below work, not tested
         valueList = [self._widgets[axis].text() for axis in self._widgets]
         self.textChanged.emit(tuple(valueList))
+
+    def _onTextModified(self):
+        """updates the text, should also update the dict
+        """
+        valueList = [self._widgets[axis].text() for axis in self._widgets]
+        self.textModified.emit(tuple(valueList))
 
     def widget(self, axis):
         """Gets the widget from the axis string name
@@ -930,7 +947,7 @@ class labelColorBtn(QtWidgets.QWidget):
         self.setLayout(self.layout)
         self.connections()
 
-    def setColor(self, rgbList):
+    def setColorSrgbInt(self, rgbList):
         """Sets the color of the button as per a rgb list in 0-255 range
 
         :param rgbList: r g b color in 255 range eg [255, 0, 0]
@@ -941,13 +958,13 @@ class labelColorBtn(QtWidgets.QWidget):
         color = QtGui.QColor(self.storedRgbColor[0], self.storedRgbColor[1], self.storedRgbColor[2], 255)
         self.colorPickerBtn.setStyleSheet("background-color: {}".format(color.name()))
 
-    def setColorSrgb(self, rgbList):
+    def setColorSrgbFloat(self, rgbList):
         """Sets the color of the button as per a rgb list in 0-1 range, colors are not rounded
 
-        :param rgbList: r g b color in 255 range eg [1.0, 0.0, 0.0]
+        :param rgbList: r g b color in float range eg [1.0, 0.0, 0.0]
         :type rgbList: list
         """
-        self.setColor([color * 255 for color in rgbList])
+        self.setColorSrgbInt([color * 255 for color in rgbList])
 
     def pickColor(self):
         """Opens the color picker window
@@ -958,7 +975,7 @@ class labelColorBtn(QtWidgets.QWidget):
         color = QtWidgets.QColorDialog.getColor(initialPickColor)  # expects 255 range
         if QtGui.QColor.isValid(color):
             rgbList = (color.getRgb())[0:3]
-            self.setColor(rgbList)
+            self.setColorSrgbInt(rgbList)
             self.colorChanged.emit(color)
 
     def rgbColor(self):

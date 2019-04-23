@@ -272,6 +272,7 @@ def rgbFloatToInt(color):
     """
     return tuple([int(round(255*float(c))) for c in color])
 
+
 def rgbIntRound(color):
     """Rounds all values of 255 color
 
