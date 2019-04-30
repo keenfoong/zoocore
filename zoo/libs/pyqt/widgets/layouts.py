@@ -89,7 +89,8 @@ class ExtendedLineEdit(QtWidgets.QLineEdit):
         self._before = ""
 
     def _getBeforeAfter(self):
-        """returns the before state and the after
+        """Returns the before state and the after
+        """
 
         Checks if the textbox is a float, if so compare the numbers to account for irrelevant decimal differences"""
         if type(self.validator()) == QtGui.QDoubleValidator:  # float
