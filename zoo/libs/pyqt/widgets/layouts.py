@@ -332,6 +332,24 @@ class ComboBoxSearchable(QtWidgets.QWidget):
             return getattr(self.box, item)
         super(ComboBoxSearchable, self).__getAttribute__(item)
 
+    def clear(self):
+        """ Clear all items
+
+        :return:
+        """
+        self.box.clear()
+
+    def addItems(self, items, sortAlphabetically=False):
+        """ Add items to combobox
+
+        :param items:
+        :param sortAlphabetically:
+        :return:
+        """
+        self.box.addItems(items)
+        if sortAlphabetically:
+            self.themeBox.model().sort(0)
+
     def addItem(self, item, sortAlphabetically=False):
         """adds an entry to the combo box
 
