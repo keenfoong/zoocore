@@ -121,7 +121,8 @@ def desaturate(col, level=1.0):
     :type col: tuple
     :param level: Level of desaturation from 0 to 1.0. 1.0 is desaturated, 0 is the same saturation
     :type level: float
-    :return:
+    :return: Tuple with desaturated color
+    :rtype: tuple
     """
     saturation = convertRgbToHsv(rgbIntToFloat(col))[1]
     if saturation:  # then .75 the saturation to dull the icon color
