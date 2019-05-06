@@ -89,6 +89,11 @@ def findParentDirectory(childPath, folder):
 
 def openLocation(path):
     """Opens the parent directory of a file, selecting the file if possible.
+
+    *Note: needs to be tested in win 10 from inside of Maya, current issues
+
+    :param path: the path to the directory or file
+    :type path: str
     """
     platform = sys.platform
     if platform == 'win32':
@@ -103,6 +108,23 @@ def openLocation(path):
         subprocess.Popen(["open" "-R", os.path.dirname(path)])
     else:
         subprocess.Popen(["xdg-open", os.path.dirname(path)])
+
+
+def openDirectory(directoryPath):
+    """Opens the native OS folder to the directory of file name
+    similar to os.startfile(filename) but also supporting osx and linux
+
+    *Note: current duplicate of findParentDirectory() Just it is not working from Maya, needs to be fixed
+    :param directoryPath: the path to the directory to open
+    :type directoryPath: str
+    """
+    # TODO:  Note: This function is a current duplicate of findParentDirectory()
+    # TODO: findParentDirectory() is not working from Maya, needs to be sorted
+    if sys.platform == "win32":
+        os.startfile(directoryPath)
+    else:
+        opener ="open" if sys.platform == "darwin" else "xdg-open"
+        subprocess.call([opener, directoryPath])
 
 
 @clearUnMasked

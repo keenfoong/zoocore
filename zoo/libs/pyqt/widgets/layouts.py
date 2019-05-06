@@ -90,7 +90,6 @@ class ExtendedLineEdit(QtWidgets.QLineEdit):
 
     def _getBeforeAfter(self):
         """Returns the before state and the after
-        """
 
         Checks if the textbox is a float, if so compare the numbers to account for irrelevant decimal differences"""
         if type(self.validator()) == QtGui.QDoubleValidator:  # float
@@ -238,6 +237,14 @@ class StringEdit(QtWidgets.QWidget):
         """Change the text at any time"""
         self.edit.setText(value)
 
+    def setLabelFixedWidth(self, width):
+        """Set the fixed width of the label"""
+        self.label.setFixedWidth(utils.dpiScale(width))
+
+    def setTxtFixedWidth(self, width):
+        """Set the fixed width of the lineEdit"""
+        self.edit.setFixedWidth(utils.dpiScale(width))
+
     def text(self):
         """get the text of self.edit"""
         return self.edit.text()
@@ -302,6 +309,7 @@ class ComboBoxSearchable(QtWidgets.QWidget):
         :param parent: the qt parent
         :type parent: class
         """
+        # TODO needs to stylesheet the lineEdit text entry
         super(ComboBoxSearchable, self).__init__(parent=parent)
         layout = hBoxLayout(parent=None, margins=(0, 0, 0, 0),
                             spacing=utils.dpiScale(uic.SPACING))  # margins kwarg should be added
@@ -389,12 +397,56 @@ class ComboBoxSearchable(QtWidgets.QWidget):
     def setToText(self, text):
         """Sets the index based on the text
 
-        :param text: Text to search and switch item to.
-        :return:
+        :param text: Text to search and switch the comboxBox to
+        :type text: str
         """
         index = self.findText(text, QtCore.Qt.MatchFixedString)
         if index >= 0:
             self.setCurrentIndex(index)
+
+    def setToTextQuiet(self, text):
+        """Sets the index based on the text and stops comboBox from emitting signals while being changed
+
+        :param text: Text to search and switch the comboxBox to
+        :type text: str
+        """
+        self.box.blockSignals(True)
+        self.setToText(self, text)
+        self.box.blockSignals(False)
+
+    def setIndex(self, index):
+        """Sets the combo box to the current index number
+
+        :param index: Sets the combo box to the current index
+        :type index: int
+        """
+        self.box.setCurrentIndex(index)
+
+    def setIndexQuiet(self, index):
+        """Sets the combo box to the current index number, stops comboBox from emitting signals while being changed
+
+        :param index: the index item number of the comboBox
+        :type index: int
+        """
+        self.box.blockSignals(True)
+        self.box.setCurrentIndex(index)
+        self.box.blockSignals(False)
+
+    def setLabelFixedWidth(self, width):
+        """Set the fixed width of the label
+
+        :param width: the width in pixels, DPI is handled
+        :type width: int
+        """
+        self.label.setFixedWidth(utils.dpiScale(width))
+
+    def setBoxFixedWidth(self, width):
+        """Set the fixed width of the lineEdit
+
+        :param width: the width in pixels, DPI is handled
+        :type width: int
+        """
+        self.box.setFixedWidth(utils.dpiScale(width))
 
 
 def comboBox(items=(), parent=None, toolTip="", setIndex=0, sortAlphabetically=False):
@@ -521,12 +573,22 @@ class ComboBoxRegular(QtWidgets.QWidget):
     def setToText(self, text):
         """Sets the index based on the text
 
-        :param text: Text to search and switch item to.
+        :param text: Text to search and switch the comboxBox to
         :type text: str
         """
         index = self.findText(text, QtCore.Qt.MatchFixedString)
         if index >= 0:
             self.box.setCurrentIndex(index)
+
+    def setToTextQuiet(self, text):
+        """Sets the index based on the text and stops comboBox from emitting signals while being changed
+
+        :param text: Text to search and switch the comboxBox to
+        :type text: str
+        """
+        self.box.blockSignals(True)
+        self.setToText(self, text)
+        self.box.blockSignals(False)
 
     def setIndex(self, index):
         """Sets the combo box to the current index number
@@ -535,6 +597,16 @@ class ComboBoxRegular(QtWidgets.QWidget):
         :type index: int
         """
         self.box.setCurrentIndex(index)
+
+    def setIndexQuiet(self, index):
+        """Sets the combo box to the current index number, stops comboBox from emitting signals while being changed
+
+        :param index: the index item number of the comboBox
+        :type index: int
+        """
+        self.box.blockSignals(True)
+        self.box.setCurrentIndex(index)
+        self.box.blockSignals(False)
 
     def removeItemByText(self, text):
         """removes the index based on the text from the combo box (box.removeItem)
@@ -545,6 +617,14 @@ class ComboBoxRegular(QtWidgets.QWidget):
         index = self.findText(text, QtCore.Qt.MatchFixedString)
         if index >= 0:
             self.box.removeItem(index)
+
+    def setLabelFixedWidth(self, width):
+        """Set the fixed width of the label"""
+        self.label.setFixedWidth(utils.dpiScale(width))
+
+    def setBoxFixedWidth(self, width):
+        """Set the fixed width of the lineEdit"""
+        self.box.setFixedWidth(utils.dpiScale(width))
 
 
 def CheckBoxRegular(label="", setChecked=False, parent=None, toolTip="", enableMenu=False):
@@ -668,6 +748,27 @@ class VectorLineEdit(QtWidgets.QWidget):
         keys = self._widgets.keys()
         for i, v in enumerate(value):
             self._widgets[keys[i]].setText(str(v))
+
+    def setLabelFixedWidth(self, width):
+        """Set the fixed width of the label"""
+        self.label.setFixedWidth(utils.dpiScale(width))
+
+    def hideLineEdit(self, axisInt):
+        """hides one of the lineEdits from by index from self.axis list
+
+        :param axisInt: the index of the lineEdit to hide
+        :type axisInt: int
+        """
+        self._widgets[self.axis[axisInt]].hide()
+
+    def showLineEdit(self, axisInt):
+        """shows one of the lineEdits from by index from self.axis list
+
+        :param axisInt: the index of the lineEdit to hide
+        :type axisInt: int
+        """
+        self._widgets[self.axis[axisInt]].show()
+
 
 
 class VectorSpinBox(QtWidgets.QWidget):
@@ -1784,6 +1885,16 @@ class ExtendedCheckboxMenu(QtWidgets.QCheckBox, MenuCreateClickMethods):
                 if mouseButton == QtCore.Qt.RightButton:
                     return self.rightClicked.emit()
         super(ExtendedCheckboxMenu, self).mousePressEvent(event)
+
+    def setCheckedQuiet(self, value):
+        """Sets the checkbox in quiet box without emitting a signal
+
+        :param value: True if checked, False if not checked
+        :type value: bool
+        """
+        self.blockSignals(True)
+        self.setChecked(value)
+        self.blockSignals(False)
 
 
 class ExtendedLabelMenu(QtWidgets.QLabel, MenuCreateClickMethods):
