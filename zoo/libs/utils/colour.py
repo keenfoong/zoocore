@@ -125,7 +125,7 @@ def desaturate(col, level=1.0):
     :rtype: tuple
     """
     saturation = convertRgbToHsv(rgbIntToFloat(col))[1]
-    if saturation:  # then .75 the saturation to dull the icon color
+    if saturation:
         saturationOffset = int((saturation * level) * -255.0)
     else:
         saturationOffset = 0.0
