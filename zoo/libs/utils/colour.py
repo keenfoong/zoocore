@@ -25,10 +25,10 @@ def convertRgbToHsv(rgb):
     """ Converts rgb values to hsv
     rgb is in 0-1 range, hsv is in (0-360, 0-1, 0-1) ranges
 
+    :param rgb: Hue Saturation Value Hue is in 0-360 range, Sat/Value 0-1 range
+    :type rgb: list or tuple
     :return hsv: Red Green Blue values 0-1
     :rtype hsv: list
-    :param rgb: Hue Saturation Value Hue is in 0-360 range, Sat/Value 0-1 range
-    :type rgb: list
     """
     hsv = list(colorsys.rgb_to_hsv((rgb[0]), rgb[1], rgb[2]))
     hsv[0] *= 360.0
@@ -112,6 +112,26 @@ def convertSrgbListToLinear(srgbList, roundNumber=True):
         else:
             linearRgbList.append(linColorLong)
     return linearRgbList
+
+
+def desaturate(col, level=1.0):
+    """ Returns a desaturated color
+
+    :param col: int color tuple eg (128, 128, 255, 255)
+    :type col: tuple
+    :param level: Level of desaturation from 0 to 1.0. 1.0 is desaturated, 0 is the same saturation
+    :type level: float
+    :return: Tuple with desaturated color
+    :rtype: tuple
+    """
+    saturation = convertRgbToHsv(rgbIntToFloat(col))[1]
+    if saturation:
+        saturationOffset = int((saturation * level) * -255.0)
+    else:
+        saturationOffset = 0.0
+    desaturated = hslColourOffsetInt(col, lightnessOffset=-40, saturationOffset=saturationOffset)
+
+    return desaturated
 
 
 def offsetHueColor(hsv, offset):
