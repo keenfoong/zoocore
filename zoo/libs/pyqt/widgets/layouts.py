@@ -627,7 +627,7 @@ class ComboBoxRegular(QtWidgets.QWidget):
         self.box.setFixedWidth(utils.dpiScale(width))
 
 
-def CheckBoxRegular(label="", setChecked=False, parent=None, toolTip="", enableMenu=False):
+def CheckBoxRegular(label="", setChecked=False, parent=None, toolTip="", enableMenu=True):
     """Creates a regular QCheckbox check box (on off) with extra simple options
 
     Uses the ExtendedCheckboxMenu so left/right/middle click menus can be added
