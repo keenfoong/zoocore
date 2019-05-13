@@ -90,7 +90,7 @@ class SearchableMenu(menu.Menu):
         """
         super(SearchableMenu, self).clear()
 
-        # Add the search menu back in
+        # Add the search edit back in
         self._initSearchEdit()
 
 
