@@ -35,14 +35,14 @@ class SearchableMenu(menu.Menu):
         super(SearchableMenu, self).__init__(**kwargs)
         self.setObjectName(kwargs.get("objectName"))
         self.setTitle(kwargs.get("title"))
-        self._init()
+        self._initSearchEdit()
 
-    def _init(self):
+    def _initSearchEdit(self):
         # search custom widget action
         self.searchAction = QtWidgets.QWidgetAction(self)
         self.searchAction.setObjectName("SearchAction")
 
-        self.searchEdit = QtWidgets.QLineEdit()
+        self.searchEdit = QtWidgets.QLineEdit(self)
         self.searchEdit.setPlaceholderText("Search...")
         self.searchEdit.textChanged.connect(self.updateSearch)
 
@@ -82,6 +82,16 @@ class SearchableMenu(menu.Menu):
             _recursiveSearchByTags(self, tags)
             return
         _recursiveSearch(self, tags[0])
+
+    def clear(self):
+        """ Clear all items from menu
+
+        :return:
+        """
+        super(SearchableMenu, self).clear()
+
+        # Add the search menu back in
+        self._initSearchEdit()
 
 
 def _recursiveSearch(menu, searchString):

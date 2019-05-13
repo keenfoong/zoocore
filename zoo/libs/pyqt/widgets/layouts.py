@@ -570,6 +570,9 @@ class ComboBoxRegular(QtWidgets.QWidget):
         """
         self.box.setItemData(index, value)
 
+    def itemText(self, index):
+        self.box.itemText(index)
+
     def setToText(self, text):
         """Sets the index based on the text
 
@@ -643,7 +646,7 @@ def CheckBoxRegular(label="", setChecked=False, parent=None, toolTip="", enableM
     :param toolTip: the tooltip info to display with mouse hover
     :type toolTip: str
     :return qWidget: the checkbox qt widget
-    :rtype value: object
+    :rtype value: ExtendedCheckboxMenu or QtWidgets.QCheckBox
     """
     if enableMenu:
         box = ExtendedCheckboxMenu(label, parent=parent)
