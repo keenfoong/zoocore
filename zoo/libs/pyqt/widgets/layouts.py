@@ -571,6 +571,11 @@ class ComboBoxRegular(QtWidgets.QWidget):
         self.box.setItemData(index, value)
 
     def itemText(self, index):
+        """ Get current text from combobox
+
+        :param index:
+        :return:
+        """
         self.box.itemText(index)
 
     def setToText(self, text):
